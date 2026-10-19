@@ -88,6 +88,23 @@ def text_png(text: str, kind: str = "hook", font: str = "Montserrat", color: str
     if out.exists():
         return out
     img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    if kind == "corner":
+        # tiny labels in the top corners, e.g. "VLOG_01" left and "SHANGHAI" right (ref A)
+        left, _, right = text.partition("|")
+        size = max(14, int(min(w, h) * 0.022))
+        fpath = next((d / f"{n}.ttf" for n in ("Montserrat-Medium", "segoeui", "arial")
+                      for d in (Path("C:/Windows/Fonts"), Path.home() / "AppData/Local/Microsoft/Windows/Fonts")
+                      if (d / f"{n}.ttf").exists()), None)
+        f = ImageFont.truetype(str(fpath), size) if fpath else ImageFont.load_default(size)
+        m = int(min(w, h) * 0.05)
+        top = SAFE["top"] if h > w else m
+        d = ImageDraw.Draw(img)
+        sp = lambda s: " ".join(s.upper())
+        d.text((m, top), "—" + sp(left), font=f, fill=color)
+        if right:
+            d.text((w - m - f.getlength(sp(right) + "—"), top), sp(right) + "—", font=f, fill=color)
+        img.save(out)
+        return out
     if kind == "minimal":
         # small, widely letter-spaced title centred in frame (cinematic reference style)
         spaced = "   ".join(" ".join(word) for word in text.upper().split())

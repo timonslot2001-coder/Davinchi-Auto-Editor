@@ -194,6 +194,24 @@ def apply(item, effects: list[str], fps: float, speed_ramp: float | None = None,
                 _key(inv, "Blend", {f: float(f % 2 == 0) for f in range(0, gl)} | {gl: 0.0})
                 done.append("glitch")
 
+        if "frame_in_frame" in effects:
+            # the shot as a 'photo' on a paper-coloured backdrop (refs A/B), snaps in like the grid tiles
+            paper = comp.AddTool("Background", -32768, -32768)
+            mpi = item.GetMediaPoolItem()
+            res = ((mpi.GetClipProperty("Resolution") if mpi else "") or "3840x2160").lower().split("x")
+            paper.SetInput("UseFrameFormatSettings", 0)          # same size as the clip, else the 'photo' shrinks
+            paper.SetInput("Width", int(res[0]))
+            paper.SetInput("Height", int(res[1]))
+            paper.SetInput("TopLeftRed", 0.95)
+            paper.SetInput("TopLeftGreen", 0.94)
+            paper.SetInput("TopLeftBlue", 0.91)
+            pip = comp.AddTool("Merge", -32768, -32768)
+            pip.ConnectInput("Background", paper)
+            pip.ConnectInput("Foreground", node)
+            _key(pip, "Size", {0: 0.66, 2: 0.62})
+            node = pip
+            done.append("frame_in_frame")
+
         if "light_leak" in effects:
             # orange film burn sweeping across the first ~10 frames (screen blend), like the reference
             bg = comp.AddTool("Background", -32768, -32768)

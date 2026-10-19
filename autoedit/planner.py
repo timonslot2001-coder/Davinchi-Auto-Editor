@@ -371,7 +371,8 @@ def make_cinematic_plan(clips: list[ClipAnalysis], style: dict, cfg, music: Musi
         t = first
         while t < final_start - 0.3:
             e = music.energy_at(t)
-            want = step * (3.0 if e < 0.12 else 2.0 if e < 0.3 else 1.0 if e < 0.7 else 0.6)
+            # quiet → hold, loud → cut faster, very loud → quick bursts (ref A: ~0.27 s per shot)
+            want = step * (3.0 if e < 0.12 else 2.0 if e < 0.3 else 1.0 if e < 0.7 else 0.6 if e < 0.9 else 0.5)
             nxt = snap(t + want)
             if nxt <= t + 0.2:
                 nxt = t + want
@@ -454,6 +455,14 @@ def make_cinematic_plan(clips: list[ClipAnalysis], style: dict, cfg, music: Musi
                     s.effects.append("whip")
                 break
 
+    # accents from refs A/B: a couple of shots as 'photo' frame-in-frame, a couple in black & white
+    body = [s for s in shots if s.clip and s.role == "body" and not s.effects and s.dur >= 0.5]
+    rng.shuffle(body)
+    for s in body[:style.get("frame_in_frame", 0)]:
+        s.effects.append("frame_in_frame")
+    for s in [b for b in body if not b.effects][:style.get("bw_accents", 0)]:
+        s.effects.append("bw")
+
     sfx = []
     sfx_map = style.get("sfx", {})
     for s in shots:
@@ -466,6 +475,9 @@ def make_cinematic_plan(clips: list[ClipAnalysis], style: dict, cfg, music: Musi
     title = title or style.get("title")
     if title:
         texts.append({"t0": 0.0, "t1": round(sum(quick) + step * 1.2, 3), "text": title, "kind": "minimal"})
+    if style.get("corner_label"):
+        texts.append({"t0": 0.0, "t1": round(min(t, sum(quick) + step * 3), 3),
+                      "text": f"{style['corner_label']}|{(title or '').upper()}", "kind": "corner"})
     markers = [{"t": s.rec_in, "name": s.role if not s.clip else (s.effects[0] if s.effects else "cut"),
                 "note": f"{Path(s.clip).name if s.clip else 'BLACK'} {s.src_in:.2f}-{s.src_out:.2f}"} for s in shots]
     music_d = {"path": music.path, "offset": 0.0, "tempo": music.tempo} if music else None

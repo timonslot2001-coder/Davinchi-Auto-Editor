@@ -233,7 +233,7 @@ class Builder:
                 stab_n += 1
             if cfg.get("format.smart_reframe") and s.role == "hook":
                 item.SmartReframe()
-            fx_n += len(fx.apply(item, s.effects, self.fps, s.speed_ramp, seed=i,
+            fx_n += len(fx.apply(item, [e for e in s.effects if e != "bw"], self.fps, s.speed_ramp, seed=i,
                                   intensity=cfg.get("effects.intensity", 1.0)))
         for item, k, src in grid_items:
             fx.grid_panel(item, k, self.fps, src_size=src, canvas=(self.W, self.H))
@@ -245,6 +245,9 @@ class Builder:
 
         # ---- grade everything (main + grid panels)
         self._grade([it for _, it in main_items] + grid_items)
+        for s, it in main_items:
+            if "bw" in s.effects:                      # black & white accent (ref B)
+                it.SetCDL({"NodeIndex": "1", "Slope": "1 1 1", "Offset": "0 0 0", "Power": "1 1 1", "Saturation": "0"})
 
         # ---- overlay (film frames / light leaks) over the whole edit
         ov = plan.overlay
@@ -260,14 +263,17 @@ class Builder:
                     item.SetProperty("Opacity", float(ov.get("opacity", 30)))
 
         # ---- hook text (PNG in safe zone, pops in)
-        for t in plan.texts:
+        for ti, t in enumerate(plan.texts):
+            track = V_TEXT + ti                              # every text on its own track (they overlap in time)
+            while tl.GetTrackCount("video") < track:
+                tl.AddTrack("video")
             png = text_png(t["text"], t["kind"], cfg.get("branding.font", "Montserrat"),
                            cfg.get("branding.primary_color", "#FFFFFF"), cfg.get("branding.accent_color", "#FFD400"),
                            w=self.W, h=self.H)
             n = self.f(t["t1"] - t["t0"])
             clip = text_clip(png, n / self.fps, self.fps, fade=0.2 if t["kind"] == "minimal" else 0.0)
             m = self._import([clip], b_gfx)[str(clip)]
-            item = self._append(m, 0, n, V_TEXT, start + self.f(t["t0"]), 1)
+            item = self._append(m, 0, n, track, start + self.f(t["t0"]), 1)
             if item and t["kind"] != "minimal":                # minimal titles sit still, like the reference
                 fx.apply(item, [], self.fps, pop_in=True)
 

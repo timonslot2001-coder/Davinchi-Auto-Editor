@@ -91,3 +91,16 @@ autoedit project "smoke"           # edits it: song from music\ (or project.yaml
 autoedit projects                  # overview of all projects
 ```
 Or just tell Claude: *"start project smoke"*.
+
+## Your editor packs (FOUR Editors)
+Extracted to `Documents\Editor Packs\` (1080p versions) and wired in:
+- **Overlays + overlay transitions** are indexed by category (`autoedit/packs.py`, `paths.pack_folders`) and used
+  by the director as skills: real light leaks / film burns on cuts, glitch transitions, doodles, ink splashes,
+  viewfinder frames, subtle 16mm grain, and a real film burn into the final hold. Blend: Screen (light on black),
+  grain: Overlay at low opacity.
+- Pack SFX (VHS, film, split frames) are added to the sound library.
+- Installed in Resolve: the `.drfx` packs (effects, transitions, titles, lower thirds, callouts) in the Fusion
+  Templates folder, the 50 4E glitch presets as edit effects, and all LUTs (incl. The Everyday LUT) under
+  `LUT\FOUR Editors\`. Restart Resolve once to see them in the Effects library.
+- Not used automatically (yet): mask-type transitions (Punch Hole, Cinemarkers, CineSnip, Poster Wall) and
+  Abstract Brush (contains the Four Editors logo).

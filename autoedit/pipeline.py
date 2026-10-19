@@ -92,7 +92,7 @@ def run(cfg, folder: str | Path, style_name: str | None = None, variants: str = 
             if use_director:
                 from .director import direct
                 log("[bold]Director[/] (eye + ear candy from inventory.yaml):")
-                direct(plan, clips, mus, seed=run_seed, log=log, overrides=overrides)
+                direct(plan, clips, mus, seed=run_seed, log=log, overrides=overrides, cfg=cfg)
             (out_root / f"{base}_plan.json").write_text(plan.to_json())
             log(f"[bold]Variant {v}[/]: {len(plan.shots)} shots, {plan.length:.1f}s, hook “{plan.texts[0]['text'] if plan.texts else '-'}”")
             built = Builder(cfg, plan, style, log=log).build()

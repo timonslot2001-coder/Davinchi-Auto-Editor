@@ -41,6 +41,9 @@ rules:
   - id: clean_title
     said: "(Claude's own review) title over a frame-in-frame looked cluttered"   # 2026-10-19
     rule: "the title sits on a clean full frame: no frame-in-frame / B&W while the title is on screen"
+  - id: leaks_not_whiteout
+    said: "(Claude's own review) the analog-light transition washed the picture out to white"   # 2026-10-19
+    rule: "light/leak overlays stay below a white-out: ~75% opacity on cuts, the picture must stay readable"
 
 # numbers the director reads
 knobs:

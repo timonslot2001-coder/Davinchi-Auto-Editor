@@ -216,6 +216,103 @@ techniques:
     sfx_word: click
     bookend_chance: 0.35        # title comes back over the final hold (Kuala Lumpur)
 
+  # ---------------- real overlays from your FOUR Editors packs (2026-10-19) ----------------
+  # type: overlay → a pack file placed on a track above the picture with a blend mode.
+  # place: cut = centred on the cut (transition)   shot = over the whole shot   video = whole edit
+  leak_transition:
+    type: overlay
+    desc: "real light leak / film burn over a cut"
+    categories: [Lens Flares and Light Leaks, Film Burn, Analog Light, Vintage Film Leaks, Wipe and Light, Afterglow, Film Burns]
+    place: cut
+    blend: screen
+    opacity: 75                 # review 2026-10-19: 90 washed the picture out to white
+    trigger: [hit, scene]
+    avoid: [intro]
+    max: 1
+    cooldown_s: 99
+    sfx: swell
+    sfx_lead_s: 0.4
+    sfx_gain_db: -12
+    priority: 6
+    chance: 0.7
+
+  glitch_transition:
+    type: overlay
+    desc: "real glitch / chromatic / retro distortion over a cut"
+    categories: [Glitch, Retro Distortion, Chromatic Rush, Cyber Strokes]
+    place: cut
+    blend: screen
+    opacity: 85
+    trigger: [hit]
+    max: 1
+    cooldown_s: 99
+    sfx: glitch
+    sfx_gain_db: -14
+    priority: 4
+    chance: 0.45
+
+  doodle:
+    type: overlay
+    desc: "hand-drawn scribble / lightning stroke over a shot (ref: lightning bolt)"
+    categories: [Doodle Scratches, Lightning Details, Celluloid Neon Paint]
+    place: shot
+    blend: screen
+    opacity: 90
+    trigger: [hit, scene]
+    avoid: [intro]
+    max: 1
+    cooldown_s: 99
+    sfx: whoosh
+    sfx_gain_db: -15
+    priority: 4
+    chance: 0.45
+
+  ink_splash:
+    type: overlay
+    desc: "liquid ink splash on a hit"
+    categories: [Flux Liquid]
+    place: cut
+    blend: screen
+    opacity: 85
+    trigger: [hit]
+    avoid: [intro]
+    max: 1
+    cooldown_s: 99
+    sfx: impact
+    sfx_gain_db: -15
+    priority: 3
+    chance: 0.35
+
+  viewfinder:
+    type: overlay
+    desc: "camera viewfinder / REC frame over one shot"
+    categories: [Modern X (CRT Viewfinders), CRT Plates]
+    place: shot
+    blend: screen
+    opacity: 70
+    trigger: [scene]
+    avoid: [intro]
+    max: 1
+    cooldown_s: 99
+    sfx: click
+    sfx_gain_db: -16
+    priority: 2
+    chance: 0.25
+
+  film_texture:
+    type: ambient
+    desc: "subtle 16mm grain over the whole video"
+    categories: [Film Grain 16mm, Grains]
+    place: video
+    blend: overlay
+    opacity: 22
+    chance: 0.5
+
+  # the final light leak uses a real pack file when available (instead of the generated one)
+  final_leak_from_pack:
+    type: setting
+    categories: [Lens Flares and Light Leaks, Film Burn, Analog Light]
+
 # Seen in references but needs subject masking first (future work):
 future:
   - "white silhouette flash of the subject (VLOG 002, Frankfurt, OBSESSED)"

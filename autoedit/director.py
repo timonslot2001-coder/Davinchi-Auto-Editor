@@ -87,7 +87,7 @@ def moments(plan: Plan, clips: list[ClipAnalysis], music: MusicAnalysis | None) 
 
 
 def direct(plan: Plan, clips: list[ClipAnalysis], music: MusicAnalysis | None, seed: int = 0,
-           log=print, overrides: dict | None = None) -> list[str]:
+           log=print, overrides: dict | None = None, cfg=None) -> list[str]:
     """Rewrites plan.shots[*].effects and plan.sfx. Returns a human-readable list of decisions."""
     inv, taste = load_inventory(), load_taste()
     knobs = dict(taste.get("knobs", {}) or {})
@@ -106,7 +106,14 @@ def direct(plan: Plan, clips: list[ClipAnalysis], music: MusicAnalysis | None, s
         s.effects = [e for e in s.effects if e == "light_leak"]
         s.speed_ramp = None
     plan.sfx = []
+    plan.overlays = []
     decisions = []
+    packs = None
+    if cfg is not None:
+        from .packs import Packs
+        packs = Packs(cfg, seed)
+        if not packs.available:
+            packs = None
     if not hasattr(plan, "_orig_texts"):
         plan._orig_texts = [dict(t) for t in plan.texts]
     plan.texts = [dict(t) for t in plan._orig_texts]
@@ -144,7 +151,8 @@ def direct(plan: Plan, clips: list[ClipAnalysis], music: MusicAnalysis | None, s
 
     # one fair auction over all (technique, moment) pairs: priority + how well the moment fits + a bit of
     # chance, minus a penalty for repeating a technique → varied, creative, but always motivated
-    pool = [(k, v) for k, v in tech.items() if v.get("type") == "vfx" and k not in ("dip_to_black", "light_leak")
+    pool = [(k, v) for k, v in tech.items()
+            if (v.get("type") == "vfx" or (v.get("type") == "overlay" and packs)) and k not in ("dip_to_black", "light_leak")
             and rng.random() < v.get("chance", 1.0)                # occasional techniques sit out some videos
             and not (k == "speed_ramp" and knobs.get("drop_speed_ramp"))]
     while accents < max_accents:
@@ -155,7 +163,7 @@ def direct(plan: Plan, clips: list[ClipAnalysis], music: MusicAnalysis | None, s
             trig = set(t.get("trigger", []))
             for m in ms:
                 s = plan.shots[m.idx]
-                if s.effects or s.role in ("outro", "black") or not (trig & m.tags):
+                if s.effects or s.extra.get("overlay") or s.role in ("outro", "black") or not (trig & m.tags):
                     continue
                 if set(t.get("avoid", [])) & m.tags:          # e.g. no photo-frame under the title
                     continue
@@ -178,6 +186,28 @@ def direct(plan: Plan, clips: list[ClipAnalysis], music: MusicAnalysis | None, s
             break
         _, name, t, m = best
         s = plan.shots[m.idx]
+        if t.get("type") == "overlay":
+            f = packs.pick(t.get("categories", []), max_dur=t.get("max_dur", 2.5 if t.get("place") == "cut" else 6.0))
+            if not f:
+                pool = [(k, v) for k, v in pool if k != name]
+                continue
+            if t.get("place") == "shot":
+                start, dur = s.rec_in, min(f["dur"], s.dur + 0.3)
+            else:                                            # centred on the cut, like the guide shows
+                start = max(0.0, m.t - f["dur"] * 0.45)
+                dur = f["dur"]
+            dur = min(dur, plan.length - start)               # never past the end of the video
+            plan.overlays.append({"t": round(start, 3), "dur": round(dur, 3), "path": f["path"], "fps": f["fps"],
+                                  "blend": t.get("blend", "screen"), "opacity": t.get("opacity", 90), "why": name,
+                                  "at": round(m.t, 3)})
+            s.extra["overlay"] = name
+            used_t.append(m.t)
+            count[name] = count.get(name, 0) + 1
+            last_at[name] = m.t
+            accents += 1
+            decisions.append(f"{m.t:5.2f}s  {name:14} because {'+'.join(sorted(set(t.get('trigger', [])) & m.tags))}"
+                             f"  [{Path(f['path']).parent.parent.name if 'p' in Path(f['path']).parent.name.lower() else Path(f['path']).parent.name}: {Path(f['path']).stem}]")
+            continue
         if name == "speed_ramp":
             c = by_path.get(s.clip)
             s.speed_ramp = round(next(p for p in c.motion_peaks if s.src_in + 0.3 < p < s.src_out - 0.2) - s.src_in, 3)
@@ -227,8 +257,43 @@ def direct(plan: Plan, clips: list[ClipAnalysis], music: MusicAnalysis | None, s
                                "kind": kind, "color": ts.get("big_color", "#D7261E") if kind == "big" else None})
             decisions.append(f"{last.rec_in:5.2f}s  title bookend  ({kind}) over the final hold")
 
+    # real pack light leak on the final hold + optional ambient film texture
+    if packs:
+        fl = tech.get("final_leak_from_pack") or {}
+        for s in plan.shots:
+            if "light_leak" in s.effects:
+                f = packs.pick(fl.get("categories", []), min_dur=0.8, max_dur=3.0)
+                if f:
+                    s.effects.remove("light_leak")
+                    t_leak = max(0.0, s.rec_in - min(0.6, f["dur"] * 0.35))
+                    plan.overlays.append({"t": round(t_leak, 3), "dur": round(min(f["dur"], plan.length - t_leak), 3),
+                                          "path": f["path"], "fps": f["fps"], "blend": "screen", "opacity": 95,
+                                          "why": "light_leak", "at": s.rec_in})
+                    s.extra["overlay"] = "light_leak"
+                    decisions.append(f"{s.rec_in:5.2f}s  light_leak     (real pack file: {Path(f['path']).stem})")
+        amb = tech.get("film_texture") or {}
+        if amb and rng.random() < amb.get("chance", 0.5):
+            f = packs.pick(amb.get("categories", []), min_dur=2.0)
+            if f:
+                t0 = 0.0
+                while t0 < plan.length - 0.05:
+                    d = min(f["dur"], plan.length - t0)
+                    plan.overlays.append({"t": round(t0, 3), "dur": round(d, 3), "path": f["path"], "fps": f["fps"],
+                                          "blend": amb.get("blend", "overlay"), "opacity": amb.get("opacity", 22),
+                                          "why": "film_texture", "ambient": True})
+                    t0 += d
+                decisions.append(f" 0.00s  film_texture   over the whole video ({Path(f['path']).stem})")
+
     # ear candy: the matching sound for every visual, timed so it lands ON the visual
     lvl = knobs.get("sfx_level_db", 0)
+    for o in plan.overlays:
+        t = tech.get(o["why"]) or {}
+        if o.get("ambient") or not t.get("sfx"):
+            continue
+        if o["why"] == "light_leak":
+            t = tech.get("light_leak") or t
+        plan.sfx.append({"t": round(max(0.0, o["at"] - t.get("sfx_lead_s", 0)), 3), "cat": t["sfx"],
+                         "gain_db": t.get("sfx_gain_db", -12) + lvl, "why": o["why"]})
     for s in plan.shots:
         for e in s.effects:
             t = tech.get(e) or {}

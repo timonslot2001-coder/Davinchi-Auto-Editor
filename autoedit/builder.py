@@ -279,6 +279,32 @@ class Builder:
             if item and t["kind"] != "minimal":                # minimal titles sit still, like the reference
                 fx.apply(item, [], self.fps, pop_in=True)
 
+        # ---- pack overlays (light leaks, burns, glitches, doodles, textures) on their own tracks
+        if getattr(plan, "overlays", None):
+            b_ov = self._subfolder(bins, "Overlays")
+            ov_mpi = self._import(sorted({Path(o["path"]) for o in plan.overlays}), b_ov)
+            lanes: list[list[int]] = []                       # [track, end_frame]
+            for o in sorted(plan.overlays, key=lambda o: (not o.get("ambient"), o["t"])):
+                m = ov_mpi.get(str(Path(o["path"])))
+                if not m:
+                    continue
+                rec = start + self.f(o["t"])
+                n_tl = max(1, self.f(o["dur"]))
+                lane = next((ln for ln in lanes if ln[1] <= rec), None)
+                if lane is None:
+                    tl.AddTrack("video")
+                    lane = [tl.GetTrackCount("video"), -1]
+                    lanes.append(lane)
+                src_fps = float(m.GetClipProperty("FPS") or o.get("fps") or self.fps)
+                n_src = max(1, int(round(n_tl / self.fps * src_fps)))
+                item = self._append(m, 0, n_src, lane[0], rec, 1)
+                if item:
+                    item.SetProperty("Scaling", SCALE_FILL)
+                    item.SetProperty("CompositeMode", COMPOSITE.get(o.get("blend", "screen"), 5))
+                    item.SetProperty("Opacity", float(o.get("opacity", 90)))
+                    lane[1] = rec + n_tl
+            self.log(f"{len(plan.overlays)} pack overlays placed ({', '.join(sorted({o['why'] for o in plan.overlays}))})")
+
         # ---- SFX (alternating two tracks so overlapping sounds never collide)
         sfx_files, lane_end = [], {A_SFX: -1, A_SFX2: -1}
         base_gain = cfg.get("audio.sfx_volume_db", -6)

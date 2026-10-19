@@ -62,6 +62,7 @@ class Plan:
     overlay: dict | None
     variant: str = "A"
     mode: str = "montage"               # montage / talking
+    overlays: list = field(default_factory=list)   # pack overlays: {t, dur, path, fps, blend, opacity, why}
 
     def to_json(self) -> str:
         return json.dumps(asdict(self), indent=1)

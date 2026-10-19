@@ -40,7 +40,8 @@ def review(video: Path, plan: Plan, out_dir: Path, base: str) -> dict:
     # a photo series (several shots in a row) is one accent, not three
     accents = [s for i, s in enumerate(plan.shots) if (s.effects or not s.clip)
                and not (s.extra.get("series") and i > 0 and plan.shots[i - 1].extra.get("series"))]
-    per10 = len(accents) / max(plan.length, 1) * 10
+    ov_acc = [o for o in getattr(plan, "overlays", []) if not o.get("ambient") and o.get("why") != "light_leak"]
+    per10 = (len(accents) + len(ov_acc)) / max(plan.length, 1) * 10
     allowed = budget["accents_per_10s"] * (taste.get("knobs", {}) or {}).get("accents_scale", 1.0)
     if per10 > allowed * 1.15:
         issues.append(f"too much eye candy: {per10:.1f} accents/10s (budget {allowed:.1f})")
@@ -132,7 +133,8 @@ def review(video: Path, plan: Plan, out_dir: Path, base: str) -> dict:
         issues.append("no real final hold (last shot < 1 s)")
 
     # ---- contact sheet of every accent (for the visual check)
-    times = sorted({round(s.rec_in + min(0.12, s.dur / 2), 2) for s in plan.shots if s.effects}) or [0.5]
+    times = sorted({round(s.rec_in + min(0.12, s.dur / 2), 2) for s in plan.shots if s.effects}
+                   | {round(o.get("at", o["t"]) + 0.1, 2) for o in getattr(plan, "overlays", []) if not o.get("ambient")}) or [0.5]
     sheet = out_dir / f"{base}_review.png"
     vf = "scale=240:-2,tile={}x1".format(min(10, len(times)))
     inputs = []
@@ -145,7 +147,9 @@ def review(video: Path, plan: Plan, out_dir: Path, base: str) -> dict:
                         *(["-filter_complex", fc] if n > 1 else ["-vf", fc]), str(sheet)])
 
     report = {"video": str(video), "ok": not issues, "issues": issues, "good": good, "fixes": fixes,
-              "accents": [{"t": s.rec_in, "fx": s.effects} for s in plan.shots if s.effects],
+              "accents": [{"t": s.rec_in, "fx": s.effects} for s in plan.shots if s.effects]
+                         + [{"t": o.get("at", o["t"]), "overlay": o["why"], "file": Path(o["path"]).name}
+                            for o in getattr(plan, "overlays", []) if not o.get("ambient")],
               "sfx": plan.sfx, "contact_sheet": str(sheet)}
     (out_dir / f"{base}_review.json").write_text(json.dumps(report, indent=1, ensure_ascii=False))
     return report

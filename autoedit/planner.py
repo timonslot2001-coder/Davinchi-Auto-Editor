@@ -317,10 +317,16 @@ ARC = ["detail", "detail", "establish", "subject", "subject", "close", "action",
        "establish", "rest", "close", "subject", "action", "rest"]
 
 
+EXTRA_TAGS: Path | None = None        # set per project (projects.py): <project>/tags.json
+
+
 def load_tags() -> dict:
     from .config import DATA
-    f = DATA / "tags.json"
-    return json.loads(f.read_text(encoding="utf-8")) if f.exists() else {}
+    tags = {}
+    for f in (DATA / "tags.json", EXTRA_TAGS):
+        if f and Path(f).exists():
+            tags.update(json.loads(Path(f).read_text(encoding="utf-8")))
+    return tags
 
 
 def make_cinematic_plan(clips: list[ClipAnalysis], style: dict, cfg, music: MusicAnalysis | None = None,

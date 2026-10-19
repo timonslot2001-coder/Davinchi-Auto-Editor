@@ -41,6 +41,19 @@ def main(argv=None):
     a.add_argument("--style")
 
     sub.add_parser("watch", help="drop-folder mode: builds automatically when clips land in a subfolder")
+
+    a = sub.add_parser("new", help="create a project folder: clips/ music/ exports/ project.yaml")
+    a.add_argument("name")
+    a.add_argument("--title", help="title over the intro (default: the project name)")
+    sub.add_parser("projects", help="list your projects (clips, song, exports)")
+    a = sub.add_parser("import", help="copy new clips from the camera SD card into a project")
+    a.add_argument("name")
+    a.add_argument("--since", help="only clips from this day on, YYYY-MM-DD")
+    a = sub.add_parser("project", help="edit a project by name (partial name is fine)")
+    a.add_argument("name")
+    a.add_argument("--song", help="override the project's song")
+    a.add_argument("--title")
+    a.add_argument("--variants")
     a = sub.add_parser("dashboard", help="open the local dashboard")
     a.add_argument("--port", type=int, default=5055)
 
@@ -140,6 +153,22 @@ def main(argv=None):
     elif args.cmd == "tiktok-login":
         from .tiktok_auth import login
         login()
+    elif args.cmd == "new":
+        from . import projects
+        projects.new(cfg, args.name, args.title)
+    elif args.cmd == "projects":
+        from . import projects
+        t = Table("project", "clips", "song", "exports", "title")
+        for p in projects.listing(cfg):
+            t.add_row(p["name"], str(p["clips"]), p["song"] or "-", str(p["exports"]), p["title"] or "")
+        con.print(t)
+    elif args.cmd == "import":
+        from . import projects
+        projects.import_card(cfg, args.name, args.since)
+    elif args.cmd == "project":
+        from . import projects
+        res = projects.run(cfg, args.name, song=args.song, title=args.title, variants=args.variants)
+        con.print_json(json.dumps(res, ensure_ascii=False, default=str))
     elif args.cmd == "optimize":
         from .builder import optimize_project
         optimize_project(cfg)

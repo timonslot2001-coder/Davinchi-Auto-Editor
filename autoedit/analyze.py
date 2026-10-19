@@ -7,6 +7,7 @@ from __future__ import annotations
 import hashlib
 import json
 import subprocess
+import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
@@ -313,9 +314,16 @@ def analyze_music(path: str | Path) -> MusicAnalysis:
     path = Path(path)
     cache = CACHE / f"music2_{_key(path)}.json"
     if cache.exists():
-        return MusicAnalysis(**json.loads(cache.read_text()))
+        cached = MusicAnalysis(**json.loads(cache.read_text()))
+        if cached.duration > 0 and cached.beats:
+            return cached
     sr = 22050
     y = load_audio(path, sr)
+    if y.size < sr:                                    # read failed (file busy/still copying) → try once more
+        time.sleep(1.0)
+        y = load_audio(path, sr)
+    if y.size < sr:
+        raise SystemExit(f"Couldn't read the song: {path}")
     tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr, units="frames")
     beats = librosa.frames_to_time(beat_frames, sr=sr).tolist()
     onset = librosa.onset.onset_strength(y=y, sr=sr)
@@ -339,5 +347,6 @@ def analyze_music(path: str | Path) -> MusicAnalysis:
     res = MusicAnalysis(str(path), round(len(y) / sr, 2), float(np.atleast_1d(tempo)[0]),
                         [round(b, 3) for b in beats], [round(b, 3) for b in downbeats], drop,
                         [round(float(e), 3) for e in energy], hits)
-    cache.write_text(json.dumps(res.to_dict()))
+    if res.duration > 0 and res.beats:                 # never cache a failed analysis
+        cache.write_text(json.dumps(res.to_dict()))
     return res

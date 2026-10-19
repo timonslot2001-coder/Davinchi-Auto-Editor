@@ -3,6 +3,8 @@
 # ============================================================
 
 paths:
+  # One folder per shoot: clips/ music/ exports/ project.yaml  (autoedit new "<name>")
+  projects_folder: "C:/Users/Timon/Videos/AutoEdit Projects"
   # Drop folder: drop clips into a subfolder here and a rough cut is built automatically
   drop_folder: "C:/Users/Timon/Videos/AutoEdit Drop"
   output_folder: "C:/Users/Timon/Videos/AutoEdit Exports"

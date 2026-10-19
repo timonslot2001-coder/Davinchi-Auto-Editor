@@ -57,8 +57,9 @@ def moments(plan: Plan, clips: list[ClipAnalysis], music: MusicAnalysis | None) 
         m = Moment(i, s.rec_in)
         c = by_path.get(s.clip)
         m.motion = _segment_motion(c, s.src_in) if c else 0.0
-        if i == 0 or s.rec_in < 1.2:
-            m.tags.add("intro")
+        title_end = max((x["t1"] for x in plan.texts), default=1.2)
+        if i == 0 or s.rec_in < max(1.2, title_end):
+            m.tags.add("intro")                          # the title is on screen
         if s.role == "outro":
             m.tags.add("last_hit")
         near_hit = [h for h in hits if abs(h - s.rec_in) <= 0.12]
@@ -125,6 +126,8 @@ def direct(plan: Plan, clips: list[ClipAnalysis], music: MusicAnalysis | None, s
             for m in ms:
                 s = plan.shots[m.idx]
                 if s.effects or s.role in ("outro", "black") or not (trig & m.tags):
+                    continue
+                if set(t.get("avoid", [])) & m.tags:          # e.g. no photo-frame under the title
                     continue
                 if any(abs(m.t - u) < min_gap for u in used_t) and "hit" not in m.tags:
                     continue

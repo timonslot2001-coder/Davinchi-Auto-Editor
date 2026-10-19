@@ -38,6 +38,9 @@ rules:
   - id: must_look_good
     said: "you have to check the video and make it make sense, the slowmo wasn't even smooth"   # 2026-10-19
     rule: "an accent is only allowed if it looks good on THIS footage: slow-mo only on ≥50p clips at real speed, review checks smoothness; when in doubt leave it out"
+  - id: clean_title
+    said: "(Claude's own review) title over a frame-in-frame looked cluttered"   # 2026-10-19
+    rule: "the title sits on a clean full frame: no frame-in-frame / B&W while the title is on screen"
 
 # numbers the director reads
 knobs:

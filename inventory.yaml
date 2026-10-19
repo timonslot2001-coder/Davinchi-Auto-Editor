@@ -16,6 +16,7 @@
 #             BEFORE the visual (risers/swells), 0 = on the frame
 #  priority:  higher wins when two techniques want the same moment
 #  chance:    probability the technique is available at all in a video (1.0 = always, default)
+#  avoid:     moments where it must NOT happen (e.g. intro = while the title is on screen)
 # ============================================================
 
 budget:
@@ -68,6 +69,7 @@ techniques:
     desc: "shot shown as a 'photo' on a paper backdrop"
     from: [Shanghai vlog, Austria hike]
     trigger: [quiet, downbeat]
+    avoid: [intro]              # review 2026-10-19: title on top of a small photo = cluttered
     max: 1
     cooldown_s: 99
     sfx: shutter

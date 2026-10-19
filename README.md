@@ -82,3 +82,12 @@ autoedit save-style fitness my-gym  # own preset → data/user_styles.yaml
   `<name>_review.json` + `<name>_review.png` (a frame of every accent).
 - `taste.yaml` — your feedback as rules ("no bouncy pop", "subtle", "bigger title"…). Grows every time.
 - `CLAUDE.md` — tells Claude how to keep this loop going in every session.
+
+## Projects (one folder per shoot)
+```
+autoedit new "Smoke Sesh"          # makes Videos\AutoEdit Projects\Smoke Sesh\ with clips\ music\ exports\ project.yaml
+autoedit import "smoke"            # copies new clips from the A6700 SD card (PRIVATE\M4ROOT\CLIP) into clips\
+autoedit project "smoke"           # edits it: song from music\ (or project.yaml), title/label from project.yaml
+autoedit projects                  # overview of all projects
+```
+Or just tell Claude: *"start project smoke"*.

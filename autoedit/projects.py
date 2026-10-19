@@ -148,4 +148,4 @@ def run(cfg, name: str, **overrides) -> list[dict]:
     return pipeline.run(cfg, clips_dir, None, s.get("variants") or "A", music,
                         title=s.get("title") or None, label=s.get("label") or None,
                         category=s.get("category"), aspect=s.get("aspect"), location=s.get("location"),
-                        out_dir=p / "exports")
+                        out_dir=p / "exports", seed=s.get("seed"))

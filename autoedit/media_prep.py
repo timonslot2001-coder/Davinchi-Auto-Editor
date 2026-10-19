@@ -88,6 +88,30 @@ def text_png(text: str, kind: str = "hook", font: str = "Montserrat", color: str
     if out.exists():
         return out
     img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    if kind in ("card", "big", "word"):
+        # display type (refs: HUARAZ / OBSESSED cards, KUALA LUMPUR / BUENOS AIRES titles, 'YOU · READY?')
+        disp = next((p for p in (Path("C:/Windows/Fonts/impact.ttf"), Path("C:/Windows/Fonts/bahnschrift.ttf")) if p.exists()), None)
+        word = text.upper()
+        target_w = w * (0.92 if kind == "card" else 0.78 if kind == "big" else 0.5)
+        size = int(h * (0.5 if kind == "card" else 0.22 if kind == "big" else 0.16))
+        f = ImageFont.truetype(str(disp), size) if disp else ImageFont.load_default(size)
+        while f.getlength(word) > target_w and size > 20:
+            size = int(size * 0.94)
+            f = ImageFont.truetype(str(disp), size) if disp else ImageFont.load_default(size)
+        if kind == "card":
+            img = Image.new("RGBA", (w, h), accent)                   # opaque coloured card
+        bbox = f.getbbox(word)
+        x = (w - (bbox[2] - bbox[0])) / 2 - bbox[0]
+        y = (h - (bbox[3] - bbox[1])) / 2 - bbox[1]
+        d = ImageDraw.Draw(img)
+        if kind != "card":
+            sh = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+            ImageDraw.Draw(sh).text((x, y + size * 0.03), word, font=f, fill=(0, 0, 0, 110))
+            img = Image.alpha_composite(img, sh.filter(ImageFilter.GaussianBlur(size * 0.04)))
+            d = ImageDraw.Draw(img)
+        d.text((x, y), word, font=f, fill=color)
+        img.save(out)
+        return out
     if kind == "corner":
         # tiny labels in the top corners, e.g. "VLOG_01" left and "SHANGHAI" right (ref A)
         left, _, right = text.partition("|")

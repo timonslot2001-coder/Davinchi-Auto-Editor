@@ -29,6 +29,7 @@ class Shot:
     speed_ramp: float | None = None     # seconds into the shot where it slows down
     stabilize: bool = False
     role: str = "body"                  # hook / body / outro / loop
+    extra: dict = field(default_factory=dict)   # per-effect parameters (e.g. beat length for step_zoom)
 
     @property
     def dur(self) -> float:

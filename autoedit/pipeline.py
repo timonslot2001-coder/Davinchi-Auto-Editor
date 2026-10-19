@@ -56,7 +56,7 @@ def run(cfg, folder: str | Path, style_name: str | None = None, variants: str = 
         stab_mode: str | None = None, render: bool = True, queue: bool = True, location: str | None = None,
         clips: list | None = None, title: str | None = None, category: str | None = None,
         aspect: str | None = None, label: str | None = None, out_dir: Path | None = None,
-        log=con.print) -> list[dict]:
+        seed: int | None = None, log=con.print) -> list[dict]:
     from .builder import Builder, render as do_render
 
     folder = Path(folder)
@@ -85,12 +85,14 @@ def run(cfg, folder: str | Path, style_name: str | None = None, variants: str = 
             plan = planner.make_plan(clips, style, cfg, mus, variant=v, stab_mode=stab_mode)
         base = f"{category or 'edit'}_{v}"
         overrides: dict = {}
+        run_seed = seed if seed is not None else random.randrange(1 << 16)   # every run its own choices
+        log(f"  seed {run_seed} (pass --seed {run_seed} to get exactly this edit again)")
         use_director = style.get("mode") == "cinematic" and style.get("director", True)
         for attempt in range(2):                         # build → render → self-review → (fix once)
             if use_director:
                 from .director import direct
                 log("[bold]Director[/] (eye + ear candy from inventory.yaml):")
-                direct(plan, clips, mus, seed=hash(folder.name) & 0xFFFF, log=log, overrides=overrides)
+                direct(plan, clips, mus, seed=run_seed, log=log, overrides=overrides)
             (out_root / f"{base}_plan.json").write_text(plan.to_json())
             log(f"[bold]Variant {v}[/]: {len(plan.shots)} shots, {plan.length:.1f}s, hook “{plan.texts[0]['text'] if plan.texts else '-'}”")
             built = Builder(cfg, plan, style, log=log).build()

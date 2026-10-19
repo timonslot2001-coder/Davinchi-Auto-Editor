@@ -37,7 +37,9 @@ def review(video: Path, plan: Plan, out_dir: Path, base: str) -> dict:
     issues, fixes, good = [], {}, []
 
     # ---- eye candy density / stacking
-    accents = [s for s in plan.shots if s.effects or not s.clip]
+    # a photo series (several shots in a row) is one accent, not three
+    accents = [s for i, s in enumerate(plan.shots) if (s.effects or not s.clip)
+               and not (s.extra.get("series") and i > 0 and plan.shots[i - 1].extra.get("series"))]
     per10 = len(accents) / max(plan.length, 1) * 10
     allowed = budget["accents_per_10s"] * (taste.get("knobs", {}) or {}).get("accents_scale", 1.0)
     if per10 > allowed * 1.15:
@@ -46,8 +48,9 @@ def review(video: Path, plan: Plan, out_dir: Path, base: str) -> dict:
     else:
         good.append(f"accent density ok ({per10:.1f}/10s)")
     run = best = 0
-    for s in plan.shots:
-        run = run + 1 if s.effects else 0
+    for i, s in enumerate(plan.shots):
+        in_series = s.extra.get("series") and i > 0 and plan.shots[i - 1].extra.get("series")
+        run = run if in_series else (run + 1 if s.effects else 0)
         best = max(best, run)
     if best >= 3:
         issues.append(f"{best} shots in a row with effects — feels overdone")

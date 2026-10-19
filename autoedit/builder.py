@@ -234,7 +234,7 @@ class Builder:
             if cfg.get("format.smart_reframe") and s.role == "hook":
                 item.SmartReframe()
             src_fps = float(item.GetMediaPoolItem().GetClipProperty("FPS") or self.fps)
-            fx_n += len(fx.apply(item, [e for e in s.effects if e != "bw"], self.fps, s.speed_ramp, seed=i, src_fps=src_fps,
+            fx_n += len(fx.apply(item, [e for e in s.effects if e != "bw"], self.fps, s.speed_ramp, seed=i, src_fps=src_fps, extra=s.extra,
                                   intensity=cfg.get("effects.intensity", 1.0)))
         for item, k, src in grid_items:
             fx.grid_panel(item, k, self.fps, src_size=src, canvas=(self.W, self.H))
@@ -269,7 +269,8 @@ class Builder:
             while tl.GetTrackCount("video") < track:
                 tl.AddTrack("video")
             png = text_png(t["text"], t["kind"], cfg.get("branding.font", "Montserrat"),
-                           cfg.get("branding.primary_color", "#FFFFFF"), cfg.get("branding.accent_color", "#FFD400"),
+                           t.get("color") or cfg.get("branding.primary_color", "#FFFFFF"),
+                           t.get("bg") or cfg.get("branding.accent_color", "#FFD400"),
                            w=self.W, h=self.H, scale=self.style.get("title_size", 0.03) if t["kind"] == "minimal" else 0.03)
             n = self.f(t["t1"] - t["t0"])
             clip = text_clip(png, n / self.fps, self.fps, fade=0.2 if t["kind"] == "minimal" else 0.0)

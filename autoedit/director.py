@@ -57,7 +57,7 @@ def moments(plan: Plan, clips: list[ClipAnalysis], music: MusicAnalysis | None) 
         m = Moment(i, s.rec_in)
         c = by_path.get(s.clip)
         m.motion = _segment_motion(c, s.src_in) if c else 0.0
-        title_end = max((x["t1"] for x in plan.texts), default=1.2)
+        title_end = max((x["t1"] for x in plan.texts if x.get("kind") != "corner"), default=1.2)
         if i == 0 or s.rec_in < max(1.2, title_end):
             m.tags.add("intro")                          # the title is on screen
         if s.role == "outro":
@@ -79,6 +79,9 @@ def moments(plan: Plan, clips: list[ClipAnalysis], music: MusicAnalysis | None) 
         prev = shots[i - 1] if i > 0 else None
         if prev is not None and prev.clip and prev.clip != s.clip:
             m.tags.add("scene")
+        beat = 60 / music.tempo if music and music.tempo else 0.5
+        if s.dur >= max(0.75, 1.6 * beat):
+            m.tags.add("long")                           # room for a step zoom (3 half-beat steps)
         out.append(m)
     return out
 
@@ -104,6 +107,10 @@ def direct(plan: Plan, clips: list[ClipAnalysis], music: MusicAnalysis | None, s
         s.speed_ramp = None
     plan.sfx = []
     decisions = []
+    if not hasattr(plan, "_orig_texts"):
+        plan._orig_texts = [dict(t) for t in plan.texts]
+    plan.texts = [dict(t) for t in plan._orig_texts]
+    beat = 60 / music.tempo if music and music.tempo else 0.5
 
     ms = moments(plan, clips, music)
     by_path = {c.path: c for c in clips}
@@ -111,6 +118,29 @@ def direct(plan: Plan, clips: list[ClipAnalysis], music: MusicAnalysis | None, s
     count: dict[str, int] = {"light_leak": sum("light_leak" in s.effects for s in plan.shots)}
     last_at: dict[str, float] = {}
     accents = len(used_t)
+
+    # photo series: 3 shots in a row as 'photos' (counts as one accent)
+    ser = tech.get("photo_series") or {}
+    if ser and accents < max_accents and rng.random() < ser.get("chance", 0.3):
+        n = ser.get("length", 3)
+        mids = [m for m in ms if not (set(ser.get("avoid", [])) & m.tags)]
+        for k in range(len(mids) - n + 1):
+            run = [plan.shots[mm.idx] for mm in mids[k:k + n]]
+            idxs = [mm.idx for mm in mids[k:k + n]]
+            if idxs != list(range(idxs[0], idxs[0] + n)):
+                continue
+            if any(sh.effects or sh.role != "body" or sh.dur < 0.3 for sh in run):
+                continue
+            if any(abs(run[0].rec_in - u) < min_gap for u in used_t):
+                continue
+            for sh in run:
+                sh.effects.append("frame_in_frame")
+                sh.extra["series"] = True
+            # the whole series is one moment: keep breathing room before and after it
+            used_t.extend([sh.rec_in for sh in run] + [round(run[-1].rec_in + run[-1].dur, 3)])
+            accents += 1
+            decisions.append(f"{run[0].rec_in:5.2f}s  photo_series   ({n} shots) because calm stretch")
+            break
 
     # one fair auction over all (technique, moment) pairs: priority + how well the moment fits + a bit of
     # chance, minus a penalty for repeating a technique → varied, creative, but always motivated
@@ -151,12 +181,51 @@ def direct(plan: Plan, clips: list[ClipAnalysis], music: MusicAnalysis | None, s
         if name == "speed_ramp":
             c = by_path.get(s.clip)
             s.speed_ramp = round(next(p for p in c.motion_peaks if s.src_in + 0.3 < p < s.src_out - 0.2) - s.src_in, 3)
+        if name == "step_zoom":
+            s.extra["beat"] = beat / 2                      # steps on the half beat, like the reference
+        if name == "color_wipe":
+            s.extra["wipe_color"] = rng.choice([(0.84, 0.15, 0.12), (0.95, 0.91, 0.86)])
         s.effects.append(name)
         used_t.append(m.t)
         count[name] = count.get(name, 0) + 1
         last_at[name] = m.t
         accents += 1
         decisions.append(f"{m.t:5.2f}s  {name:14} because {'+'.join(sorted(set(t.get('trigger', [])) & m.tags))}")
+
+    # title treatment: how the title appears is decided per video (never the same recipe every time)
+    ts = tech.get("title_styles") or {}
+    tidx = next((i for i, t in enumerate(plan.texts) if t.get("kind") == "minimal"), None)
+    if ts and tidx is not None:
+        title_txt = plan.texts[tidx]["text"]
+        opts = dict(ts.get("options", {"minimal": 1}))
+        if len(title_txt.split()) < 2:
+            opts.pop("kinetic", None)
+        style = rng.choices(list(opts), weights=list(opts.values()))[0]
+        t0 = plan.texts[tidx]
+        if style == "big":
+            t0.update(kind="big", color=ts.get("big_color", "#D7261E"))
+        elif style == "card_flash":
+            plan.texts.pop(tidx)
+            cols = ts.get("card_colors", [["#F3E9DC", "#D7261E"]])
+            for k in range(3):
+                fg, bg = cols[k % len(cols)]
+                plan.texts.append({"t0": round(k * beat, 3), "t1": round((k + 1) * beat, 3), "text": title_txt,
+                                   "kind": "card", "color": fg, "bg": bg})
+                plan.sfx.append({"t": round(k * beat, 3), "cat": ts.get("sfx_card", "hit"), "gain_db": -13, "why": "title"})
+        elif style == "kinetic":
+            plan.texts.pop(tidx)
+            for k, w in enumerate(title_txt.split()):
+                plan.texts.append({"t0": round(k * beat, 3), "t1": round((k + 1) * beat if k + 1 < len(title_txt.split())
+                                                                        else (k + 2) * beat, 3),
+                                   "text": w, "kind": "word", "color": "#FFFFFF"})
+                plan.sfx.append({"t": round(k * beat, 3), "cat": ts.get("sfx_word", "click"), "gain_db": -14, "why": "title"})
+        decisions.append(f" 0.00s  title          as '{style}'")
+        if rng.random() < ts.get("bookend_chance", 0):
+            last = plan.shots[-1]
+            kind = "big" if style in ("big", "card_flash") else "minimal"
+            plan.texts.append({"t0": round(last.rec_in + 0.3, 3), "t1": round(plan.length - 0.1, 3), "text": title_txt,
+                               "kind": kind, "color": ts.get("big_color", "#D7261E") if kind == "big" else None})
+            decisions.append(f"{last.rec_in:5.2f}s  title bookend  ({kind}) over the final hold")
 
     # ear candy: the matching sound for every visual, timed so it lands ON the visual
     lvl = knobs.get("sfx_level_db", 0)
@@ -166,6 +235,17 @@ def direct(plan: Plan, clips: list[ClipAnalysis], music: MusicAnalysis | None, s
             if not t.get("sfx"):
                 continue
             at = s.rec_in + (s.speed_ramp or 0) if e == "speed_ramp" else s.rec_in
+            if e == "step_zoom":
+                for k in range(1, 4):
+                    if k * beat / 2 < s.dur - 0.1:
+                        plan.sfx.append({"t": round(s.rec_in + k * beat / 2, 3), "cat": t["sfx"],
+                                         "gain_db": t.get("sfx_gain_db", -14) + lvl, "why": e})
+                continue
+            if e == "frame_in_frame" and s.extra.get("series"):
+                ser_t = tech.get("photo_series") or {}
+                plan.sfx.append({"t": s.rec_in, "cat": ser_t.get("sfx", "shutter"),
+                                 "gain_db": ser_t.get("sfx_gain_db", -13) + lvl, "why": "photo_series"})
+                continue
             plan.sfx.append({"t": round(max(0.0, at - t.get("sfx_lead_s", 0)), 3), "cat": t["sfx"],
                              "gain_db": t.get("sfx_gain_db", -10) + lvl, "why": e})
     dip = tech.get("dip_to_black") or {}
@@ -175,7 +255,7 @@ def direct(plan: Plan, clips: list[ClipAnalysis], music: MusicAnalysis | None, s
                              "gain_db": dip.get("sfx_gain_db", -12) + lvl, "why": "dip_to_black"})
             decisions.append(f"{s.rec_in:5.2f}s  dip_to_black   (planner) + {dip['sfx']} on return")
     title = tech.get("title") or {}
-    if plan.texts and title.get("sfx"):
+    if plan.texts and title.get("sfx") and not any(x["why"] == "title" for x in plan.sfx):
         plan.sfx.append({"t": 0.05, "cat": title["sfx"], "gain_db": title.get("sfx_gain_db", -16) + lvl, "why": "title"})
     # sfx budget: keep the most important sounds
     prio = {k: v.get("priority", 0) for k, v in tech.items()}

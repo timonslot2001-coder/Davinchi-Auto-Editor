@@ -30,6 +30,7 @@ def main(argv=None):
     a.add_argument("--location", help="used in captions, e.g. 'Porto'")
     a.add_argument("--title", help="small spaced-out title over the intro, e.g. 'UTRECHT'")
     a.add_argument("--label", help="tiny corner label over the intro, e.g. your brand/handle")
+    a.add_argument("--seed", type=int, help="reproduce an earlier edit exactly")
     a.add_argument("--no-render", action="store_true", help="only build the timeline in Resolve")
 
     a = sub.add_parser("analyze", help="show quality / shake / speech per clip")
@@ -54,6 +55,7 @@ def main(argv=None):
     a.add_argument("--song", help="override the project's song")
     a.add_argument("--title")
     a.add_argument("--variants")
+    a.add_argument("--seed", type=int)
     a = sub.add_parser("dashboard", help="open the local dashboard")
     a.add_argument("--port", type=int, default=5055)
 
@@ -86,7 +88,7 @@ def main(argv=None):
             cfg.raw.setdefault("audio", {})["music_bass_db"] = args.bass
         res = pipeline.run(cfg, args.folder, args.style, args.variants, args.music, args.stabilize,
                            render=not args.no_render, location=args.location, title=args.title,
-                           category=args.category, aspect=args.aspect, label=args.label)
+                           category=args.category, aspect=args.aspect, label=args.label, seed=args.seed)
         con.print_json(json.dumps(res, ensure_ascii=False))
     elif args.cmd == "analyze":
         from . import pipeline
@@ -167,7 +169,7 @@ def main(argv=None):
         projects.import_card(cfg, args.name, args.since)
     elif args.cmd == "project":
         from . import projects
-        res = projects.run(cfg, args.name, song=args.song, title=args.title, variants=args.variants)
+        res = projects.run(cfg, args.name, song=args.song, title=args.title, variants=args.variants, seed=args.seed)
         con.print_json(json.dumps(res, ensure_ascii=False, default=str))
     elif args.cmd == "optimize":
         from .builder import optimize_project

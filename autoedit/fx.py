@@ -99,7 +99,8 @@ def grid_panel(item, k: int, fps: float, src_size=(3840, 2160), canvas=(1080, 19
 
 
 def apply(item, effects: list[str], fps: float, speed_ramp: float | None = None,
-          pop_in: bool = False, seed: int = 0, intensity: float = 1.0, src_fps: float | None = None) -> list[str]:
+          pop_in: bool = False, seed: int = 0, intensity: float = 1.0, src_fps: float | None = None,
+          extra: dict | None = None) -> list[str]:
     """Builds the effect chain on a timeline item. Returns the effects that were applied.
 
     intensity scales how strong every effect is (config effects.intensity): 1 = bold, 0.3 = subtle.
@@ -141,8 +142,23 @@ def apply(item, effects: list[str], fps: float, speed_ramp: float | None = None,
 
         size: dict[int, float] = {}
         center: dict[int, tuple[float, float]] = {}
+        extra = extra or {}
         if pop_in:
             size.update({0: 1.03, 2: 1.0})                # neutral snap-in, no bounce
+        if "step_zoom" in effects:
+            # zoom toward a detail in 3 hard steps on the beat (ref: Buenos Aires 'Subte' sign)
+            b = max(3, int(round(extra.get("beat", 0.5) * fps)))
+            keys, z = {0: 1.0}, 1.0
+            for k in range(1, 4):
+                f = k * b
+                if f >= last:
+                    break
+                keys[f - 1] = z
+                z = 1 + 0.08 * k * max(k / 3, 0.6) * (0.6 + intensity)
+                keys[f] = z
+            keys[last] = z
+            size.update(keys)
+            done.append("step_zoom")
         if "punch_zoom" in effects:
             size.update({0: 1.0, 2: 1 + 0.22 * k, last: 1 + 0.16 * k})
             done.append("punch_zoom")
@@ -233,6 +249,31 @@ def apply(item, effects: list[str], fps: float, speed_ramp: float | None = None,
             _key(lk, "Blend", {0: 0.0, 2: 0.9, 9: 0.75, 14: 0.0})
             node = lk
             done.append("light_leak")
+
+        if "color_wipe" in effects:
+            # solid colour block sweeping across the cut (refs: Buenos Aires red block, NYC red bars)
+            col = extra.get("wipe_color", (0.84, 0.15, 0.12))
+            blk = comp.AddTool("Background", -32768, -32768)
+            for ch, v in zip(("Red", "Green", "Blue"), col):
+                blk.SetInput(f"TopLeft{ch}", v)
+            wm = comp.AddTool("RectangleMask", -32768, -32768)
+            wm.SetInput("Width", 0.7)
+            wm.SetInput("Height", 1.4)
+            _key_point(wm, "Center", {0: (0.45, 0.5), 4: (1.4, 0.5)})
+            blk.ConnectInput("EffectMask", wm)
+            cw = comp.AddTool("Merge", -32768, -32768)
+            cw.ConnectInput("Background", node)
+            cw.ConnectInput("Foreground", blk)
+            node = cw
+            done.append("color_wipe")
+
+        if "bw_flash" in effects:
+            # 2-3 frames of black & white on a hit (refs: Oran, Huaraz)
+            bwf = chain("Custom")
+            for ch in ("Red", "Green", "Blue"):
+                bwf.SetInput(f"{ch}Expression", "r1*0.299+g1*0.587+b1*0.114")
+            _key(bwf, "Blend", {0: 1.0, 2: 1.0, 3: 0.0})
+            done.append("bw_flash")
 
         if "white_flash" in effects:
             bc = chain("BrightnessContrast")

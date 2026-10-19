@@ -148,3 +148,78 @@ techniques:
     sfx_lead_s: 0.0
     sfx_gain_db: -16
     priority: 10
+
+  # ---------------- learned 2026-10-19 from 17 references (city/travel/food/vlog edits) ----------------
+  color_wipe:
+    type: vfx
+    desc: "solid colour block sweeping across a cut"
+    from: [Buenos Aires, New York]
+    trigger: [scene, hit]
+    avoid: [intro]
+    max: 1
+    cooldown_s: 99
+    sfx: whoosh
+    sfx_lead_s: 0.1
+    sfx_gain_db: -11
+    priority: 5
+    chance: 0.6
+
+  step_zoom:
+    type: vfx
+    desc: "zoom toward a detail in 3 hard steps on the beat"
+    from: [Buenos Aires 'Subte' sign]
+    trigger: [long]
+    avoid: [intro]
+    max: 1
+    cooldown_s: 99
+    sfx: click                  # one click per step
+    sfx_per_step: true
+    sfx_gain_db: -14
+    priority: 5
+    chance: 0.6
+
+  bw_flash:
+    type: vfx
+    desc: "2-3 frames of black & white on a hit"
+    from: [Oran, Huaraz]
+    trigger: [hit]
+    max: 1
+    cooldown_s: 99
+    sfx: impact
+    sfx_lead_s: 0.0
+    sfx_gain_db: -15
+    priority: 4
+    chance: 0.6
+
+  photo_series:
+    type: series
+    desc: "3 shots in a row shown as 'photos' on paper, on the beat"
+    from: [Marrakech, Shenzhen, Shanghai]
+    length: 3
+    avoid: [intro]
+    sfx: shutter                # one shutter per photo
+    sfx_gain_db: -13
+    chance: 0.35
+
+  title_styles:
+    type: text
+    desc: "how the title appears — picked per video"
+    from: [LA, Shanghai, Huaraz, OBSESSED, Kuala Lumpur, Buenos Aires, 'YOU READY?']
+    options:                    # weights
+      minimal: 0.40             # small spaced title (LA / Shanghai)
+      big: 0.25                 # big condensed title over the image (Kuala Lumpur, Buenos Aires)
+      card_flash: 0.20          # full-frame colour cards flashing on the beat (Huaraz, OBSESSED)
+      kinetic: 0.15             # one word per beat (YOU · READY?) — only titles with 2+ words
+    card_colors: [["#F3E9DC", "#D7261E"], ["#D7261E", "#F3E9DC"]]   # [text, background], alternating
+    big_color: "#D7261E"
+    sfx_card: hit
+    sfx_word: click
+    bookend_chance: 0.35        # title comes back over the final hold (Kuala Lumpur)
+
+# Seen in references but needs subject masking first (future work):
+future:
+  - "white silhouette flash of the subject (VLOG 002, Frankfurt, OBSESSED)"
+  - "big text behind the subject (Austria, Zalijak, VLOG 002)"
+  - "3 vertical strips with different shots sliding in (London)"
+  - "hand-drawn doodle / scribble overlays (lightning bolt)"
+  - "match cut / cut on action between clips with the same movement (crème brûlée, Alex Warren)"

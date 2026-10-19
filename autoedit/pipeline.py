@@ -83,17 +83,38 @@ def run(cfg, folder: str | Path, style_name: str | None = None, variants: str = 
         else:
             plan = planner.make_plan(clips, style, cfg, mus, variant=v, stab_mode=stab_mode)
         base = f"{category or 'edit'}_{v}"
-        (out_root / f"{base}_plan.json").write_text(plan.to_json())
-        log(f"[bold]Variant {v}[/]: {len(plan.shots)} shots, {plan.length:.1f}s, hook “{plan.texts[0]['text'] if plan.texts else '-'}”")
-        built = Builder(cfg, plan, style, log=log).build()
-        res = {"variant": v, "timeline": built["timeline"], "plan": str(out_root / f"{base}_plan.json")}
-        if render:
+        overrides: dict = {}
+        use_director = style.get("mode") == "cinematic" and style.get("director", True)
+        for attempt in range(2):                         # build → render → self-review → (fix once)
+            if use_director:
+                from .director import direct
+                log("[bold]Director[/] (eye + ear candy from inventory.yaml):")
+                direct(plan, clips, mus, seed=hash(folder.name) & 0xFFFF, log=log, overrides=overrides)
+            (out_root / f"{base}_plan.json").write_text(plan.to_json())
+            log(f"[bold]Variant {v}[/]: {len(plan.shots)} shots, {plan.length:.1f}s, hook “{plan.texts[0]['text'] if plan.texts else '-'}”")
+            built = Builder(cfg, plan, style, log=log).build()
+            res = {"variant": v, "timeline": built["timeline"], "plan": str(out_root / f"{base}_plan.json")}
+            if not render:
+                break
             raw = do_render(built["timeline"], out_root / "_raw", base, log=log)
             wide = style.get("aspect") == "16:9"
             fin = export.finish(raw, out_root, base, cfg.get("audio.target_lufs", -14),
                                 [] if wide else cfg.get("format.extra_exports", []),
                                 expect=(1920, 1080) if wide else (1080, 1920))
             res.update(fin)
+            from .review import review
+            rev = review(Path(fin["files"].get("9:16") or fin["files"]["16:9"]), plan, out_root,
+                         base + ("_16x9" if wide else "_9x16"))
+            res["review"] = rev
+            for g in rev["good"]:
+                log(f"  ✓ {g}")
+            for i in rev["issues"]:
+                log(f"  [yellow]✗ {i}[/]")
+            if rev["ok"] or not rev["fixes"] or attempt == 1 or not use_director:
+                break
+            overrides.update(rev["fixes"])
+            log(f"[bold]Self-review fix[/]: rebuilding with {rev['fixes']}")
+        if render:
             if not fin["qc_ok"]:
                 log(f"[yellow]QC: {', '.join(fin['qc']['problems'])}[/]")
             if queue:

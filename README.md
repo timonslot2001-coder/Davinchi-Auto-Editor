@@ -70,3 +70,15 @@ autoedit save-style fitness my-gym  # own preset → data/user_styles.yaml
 - Edit-page Fusion effects are built through export → import (Resolve ignores API-built comps when rendering), which is solved inside the code.
 - Smart Reframe is off by default (in tests it shifted the image the wrong way).
 - TikTok API: unaudited apps can only upload as drafts; a caption can't be set through the API.
+
+## How it learns (inventory · director · self-review · taste)
+- `inventory.yaml` — the toolbox: every eye-candy (VFX) and ear-candy (SFX) technique learned from your
+  reference edits, with *when* it's motivated, how often, and which sound belongs to it.
+- `autoedit/director.py` — per video, places techniques only where the moment calls for it (music hit,
+  motion, scene change, quiet part), within a budget, varied, and always with the matching sound.
+  It prints *why* it chose every accent.
+- `autoedit/review.py` — after every render the tool rewatches/relistens its own video: too many effects?
+  SFX jumping out or inaudible? black frames? It fixes what it can (one rebuild) and writes
+  `<name>_review.json` + `<name>_review.png` (a frame of every accent).
+- `taste.yaml` — your feedback as rules ("no bouncy pop", "subtle", "bigger title"…). Grows every time.
+- `CLAUDE.md` — tells Claude how to keep this loop going in every session.

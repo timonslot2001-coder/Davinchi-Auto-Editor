@@ -1,0 +1,146 @@
+# ============================================================
+#  Technique inventory — eye candy (VFX) + ear candy (SFX)
+#  Learned from your reference edits. The director picks from here per video:
+#  only where it is MOTIVATED (music hit, movement, scene change), within a budget,
+#  and every VFX gets the sound that belongs to it. Add new techniques here when you
+#  send new references (Claude does this; see CLAUDE.md).
+#
+#  trigger:   when it makes sense
+#     first_hit   – first big hit of the song        last_hit  – last big hit (final shot)
+#     hit         – any strong musical impact        downbeat  – start of a bar
+#     motion      – shot has strong camera/subject motion at the cut
+#     quiet       – calm part of the song            intro     – first seconds
+#     scene       – big visual change between two shots
+#  max:       times per video            cooldown_s: minimum seconds before it may repeat
+#  sfx:       sound category that goes with it (null = none); sfx_lead_s > 0: sound starts that much
+#             BEFORE the visual (risers/swells), 0 = on the frame
+#  priority:  higher wins when two techniques want the same moment
+# ============================================================
+
+budget:
+  accents_per_10s: 3.2        # total visual accents (not counting plain cuts)
+  min_gap_s: 1.4              # never two accents closer than this (except a hit pair)
+  sfx_per_10s: 4.0            # ear candy budget
+  quiet_start_s: 0.0          # no accents before this (except the title)
+  keep_last_shot_clean: false
+
+techniques:
+
+  whip:
+    type: vfx
+    desc: "camera-whip blur into the next shot"
+    from: [LA reference, Shanghai vlog]
+    trigger: [motion, hit]
+    max: 2
+    cooldown_s: 3.0
+    sfx: whoosh
+    sfx_lead_s: 0.12
+    sfx_gain_db: -9
+    priority: 6
+
+  dip_to_black:
+    type: vfx
+    desc: "hard cut to black for a beat, then back on the downbeat"
+    from: [LA reference]
+    trigger: [downbeat, intro]
+    max: 1
+    cooldown_s: 99
+    sfx: impact            # low hit when the picture comes back
+    sfx_at: end
+    sfx_gain_db: -12
+    priority: 5
+
+  light_leak:
+    type: vfx
+    desc: "orange film burn sweeping across, into the final hold"
+    from: [LA reference]
+    trigger: [last_hit]
+    max: 1
+    cooldown_s: 99
+    sfx: swell
+    sfx_lead_s: 0.6
+    sfx_gain_db: -11
+    priority: 9
+
+  frame_in_frame:
+    type: vfx
+    desc: "shot shown as a 'photo' on a paper backdrop"
+    from: [Shanghai vlog, Austria hike]
+    trigger: [quiet, downbeat]
+    max: 1
+    cooldown_s: 99
+    sfx: shutter
+    sfx_lead_s: 0.0
+    sfx_gain_db: -10
+    priority: 4
+
+  bw:
+    type: vfx
+    desc: "black & white accent shot"
+    from: [Austria hike]
+    trigger: [quiet]
+    max: 1
+    cooldown_s: 99
+    sfx: film               # projector / film crackle from your FOUR Editors film SFX
+    sfx_lead_s: 0.0
+    sfx_gain_db: -16
+    priority: 3
+
+  punch_zoom:
+    type: vfx
+    desc: "small snap zoom-in on the kick"
+    from: [fitness tests]
+    trigger: [hit]
+    max: 2
+    cooldown_s: 4.0
+    sfx: hit
+    sfx_lead_s: 0.0
+    sfx_gain_db: -12
+    priority: 5
+
+  white_flash:
+    type: vfx
+    desc: "short exposure flash on a hit"
+    from: [Austria hike]
+    trigger: [hit, scene]
+    max: 1
+    cooldown_s: 99
+    sfx: shutter
+    sfx_lead_s: 0.0
+    sfx_gain_db: -12
+    priority: 4
+
+  glitch:
+    type: vfx
+    desc: "2-3 frame RGB/invert glitch"
+    from: [Austria hike]
+    trigger: [hit]
+    max: 1
+    cooldown_s: 99
+    sfx: glitch
+    sfx_lead_s: 0.0
+    sfx_gain_db: -14
+    priority: 2
+
+  speed_ramp:
+    type: vfx
+    desc: "slow down at the peak of a movement"
+    from: [general]
+    trigger: [motion]
+    max: 1
+    cooldown_s: 99
+    sfx: riser
+    sfx_lead_s: 0.9
+    sfx_gain_db: -14
+    priority: 5
+
+  title:
+    type: text
+    desc: "small spaced title (+ corner labels) over the intro"
+    from: [LA reference, Shanghai vlog]
+    trigger: [intro]
+    max: 1
+    sfx: click
+    sfx_lead_s: 0.0
+    sfx_gain_db: -16
+    priority: 10

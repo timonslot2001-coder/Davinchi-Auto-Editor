@@ -69,7 +69,7 @@ audio:
   music_duck_db: -12           # music quieter while you talk
   music_bass_db: -4            # less bass in the song (0 = untouched, -8 = a lot less)
   voice_isolation: true
-  sfx_volume_db: -6
+  sfx_volume_db: 0             # per-sound levels live in inventory.yaml (sfx_gain_db)
 
 captions:
   enabled: true

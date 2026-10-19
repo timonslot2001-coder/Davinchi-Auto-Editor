@@ -107,6 +107,7 @@ cinematic:
   shot_s: 0.8               # without music; with music: 2 beats per shot
   final_hold: 1.7           # long hold on the widest shot at the end
   dip_to_black: true
+  dip_chance: 0.5           # only in about half of the videos, so they don't all look the same
   dip_s: 0.33
   light_leak: true          # orange film burn into the final hold
   whip_first_body: true

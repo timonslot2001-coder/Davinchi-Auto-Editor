@@ -290,7 +290,7 @@ class Builder:
         for ev, p in sfx_files:
             n = max(1, int(sf.info(p).duration * self.fps))
             rec = start + self.f(ev["t"])
-            if ev["cat"] in ("riser", "swell"):          # risers end ON the moment instead of starting there
+            if ev["cat"] in ("riser", "swell") and "why" not in ev:   # director already leads these itself          # risers end ON the moment instead of starting there
                 rec = max(start, rec - n + self.f(0.05))
             lane = A_SFX if lane_end[A_SFX] <= rec else A_SFX2
             if self._append(sfx_mpi[str(p)], 0, n, lane, rec, 2):

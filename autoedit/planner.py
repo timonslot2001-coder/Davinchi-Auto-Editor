@@ -352,7 +352,8 @@ def make_cinematic_plan(clips: list[ClipAnalysis], style: dict, cfg, music: Musi
     hold = style.get("final_hold", 1.7)
     length = style.get("length_s", 13.0)
 
-    dip_at = 2 if style.get("dip_to_black", True) else None
+    # not every video gets the same structure (taste: no 1:1 copies) → dip to black is a coin flip
+    dip_at = 2 if style.get("dip_to_black", True) and rng.random() < style.get("dip_chance", 1.0) else None
     if music and music.beats and style.get("music_driven", True):
         # the song drives the edit (2nd reference): first cut on the first big hit, shot length follows the
         # music's energy (quiet → hold, loud → cut faster), always on a beat; final shot starts on the last hit

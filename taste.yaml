@@ -29,6 +29,10 @@ rules:
     said: "make the SMOKE SESH title bigger"
     rule: "title_size 0.065 of the short side"
 
+  - id: director_level_ok
+    said: "yes, this feels natural, good"                                  # 2026-10-19, smoke sesh director edit
+    rule: "this density is the benchmark: ~3 accents/10 s, each motivated, one matching sound each — keep it here"
+
 # numbers the director reads
 knobs:
   effects_intensity: 0.4

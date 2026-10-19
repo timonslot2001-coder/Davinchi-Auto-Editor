@@ -108,7 +108,7 @@ techniques:
     trigger: [hit, scene]
     max: 1
     cooldown_s: 99
-    sfx: shutter
+    sfx: flash
     sfx_lead_s: 0.0
     sfx_gain_db: -12
     priority: 4
@@ -172,7 +172,7 @@ techniques:
     avoid: [intro]
     max: 1
     cooldown_s: 99
-    sfx: click                  # one click per step
+    sfx: zoom                   # one zoom tick per step (Quantum Motion 'Zoom')
     sfx_per_step: true
     sfx_gain_db: -14
     priority: 5

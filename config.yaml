@@ -10,6 +10,7 @@ paths:
   output_folder: "C:/Users/Timon/Videos/AutoEdit Exports"
   # Your own SFX folders (scanned and sorted into categories). Generated SFX are always added too.
   sfx_folders:
+    - "C:/Users/Timon/Documents/Editor Packs/FOUR Editors - Sound Effects"
     - "C:/Users/Timon/Documents/Four Editors/FOUR Editors Film Textures/Analog Frames/SFX"
     - "C:/Users/Timon/Documents/Four Editors/FOUR Editors Film Textures/Super 8 Textures/SFX"
     - "C:/Users/Timon/Documents/Editor Packs/FOUR Editors - Overlays/All Overlays In One Download"

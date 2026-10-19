@@ -22,12 +22,12 @@ SAFE = {"top": 260, "bottom": 480, "left": 70, "right": 160}
 
 
 def sfx_at_gain(path: Path, gain_db: float) -> Path:
-    if abs(gain_db) < 0.1:
-        return path
-    out = PREP / f"{path.stem}_{hashlib.sha1(str(path).encode()).hexdigest()[:6]}_{gain_db:+.0f}dB.wav"
+    """Peak-normalise the sound to -1 dBFS, then apply the gain → every SFX sits at a predictable level."""
+    out = PREP / f"{path.stem}_{hashlib.sha1(str(path).encode()).hexdigest()[:6]}_{gain_db:+.0f}dBn.wav"
     if not out.exists():
         data, sr = sf.read(path, always_2d=True)
-        sf.write(out, data * 10 ** (gain_db / 20), sr)
+        peak = float(np.abs(data).max()) or 1.0
+        sf.write(out, data * (0.891 / peak) * 10 ** (gain_db / 20), sr)
     return out
 
 

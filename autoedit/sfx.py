@@ -135,8 +135,30 @@ def _gen(cat: str, seed: int) -> np.ndarray:
     return _stereo(x)
 
 
+GENERATED = {"whoosh", "hit", "impact", "pop", "click", "shutter", "riser", "swell", "glitch"}
+
+# libraries/folders that don't fit the house style (spooky, sci-fi, weapons) — never picked automatically
+EXCLUDE_PARTS = {"science fiction", "fantasy", "scary horror", "weird & scary", "guns", "mystery sfx", "stress",
+                 "fighting foley"}
+
+# FOUR Editors sound pack: folder → category (more precise than file names)
+FOLDER_MAP = {
+    "whooshes": "whoosh", "slides:swipes": "whoosh", "slides_swipes": "whoosh", "transitions short": "whoosh",
+    "sweeps": "whoosh",
+    "transitions long": "swell", "reverse & impacts": "swell",
+    "hits": "hit", "jolt": "hit", "pulses": "hit", "percussion": "hit",
+    "impacts": "impact", "impact": "impact",
+    "risers": "riser", "riser": "riser", "tension builders": "riser",
+    "glitches": "glitch", "glitch": "glitch", "distort": "glitch", "bad tv": "glitch",
+    "camera": "shutter", "old camera": "shutter",
+    "zoom": "zoom",
+    "flash": "flash",
+    "vinyl": "film",
+}
+
+
 def build_library(variants: int = 4) -> None:
-    for cat in [c for c in CATEGORIES if c != "film"]:
+    for cat in sorted(GENERATED):
         d = LIB / cat
         d.mkdir(parents=True, exist_ok=True)
         for i in range(variants):
@@ -158,7 +180,7 @@ def categorize(name: str) -> str | None:
 class Library:
     def __init__(self, extra_folders: list[str] | None = None, seed: int | None = None):
         build_library()
-        self.by_cat: dict[str, list[Path]] = {c: [] for c in CATEGORIES}
+        self.by_cat: dict[str, list[Path]] = {c: [] for c in list(CATEGORIES) + ["zoom", "flash"]}
         self.rng = random.Random(seed)
         self._last: dict[str, Path] = {}
         for p in LIB.rglob("*.wav"):
@@ -166,10 +188,20 @@ class Library:
         for folder in extra_folders or []:
             for p in Path(folder).rglob("*"):
                 if p.suffix.lower() in {".wav", ".mp3", ".aif", ".aiff"} and "__MACOSX" not in p.parts:
-                    cat = categorize(p.stem) or categorize(p.parent.name)
+                    if any(part.strip().lower() in EXCLUDE_PARTS for part in p.parts):
+                        continue
+                    cat = FOLDER_MAP.get(p.parent.name.strip().lower()) or FOLDER_MAP.get(p.parent.parent.name.strip().lower())
+                    # the big sound pack is sorted by folder only (file-name guessing pulls in spooky/sci-fi
+                    # sounds from Mystery/Fantasy/Science Fiction); small packs may use name matching
+                    if not cat and "Sound Effects" not in str(p):
+                        cat = categorize(p.stem) or categorize(p.parent.name)
                     if cat:
-                        # your own sounds first: they are listed twice so they're picked more often
-                        self.by_cat[cat] += [p, p]
+                        self.by_cat.setdefault(cat, []).append(p)
+        # real sounds beat generated ones: drop the generated set wherever you have ≥3 real sounds
+        for cat, files in self.by_cat.items():
+            real = [f for f in files if not f.name.startswith("gen_")]
+            if len(set(real)) >= 3:
+                self.by_cat[cat] = real
 
     def pick(self, cat: str) -> Path | None:
         pool = self.by_cat.get(cat) or []

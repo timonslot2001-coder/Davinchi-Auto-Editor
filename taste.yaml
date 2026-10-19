@@ -34,7 +34,7 @@ rules:
     rule: "this density is the benchmark: ~3 accents/10 s, each motivated, one matching sound each — keep it here"
   - id: slowmo_sometimes
     said: "the slowmos are not that necessary but they can be there sometimes"   # 2026-10-19
-    rule: "speed ramp only in ~30% of videos, low priority"
+    rule: "speed ramp only in roughly a quarter of the videos"
 
 # numbers the director reads
 knobs:

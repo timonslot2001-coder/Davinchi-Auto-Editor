@@ -133,8 +133,8 @@ techniques:
     sfx: riser
     sfx_lead_s: 0.9
     sfx_gain_db: -14
-    priority: 2
-    chance: 0.3                 # taste: slow-mo is nice sometimes, not needed every video
+    priority: 5
+    chance: 0.35                 # taste: slow-mo is nice sometimes, not needed every video
 
   title:
     type: text

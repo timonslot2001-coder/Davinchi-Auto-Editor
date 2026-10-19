@@ -32,6 +32,9 @@ rules:
   - id: director_level_ok
     said: "yes, this feels natural, good"                                  # 2026-10-19, smoke sesh director edit
     rule: "this density is the benchmark: ~3 accents/10 s, each motivated, one matching sound each — keep it here"
+  - id: slowmo_sometimes
+    said: "the slowmos are not that necessary but they can be there sometimes"   # 2026-10-19
+    rule: "speed ramp only in ~30% of videos, low priority"
 
 # numbers the director reads
 knobs:

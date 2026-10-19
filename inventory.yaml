@@ -15,6 +15,7 @@
 #  sfx:       sound category that goes with it (null = none); sfx_lead_s > 0: sound starts that much
 #             BEFORE the visual (risers/swells), 0 = on the frame
 #  priority:  higher wins when two techniques want the same moment
+#  chance:    probability the technique is available at all in a video (1.0 = always, default)
 # ============================================================
 
 budget:
@@ -132,7 +133,8 @@ techniques:
     sfx: riser
     sfx_lead_s: 0.9
     sfx_gain_db: -14
-    priority: 5
+    priority: 2
+    chance: 0.3                 # taste: slow-mo is nice sometimes, not needed every video
 
   title:
     type: text

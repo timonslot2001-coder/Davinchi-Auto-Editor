@@ -113,7 +113,8 @@ def direct(plan: Plan, clips: list[ClipAnalysis], music: MusicAnalysis | None, s
 
     # one fair auction over all (technique, moment) pairs: priority + how well the moment fits + a bit of
     # chance, minus a penalty for repeating a technique → varied, creative, but always motivated
-    pool = [(k, v) for k, v in tech.items() if v.get("type") == "vfx" and k not in ("dip_to_black", "light_leak")]
+    pool = [(k, v) for k, v in tech.items() if v.get("type") == "vfx" and k not in ("dip_to_black", "light_leak")
+            and rng.random() < v.get("chance", 1.0)]           # occasional techniques sit out some videos
     while accents < max_accents:
         best = None
         for name, t in pool:

@@ -1,0 +1,71 @@
+# Trend data (October 2026) — used by the planner (hooks) and the caption generator.
+# Refreshed by `autoedit trends` / the weekly trend tracker. Edit freely.
+updated: "2026-10-18"
+
+rules:
+  max_hashtags: { instagram: 5, tiktok: 5 }
+  # Platforms now index caption keywords, on-screen text and speech: first caption line = searchable keywords
+  caption_first_line_is_keywords: true
+  avoid_hashtags: ["#fyp", "#foryou", "#viral", "#explore", "#reels", "#instagood"]
+
+fitness:
+  why_it_works: >
+    Functional training, strength for everyone, Pilates and 30-day challenges dominate. Short practical
+    clips that people save and try perform best; transformations and progress stories drive follows.
+  formats: ["30-day challenge (day X/30)", "form fix: wrong vs right", "3 exercises for …", "progress check-in", "gym POV"]
+  hooks:
+    - "POV: you stopped skipping leg day"
+    - "3 exercises nobody does (but should)"
+    - "Day 1 vs today"
+    - "You're doing this exercise wrong"
+    - "Try this before your next leg day"
+    - "Save this for your next gym session"
+  keywords: ["workout", "gym routine", "leg day", "strength training", "home workout", "progressive overload"]
+  hashtags: ["#gymroutine", "#strengthtraining", "#legday", "#fitnessmotivation", "#workouttips", "#gymtok", "#fitnessjourney"]
+
+travel:
+  why_it_works: >
+    Pretty drone montages alone no longer hook — everyone has them. Cost breakdowns, a specific cold-open
+    scene, a number that needs explaining, and itinerary/POV formats win. Lesser-known destinations
+    outperform saturated ones; slightly raw, honest footage beats over-polished.
+  formats: ["what I spent in 1 day", "1 day in …", "POV itinerary", "photo slideshow on trending audio", "hidden spot reveal"]
+  hooks:
+    - "What I spent in 1 day here"
+    - "The place nobody tells you about"
+    - "Save this for your next trip"
+    - "POV: you finally booked it"
+    - "1 day, 3 spots, no tourists"
+    - "Don't book this trip until you see this"
+  keywords: ["travel guide", "hidden gems", "budget travel", "itinerary", "things to do", "weekend trip"]
+  hashtags: ["#travelguide", "#hiddengems", "#budgettravel", "#traveltips", "#weekendtrip", "#traveltok", "#europetravel"]
+
+fashion:
+  why_it_works: >
+    Physical transitions (ceiling-fan swap, shoe-toss, OOTD "stop" walk-around), fast "outfits of the week"
+    recaps with the same repeated action, and occasion-based fits (first day of October, college, pumpkin
+    patch) give people a reason to care about the clothes. Aesthetics: gorpcore, 90s grunge, sneaker revival,
+    dark academia, statement jewelry.
+  formats: ["outfits of the week (same action each cut)", "transition outfit swap", "3 ways to style 1 piece", "fit check", "rate this fit"]
+  hooks:
+    - "Outfits of the week"
+    - "3 ways to style one piece"
+    - "Rate this fit 1–10"
+    - "Fit check before you judge"
+    - "What I'd wear this October"
+  keywords: ["outfit ideas", "fall outfits", "streetwear", "how to style", "outfit inspo", "mens fashion"]
+  hashtags: ["#outfitideas", "#falloutfits", "#streetwear", "#ootd", "#howtostyle", "#mensfashion", "#fitcheck"]
+
+lifestyle:
+  why_it_works: >
+    Platforms reward total watch time, rewatches and shares (DMs) over likes. Day-in-my-life and reset
+    routines work when they feel real and specific; seamless loops boost rewatches; relatable on-screen text
+    drives sends to friends.
+  formats: ["day in my life", "weekend reset", "morning routine", "small habits", "romanticize your life"]
+  hooks:
+    - "A day in my life"
+    - "POV: your weekend reset"
+    - "Small habits that changed everything"
+    - "Send this to someone who needs it"
+    - "Romanticize your life, part 1"
+  keywords: ["day in my life", "routine", "productive day", "weekend vlog", "self improvement", "daily habits"]
+  hashtags: ["#dayinmylife", "#weekendreset", "#dailyroutine", "#selfimprovement", "#lifestylevlog", "#morningroutine"]

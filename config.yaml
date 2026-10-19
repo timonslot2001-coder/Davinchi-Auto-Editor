@@ -1,0 +1,100 @@
+# ============================================================
+#  AutoEdit — your settings. Edit this file; everything reads from here.
+# ============================================================
+
+paths:
+  # Drop folder: drop clips into a subfolder here and a rough cut is built automatically
+  drop_folder: "C:/Users/Timon/Videos/AutoEdit Drop"
+  output_folder: "C:/Users/Timon/Videos/AutoEdit Exports"
+  # Your own SFX folders (scanned and sorted into categories). Generated SFX are always added too.
+  sfx_folders:
+    - "C:/Users/Timon/Documents/Four Editors/FOUR Editors Film Textures/Analog Frames/SFX"
+    - "C:/Users/Timon/Documents/Four Editors/FOUR Editors Film Textures/Super 8 Textures/SFX"
+  # Overlays (film frames, light leaks, dust). Placed on top with Screen/Overlay blending.
+  overlay_folders:
+    - "C:/Users/Timon/Documents/Four Editors/FOUR Editors Film Textures/Analog Frames/1080p"
+  # Folder with music (mp3/wav). If empty: no music, beat sync uses the clip audio.
+  music_folder: "C:/Users/Timon/Music/AutoEdit Music"
+
+camera:
+  # Your Sony footage: S-Log3 / S-Gamut3.Cine. Must match the CST node in your PowerGrade.
+  log_profile: "S-Log3 / S-Gamut3.Cine"
+  fps: 25
+
+grading:
+  enabled: true
+  # "lut" (default): Sony S-Log3 → Rec.709 conversion + film look baked into one LUT, tuned on your footage.
+  # "powergrade": the Odyssey PowerGrade (only useful after you set its CST + look nodes by hand in Resolve).
+  mode: "lut"
+  grade_look: "reference_film"   # reference_film / clean_warm / moody / none (styles can override)
+  exposure: -1.75                # your Sony footage is exposed bright (ETTR); stops of correction
+  strength: 1.0                  # how strong the film look is (0..1)
+  # Option 1 (recommended): the label of your PowerGrade in the Resolve Gallery (PowerGrade album),
+  # with the CST node already set to S-Log3 — the tool exports it automatically.
+  gallery_label: "Odyssey"
+  # Option 2 / fallback: a .drx file
+  drx_file: "C:/Users/Timon/Documents/Odyssey Powergrade by Gakuyen/OdysseyPowergrade.drx"
+  # Which of the 7 Odyssey looks is switched on (the rest are disabled). null = leave as is.
+  # Options: Daylight, Vintage, Night, Blue Hour, Evening, Outdoors, Overcast
+  look: "Daylight"
+  # Node 01 "Denoise" (temporal noise reduction) makes playback crawl; clean footage rarely needs it
+  denoise: false
+
+stabilization:
+  # "auto"  = only clips the analysis finds shaky
+  # "all" / "none" = everything / nothing
+  # "ask"   = you choose per clip in the dashboard
+  mode: "auto"
+  shake_threshold: 0.35       # 0..1, higher = only stabilize very shaky clips
+  overrides: {}               # per clip: {"C0183.MP4": true, "C0184.MP4": false}
+
+effects:
+  # How strong zooms, shakes, flashes, whips and inverts are: 1.0 = bold, 0.4 = small & clean
+  intensity: 0.4
+
+performance:
+  # 1080p ProRes Proxy copies for smooth playback (Sony 4:2:2 10-bit has no AMD hardware decoding).
+  # Renders still use the 4K originals.
+  proxies: true
+
+format:
+  primary: "9:16"              # TikTok / Reels
+  extra_exports: ["4:5"]       # also the Instagram feed version
+  smart_reframe: false         # AI reframe keeps the subject in frame (Studio)
+  max_length_s: 30
+  min_length_s: 7
+
+audio:
+  target_lufs: -14             # TikTok/Instagram standard
+  music_duck_db: -12           # music quieter while you talk
+  music_bass_db: -4            # less bass in the song (0 = untouched, -8 = a lot less)
+  voice_isolation: true
+  sfx_volume_db: -6
+
+captions:
+  enabled: true
+  language: "auto"             # auto / dutch / english
+  burn_in: true
+  chars_per_line: 18           # short TikTok-style lines
+
+branding:
+  font: "Montserrat"
+  primary_color: "#FFFFFF"
+  accent_color: "#FFD400"
+  watermark: null              # path to a png, or null
+  outro: null                  # path to an outro clip, or null
+
+# Default preset when you pass nothing
+# One house style for every video (the cinematic look you approved). The category you give
+# (fitness / travel / fashion / lifestyle) only changes captions, hashtags and the content plan, never the edit.
+default_style: "cinematic"
+default_category: null
+
+posting:
+  platforms: ["instagram", "tiktok"]
+  require_approval: true       # nothing goes online without your OK
+  tiktok_mode: "draft"         # draft = lands in your TikTok inbox, you press publish
+  timezone: "Europe/Amsterdam"
+  best_times:                  # adjusted automatically by performance feedback
+    instagram: ["Tue 18:30", "Wed 12:00", "Thu 19:00", "Sat 10:30"]
+    tiktok:    ["Tue 19:00", "Thu 20:00", "Fri 17:00", "Sun 11:00"]

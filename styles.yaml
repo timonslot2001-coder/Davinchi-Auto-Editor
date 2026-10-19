@@ -1,0 +1,120 @@
+# ============================================================
+#  Edit styles. Your house style is "cinematic" (config default_style) — used for every category.
+#  The other styles below are optional alternatives, only used if you pass --style explicitly.
+#  Copy one to make your own ("templates you build yourself").
+#  Numbers are probabilities (0..1) or seconds.
+# ============================================================
+
+fitness:
+  label: "Fitness hype"
+  look: "Outdoors"
+  pacing:                 # shot length in seconds per part of the video
+    hook: 0.35             # first ~2 s: very fast
+    body: 0.63
+    outro: 0.84
+  cut_on_beat: true
+  hook_text: true
+  effects:                # chance per cut that this effect is used
+    punch_zoom: 0.23
+    smooth_zoom: 0.07
+    shake: 0.15
+    invert_flash: 0.06
+    white_flash: 0.05
+    whip: 0.07
+    glitch: 0.03
+    speed_ramp: 0.25
+    pop_in: 0.0
+  grid6: true             # 6-panel grid section
+  overlay: { enabled: false }
+  sfx: { cut: "whoosh", zoom: "hit", grid: "click", flash: "impact", ramp: "riser" }
+  retention_interval_s: 2.4
+  loop_ending: true
+
+travel:
+  label: "Travel cinematic"
+  look: "Evening"
+  pacing: { hook: 0.49, body: 1.12, outro: 1.54 }
+  cut_on_beat: true
+  hook_text: true
+  effects:
+    punch_zoom: 0.05
+    smooth_zoom: 0.23
+    shake: 0.03
+    invert_flash: 0.02
+    white_flash: 0.06
+    whip: 0.12
+    glitch: 0.0
+    speed_ramp: 0.30
+    pop_in: 0.0
+  grid6: true
+  overlay: { enabled: true, blend: "screen", opacity: 35 }
+  sfx: { cut: "whoosh", zoom: "swell", grid: "click", flash: "shutter", ramp: "riser" }
+  retention_interval_s: 3.6
+  loop_ending: true
+
+lifestyle:
+  label: "Lifestyle chill"
+  look: "Daylight"
+  pacing: { hook: 0.42, body: 0.91, outro: 1.26 }
+  cut_on_beat: true
+  hook_text: true
+  effects:
+    punch_zoom: 0.12
+    smooth_zoom: 0.15
+    shake: 0.04
+    invert_flash: 0.03
+    white_flash: 0.04
+    whip: 0.09
+    glitch: 0.01
+    speed_ramp: 0.15
+    pop_in: 0.0
+  grid6: true
+  overlay: { enabled: true, blend: "screen", opacity: 25 }
+  sfx: { cut: "whoosh", zoom: "hit", grid: "click", flash: "click", ramp: "riser" }
+  retention_interval_s: 3.0
+  loop_ending: true
+
+fashion:
+  label: "Fashion / outfit"
+  look: "Vintage"
+  pacing: { hook: 0.32, body: 0.56, outro: 0.98 }
+  cut_on_beat: true
+  hook_text: true
+  effects:
+    punch_zoom: 0.17
+    smooth_zoom: 0.05
+    shake: 0.05
+    invert_flash: 0.07
+    white_flash: 0.07
+    whip: 0.05
+    glitch: 0.05
+    speed_ramp: 0.10
+    pop_in: 0.0
+  grid6: true
+  overlay: { enabled: true, blend: "screen", opacity: 30 }
+  sfx: { cut: "shutter", zoom: "hit", grid: "shutter", flash: "shutter", ramp: "riser" }
+  retention_interval_s: 2.4
+  loop_ending: true
+
+cinematic:
+  # Modelled on your reference (LA travel edit). Less is more: story arc, steady rhythm, no added effects.
+  label: "Cinematic (reference)"
+  mode: "cinematic"
+  aspect: "16:9"            # like the reference; "9:16" also works
+  look: "Daylight"          # warm, teal sky / orange highlights
+  length_s: 13.0
+  intro_cuts: [0.27, 0.25]  # first two cuts are quick, then steady
+  shot_s: 0.8               # without music; with music: 2 beats per shot
+  final_hold: 1.7           # long hold on the widest shot at the end
+  dip_to_black: true
+  dip_s: 0.33
+  light_leak: true          # orange film burn into the final hold
+  whip_first_body: true
+  title: null               # e.g. "UTRECHT" → small, widely spaced title over the intro (or --title)
+  overlay: { enabled: false }
+  sfx: { cut: "whoosh", leak: "swell" }
+  effects: {}
+  pacing: { hook: 0.27, body: 0.8, outro: 1.7 }
+  grid6: false
+  hook_text: false
+  loop_ending: false

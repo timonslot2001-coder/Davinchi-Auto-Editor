@@ -1,0 +1,10 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+# secrets — never commit
+.env
+# local caches, renders, generated SFX/LUTs/proxies, analysis
+data/
+*.part.mov
+content_plan_*.md

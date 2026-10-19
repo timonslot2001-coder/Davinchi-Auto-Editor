@@ -55,13 +55,15 @@ def analyse_folder(folder: Path, log=con.print) -> list[analyze.ClipAnalysis]:
 def run(cfg, folder: str | Path, style_name: str | None = None, variants: str = "A", music: str | None = None,
         stab_mode: str | None = None, render: bool = True, queue: bool = True, location: str | None = None,
         clips: list | None = None, title: str | None = None, category: str | None = None,
-        aspect: str | None = None, log=con.print) -> list[dict]:
+        aspect: str | None = None, label: str | None = None, log=con.print) -> list[dict]:
     from .builder import Builder, render as do_render
 
     folder = Path(folder)
     style = cfg.style(style_name)
     if aspect:
         style = dict(style, aspect=aspect)
+    if label:
+        style = dict(style, corner_label=label)
     # the category is what the video is ABOUT (captions/hashtags); the style is how it's EDITED (always the same)
     category = category or cfg.get("default_category")
     log(f"[bold]AutoEdit[/] · {folder.name} · style [cyan]{style['label']}[/] · category {category or '-'} · variants {variants}")

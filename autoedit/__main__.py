@@ -28,7 +28,8 @@ def main(argv=None):
     a.add_argument("--bass", type=float, help="bass in the song in dB (e.g. -6 = less bass, 0 = untouched)")
     a.add_argument("--stabilize", choices=["auto", "all", "none"], help="override config stabilization.mode")
     a.add_argument("--location", help="used in captions, e.g. 'Porto'")
-    a.add_argument("--title", help="cinematic preset: small spaced-out title, e.g. 'UTRECHT'")
+    a.add_argument("--title", help="small spaced-out title over the intro, e.g. 'UTRECHT'")
+    a.add_argument("--label", help="tiny corner label over the intro, e.g. your brand/handle")
     a.add_argument("--no-render", action="store_true", help="only build the timeline in Resolve")
 
     a = sub.add_parser("analyze", help="show quality / shake / speech per clip")
@@ -72,7 +73,7 @@ def main(argv=None):
             cfg.raw.setdefault("audio", {})["music_bass_db"] = args.bass
         res = pipeline.run(cfg, args.folder, args.style, args.variants, args.music, args.stabilize,
                            render=not args.no_render, location=args.location, title=args.title,
-                           category=args.category, aspect=args.aspect)
+                           category=args.category, aspect=args.aspect, label=args.label)
         con.print_json(json.dumps(res, ensure_ascii=False))
     elif args.cmd == "analyze":
         from . import pipeline

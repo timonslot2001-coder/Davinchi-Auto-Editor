@@ -27,7 +27,7 @@ title: "{title}"          # small spaced title over the intro (empty = none)
 label: "BUDTHENCINEMATIC" # tiny corner label (empty = none)
 category: null            # fitness / travel / fashion / lifestyle → captions + hashtags only
 aspect: null              # null = house style default (16:9), or "9:16"
-song: null                # name (part) of a song in your music folder; or drop a file in music/
+song: null                # name (part) of a song in your music folder (wins over music/); or drop a file in music/
 location: null            # used in captions
 variants: "A"             # "AB" = two versions with different hooks/choices
 notes: ""                 # anything Claude should keep in mind for this edit
@@ -141,7 +141,8 @@ def run(cfg, name: str, **overrides) -> list[dict]:
     if not any(f.suffix.lower() in VIDEO_EXT for f in clips_dir.glob("*")):
         raise SystemExit(f"Project '{p.name}' has no clips yet — put footage in {clips_dir}")
     songs = sorted(f for f in (p / "music").glob("*") if f.suffix.lower() in AUDIO_EXT)
-    music = overrides.get("song") or (str(songs[0]) if songs else (s.get("song") or None))
+    # explicit choice wins: --song, then song: in project.yaml, then the first file in music/
+    music = overrides.get("song") or s.get("song") or (str(songs[0]) if songs else None)
     planner.EXTRA_TAGS = p / "tags.json"
     con.print(f"[bold]Project[/] {p.name} · {sum(1 for f in clips_dir.glob('*') if f.suffix.lower() in VIDEO_EXT)} clips"
               f" · song: {Path(music).name if music and Path(music).exists() else music or 'none'}")

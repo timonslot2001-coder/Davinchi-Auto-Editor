@@ -13,6 +13,7 @@ paths:
     - "C:/Users/Timon/Documents/Four Editors/FOUR Editors Film Textures/Analog Frames/SFX"
     - "C:/Users/Timon/Documents/Four Editors/FOUR Editors Film Textures/Super 8 Textures/SFX"
     - "C:/Users/Timon/Documents/Editor Packs/FOUR Editors - Overlays/All Overlays In One Download"
+    - "C:/Users/Timon/Documents/Editor Packs/FOUR Editors - Overlays as Transitions/All Transitions In One Download"
   # Bought editor packs (FOUR Editors): overlays + overlay transitions, indexed by category (autoedit/packs.py)
   pack_folders:
     - "C:/Users/Timon/Documents/Editor Packs/FOUR Editors - Overlays/All Overlays In One Download"

@@ -18,7 +18,7 @@ from .config import DATA
 SR = 48000
 LIB = DATA / "sfx"
 CATEGORIES = {
-    "whoosh": ["whoosh", "swoosh", "swish", "woosh", "swipe", "transition", "whip"],
+    "whoosh": ["whoosh", "swoosh", "swish", "woosh", "swipe", "transition", "whip", "pulling", "tape pull"],
     "hit": ["hit", "punch", "kick", "thump", "bass drop", "sub"],
     "impact": ["impact", "boom", "slam", "cinematic hit"],
     "pop": ["pop", "bubble", "plop", "blip"],
@@ -26,8 +26,9 @@ CATEGORIES = {
     "shutter": ["shutter", "camera", "snap", "flash"],
     "riser": ["riser", "rise", "build", "uplifter", "sweep up"],
     "swell": ["swell", "reverse", "suck"],
-    "glitch": ["glitch", "digital", "static", "noise crack", "error", "bitcrush"],
-    "film": ["film", "reel", "projector", "analog", "mechanical", "whir"],
+    "glitch": ["glitch", "digital", "static", "noise crack", "error", "bitcrush", "distort", "tv problem", "radio"],
+    "film": ["film", "reel", "projector", "analog", "mechanical", "whir", "crackle", "cracking", "16mm",
+             "old movie", "noise", "burn", "fizzle"],
 }
 
 

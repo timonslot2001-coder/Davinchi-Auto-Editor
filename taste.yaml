@@ -35,6 +35,9 @@ rules:
   - id: slowmo_sometimes
     said: "the slowmos are not that necessary but they can be there sometimes"   # 2026-10-19
     rule: "speed ramp only in roughly a quarter of the videos"
+  - id: must_look_good
+    said: "you have to check the video and make it make sense, the slowmo wasn't even smooth"   # 2026-10-19
+    rule: "an accent is only allowed if it looks good on THIS footage: slow-mo only on ≥50p clips at real speed, review checks smoothness; when in doubt leave it out"
 
 # numbers the director reads
 knobs:

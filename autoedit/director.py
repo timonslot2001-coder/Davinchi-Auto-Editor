@@ -114,7 +114,8 @@ def direct(plan: Plan, clips: list[ClipAnalysis], music: MusicAnalysis | None, s
     # one fair auction over all (technique, moment) pairs: priority + how well the moment fits + a bit of
     # chance, minus a penalty for repeating a technique → varied, creative, but always motivated
     pool = [(k, v) for k, v in tech.items() if v.get("type") == "vfx" and k not in ("dip_to_black", "light_leak")
-            and rng.random() < v.get("chance", 1.0)]           # occasional techniques sit out some videos
+            and rng.random() < v.get("chance", 1.0)                # occasional techniques sit out some videos
+            and not (k == "speed_ramp" and knobs.get("drop_speed_ramp"))]
     while accents < max_accents:
         best = None
         for name, t in pool:
@@ -131,6 +132,9 @@ def direct(plan: Plan, clips: list[ClipAnalysis], music: MusicAnalysis | None, s
                     continue
                 if name == "speed_ramp":
                     c = by_path.get(s.clip)
+                    # real slow motion needs real frames: only footage shot at ≥ 2× the timeline rate (50p in 25p)
+                    if not c or c.fps < 1.9 * plan.fps:
+                        continue
                     if s.dur < 0.9 or not any(s.src_in + 0.3 < p < s.src_out - 0.2 for p in (c.motion_peaks if c else [])):
                         continue
                 fit = len(trig & m.tags) + 2 * m.strength + (2 * m.motion if "motion" in trig else 0)

@@ -77,6 +77,46 @@ def review(video: Path, plan: Plan, out_dir: Path, base: str) -> dict:
     if not loud and plan.sfx:
         good.append(f"{len(plan.sfx)} sounds sit inside the mix")
 
+    # ---- slow motion must be smooth: look for repeated or near-identical frames inside the slowed part
+    import cv2
+    cap = cv2.VideoCapture(str(video))
+    vfps = cap.get(5) or plan.fps
+    for s in plan.shots:
+        if "speed_ramp" not in s.effects or s.speed_ramp is None:
+            continue
+        src = cv2.VideoCapture(s.clip)
+        src_fps = src.get(5) or 0
+        src.release()
+        if src_fps < 1.9 * plan.fps:
+            # cause, not symptom: slowing down footage without enough real frames always looks choppy/ghosty
+            issues.append(f"slow-mo at {s.rec_in:.2f}s is on {src_fps:.0f}p footage — can't be smooth, drop it")
+            fixes["drop_speed_ramp"] = True
+            continue
+        a = s.rec_in + max(0.0, s.speed_ramp - 0.3)
+        # frame strip of the slowed part, for the visual check
+        strip = out_dir / f"{base}_slowmo_{s.rec_in:.2f}.png"
+        subprocess.run([FFMPEG, "-y", "-v", "error", "-ss", f"{a:.2f}", "-t", "0.8", "-i", str(video),
+                        "-vf", "scale=160:-2,tile=10x2", "-frames:v", "1", str(strip)])
+        cap.set(cv2.CAP_PROP_POS_FRAMES, int(a * vfps))
+        prev, diffs = None, []
+        for _ in range(int(0.8 * vfps)):
+            ok, fr = cap.read()
+            if not ok:
+                break
+            g = cv2.cvtColor(cv2.resize(fr, (192, 108)), cv2.COLOR_BGR2GRAY).astype(np.float32)
+            if prev is not None:
+                diffs.append(float(np.abs(g - prev).mean()))
+            prev = g
+        if diffs:
+            med = np.median(diffs) + 1e-6
+            stutter = sum(d < 0.25 * med for d in diffs) / len(diffs)
+            if stutter > 0.15:
+                issues.append(f"slow-mo at {s.rec_in:.2f}s stutters ({stutter:.0%} repeated frames) — drop it")
+                fixes["drop_speed_ramp"] = True
+            else:
+                good.append(f"slow-mo at {s.rec_in:.2f}s is smooth")
+    cap.release()
+
     # ---- picture problems
     expect = (1920, 1080) if plan.shots and plan.length and "16" in base else None
     q = qc(video, expect or (1080, 1920))

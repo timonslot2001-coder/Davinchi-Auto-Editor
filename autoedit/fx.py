@@ -99,7 +99,7 @@ def grid_panel(item, k: int, fps: float, src_size=(3840, 2160), canvas=(1080, 19
 
 
 def apply(item, effects: list[str], fps: float, speed_ramp: float | None = None,
-          pop_in: bool = False, seed: int = 0, intensity: float = 1.0) -> list[str]:
+          pop_in: bool = False, seed: int = 0, intensity: float = 1.0, src_fps: float | None = None) -> list[str]:
     """Builds the effect chain on a timeline item. Returns the effects that were applied.
 
     intensity scales how strong every effect is (config effects.intensity): 1 = bold, 0.3 = subtle.
@@ -126,15 +126,17 @@ def apply(item, effects: list[str], fps: float, speed_ramp: float | None = None,
             node = t
             return t
 
-        if speed_ramp is not None:
-            # normal → 30% speed for 0.6 s around the action peak → normal (consumes fewer source frames)
+        if speed_ramp is not None and src_fps and src_fps >= 1.9 * fps:
+            # real slow motion: play the high-frame-rate source at timeline/source speed (50p in 25p → 50 %),
+            # so every output frame is a real camera frame — no invented/blended frames (they stutter)
+            factor = fps / src_fps
             a = max(1, int((speed_ramp - 0.3) * fps))
-            slow = int(0.6 * fps)
+            slow = int(0.8 * fps)
             if a + slow < last:
                 ts = chain("TimeStretcher")
-                src_end = a + slow * 0.3
+                src_end = a + slow * factor
                 _key(ts, "SourceTime", {0: 0, a: a, a + slow: src_end, last: src_end + (last - a - slow)})
-                ts.SetInput("InterpolateBetweenFrames", 1)
+                ts.SetInput("InterpolateBetweenFrames", 0)
                 done.append("speed_ramp")
 
         size: dict[int, float] = {}

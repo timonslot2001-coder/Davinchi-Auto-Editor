@@ -233,7 +233,8 @@ class Builder:
                 stab_n += 1
             if cfg.get("format.smart_reframe") and s.role == "hook":
                 item.SmartReframe()
-            fx_n += len(fx.apply(item, [e for e in s.effects if e != "bw"], self.fps, s.speed_ramp, seed=i,
+            src_fps = float(item.GetMediaPoolItem().GetClipProperty("FPS") or self.fps)
+            fx_n += len(fx.apply(item, [e for e in s.effects if e != "bw"], self.fps, s.speed_ramp, seed=i, src_fps=src_fps,
                                   intensity=cfg.get("effects.intensity", 1.0)))
         for item, k, src in grid_items:
             fx.grid_panel(item, k, self.fps, src_size=src, canvas=(self.W, self.H))

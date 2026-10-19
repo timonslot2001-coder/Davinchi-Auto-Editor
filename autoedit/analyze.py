@@ -294,6 +294,14 @@ class MusicAnalysis:
     beats: list[float]
     downbeats: list[float]
     drop: float | None          # biggest energy jump → put the hook/grid here
+    energy: list[float] = field(default_factory=list)   # loudness per 0.25 s, 0..1 (drives pacing)
+    hits: list[float] = field(default_factory=list)     # strongest musical impacts (cut on these)
+
+    def energy_at(self, t: float) -> float:
+        if not self.energy:
+            return 0.5
+        i = int(t / 0.25)
+        return self.energy[min(max(i, 0), len(self.energy) - 1)]
 
     def to_dict(self):
         return asdict(self)
@@ -303,7 +311,7 @@ def analyze_music(path: str | Path) -> MusicAnalysis:
     import librosa
 
     path = Path(path)
-    cache = CACHE / f"music_{_key(path)}.json"
+    cache = CACHE / f"music2_{_key(path)}.json"
     if cache.exists():
         return MusicAnalysis(**json.loads(cache.read_text()))
     sr = 22050
@@ -322,7 +330,14 @@ def analyze_music(path: str | Path) -> MusicAnalysis:
     if len(rms) > 2 * win:
         jump = np.array([rms[i:i + win].mean() - rms[i - win:i].mean() for i in range(win, len(rms) - win)])
         drop = float(rms_t[win + int(np.argmax(jump))])
+    hop = int(0.25 * sr)
+    seg_rms = np.array([np.sqrt(np.mean(y[i:i + hop] ** 2)) for i in range(0, max(1, len(y) - hop + 1), hop)])
+    energy = (seg_rms / (np.percentile(seg_rms, 95) + 1e-9)).clip(0, 1) if seg_rms.size else np.array([])
+    peaks = librosa.util.peak_pick(onset, pre_max=10, post_max=10, pre_avg=20, post_avg=20, delta=0.5, wait=20)
+    order = sorted(peaks, key=lambda f: -onset[f])[:6]
+    hits = sorted(round(float(librosa.frames_to_time(f, sr=sr)), 3) for f in order)
     res = MusicAnalysis(str(path), round(len(y) / sr, 2), float(np.atleast_1d(tempo)[0]),
-                        [round(b, 3) for b in beats], [round(b, 3) for b in downbeats], drop)
+                        [round(b, 3) for b in beats], [round(b, 3) for b in downbeats], drop,
+                        [round(float(e), 3) for e in energy], hits)
     cache.write_text(json.dumps(res.to_dict()))
     return res

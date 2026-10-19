@@ -118,3 +118,6 @@ cinematic:
   grid6: false
   hook_text: false
   loop_ending: false
+# cinematic also follows the song when there is one (2nd reference, music-driven):
+#   music_driven: true → first cut on the first big hit, shot length follows the music's energy
+#   (quiet → long holds, loud → faster cuts, always on a beat), final shot starts on the last big hit.

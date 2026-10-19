@@ -352,11 +352,46 @@ def make_cinematic_plan(clips: list[ClipAnalysis], style: dict, cfg, music: Musi
     hold = style.get("final_hold", 1.7)
     length = style.get("length_s", 13.0)
 
-    # durations: quick intro cuts, steady body, long final hold; one dip to black after the 3rd shot
-    durs = list(quick)
-    while sum(durs) + step + hold <= length:
-        durs.append(step)
     dip_at = 2 if style.get("dip_to_black", True) else None
+    if music and music.beats and style.get("music_driven", True):
+        # the song drives the edit (2nd reference): first cut on the first big hit, shot length follows the
+        # music's energy (quiet → hold, loud → cut faster), always on a beat; final shot starts on the last hit
+        beats = music.beats
+        snap = lambda x: min(beats, key=lambda b: abs(b - x))
+        end = min(music.duration, length + 3.0)
+        late_hits = [h for h in (music.hits or []) if end * 0.6 <= h <= end - 1.0]
+        final_start = snap(max(late_hits)) if late_hits else snap(end - hold)
+        hold = max(1.2, end - final_start)
+        first_hits = [h for h in (music.hits or []) if 0.8 <= h <= 2.6]
+        first = snap(first_hits[0]) if first_hits else snap(sum(quick) + step)
+        # intro: quick cuts, the last intro shot runs until the first hit
+        durs = [d for d in quick if sum(quick) < first - 0.4] or []
+        durs.append(round(first - sum(durs), 3))
+        intro_n = len(durs)
+        t = first
+        while t < final_start - 0.3:
+            e = music.energy_at(t)
+            want = step * (3.0 if e < 0.12 else 2.0 if e < 0.3 else 1.0 if e < 0.7 else 0.6)
+            nxt = snap(t + want)
+            if nxt <= t + 0.2:
+                nxt = t + want
+            nxt = min(nxt, final_start)
+            if final_start - nxt < 0.35:                    # no sliver before the final shot
+                nxt = final_start
+            durs.append(round(nxt - t, 3))
+            t = nxt
+        if dip_at is not None and dip_at < len(durs):
+            dip = style.get("dip_s", 0.33)
+            if durs[dip_at] - dip >= 0.3:
+                durs[dip_at] = round(durs[dip_at] - dip, 3)   # keep the cuts on the beat: dip eats into the shot
+            else:
+                dip_at = None
+        quick = durs[:intro_n]                              # the intro shots (role "hook", title over them)
+    else:
+        # durations: quick intro cuts, steady body, long final hold; one dip to black after the 3rd shot
+        durs = list(quick)
+        while sum(durs) + step + hold <= length:
+            durs.append(step)
 
     used: dict[str, list[tuple[float, float]]] = {c.path: [] for c in usable}
 

@@ -113,6 +113,7 @@ cinematic:
   frame_in_frame: 1         # shots shown as a 'photo' on a paper backdrop (refs A/B)
   bw_accents: 1             # black & white shots in the calmer parts (ref B)
   corner_label: "VLOG_01"   # tiny corner labels over the intro, title on the right (ref A); null = off
+  title_size: 0.065         # title letter height as share of the frame's short side (0.03 = small)
   title: null               # e.g. "UTRECHT" → small, widely spaced title over the intro (or --title)
   overlay: { enabled: false }
   sfx: { cut: "whoosh", leak: "swell" }

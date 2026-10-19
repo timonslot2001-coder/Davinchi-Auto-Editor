@@ -82,8 +82,8 @@ def _font(size: int, name: str) -> ImageFont.FreeTypeFont:
 
 
 def text_png(text: str, kind: str = "hook", font: str = "Montserrat", color: str = "#FFFFFF",
-             accent: str = "#FFD400", w: int = 1080, h: int = 1920) -> Path:
-    key = hashlib.sha1(f"{text}{kind}{font}{color}{accent}{w}{h}".encode()).hexdigest()[:10]
+             accent: str = "#FFD400", w: int = 1080, h: int = 1920, scale: float = 0.03) -> Path:
+    key = hashlib.sha1(f"{text}{kind}{font}{color}{accent}{w}{h}{scale}".encode()).hexdigest()[:10]
     out = PREP / f"text_{key}.png"
     if out.exists():
         return out
@@ -108,7 +108,7 @@ def text_png(text: str, kind: str = "hook", font: str = "Montserrat", color: str
     if kind == "minimal":
         # small, widely letter-spaced title centred in frame (cinematic reference style)
         spaced = "   ".join(" ".join(word) for word in text.upper().split())
-        size = max(18, int(min(w, h) * 0.03))
+        size = max(18, int(min(w, h) * scale))          # scale = title height as a share of the short side
         f = None
         for name in ("Montserrat-Regular", "segoeui", "arial"):
             for d in (Path("C:/Windows/Fonts"), Path.home() / "AppData/Local/Microsoft/Windows/Fonts"):

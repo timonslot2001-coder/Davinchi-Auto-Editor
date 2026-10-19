@@ -269,7 +269,7 @@ class Builder:
                 tl.AddTrack("video")
             png = text_png(t["text"], t["kind"], cfg.get("branding.font", "Montserrat"),
                            cfg.get("branding.primary_color", "#FFFFFF"), cfg.get("branding.accent_color", "#FFD400"),
-                           w=self.W, h=self.H)
+                           w=self.W, h=self.H, scale=self.style.get("title_size", 0.03) if t["kind"] == "minimal" else 0.03)
             n = self.f(t["t1"] - t["t0"])
             clip = text_clip(png, n / self.fps, self.fps, fade=0.2 if t["kind"] == "minimal" else 0.0)
             m = self._import([clip], b_gfx)[str(clip)]

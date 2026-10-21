@@ -57,7 +57,7 @@ def workflow(prompt: str, seconds: int, aspect: str, preset: dict, seed: int, pr
         "1": {"class_type": "UNETLoader", "inputs": {"unet_name": "wan2.2_ti2v_5B_fp16.safetensors",
                                                     "weight_dtype": "default"}},
         "2": {"class_type": "CLIPLoader", "inputs": {"clip_name": "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
-                                                    "type": "wan", "device": "default"}},
+                                                    "type": "wan", "device": "cpu"}},  # ROCm-Windows OOMs on the GPU
         "3": {"class_type": "VAELoader", "inputs": {"vae_name": "wan2.2_vae.safetensors"}},
         "4": {"class_type": "CLIPTextEncode", "inputs": {"text": prompt, "clip": ["2", 0]}},
         "5": {"class_type": "CLIPTextEncode", "inputs": {"text": NEGATIVE, "clip": ["2", 0]}},
@@ -105,7 +105,11 @@ def generate(project: Path, prompt: str, model: str = "local-wan", seconds: int 
     t0 = time.time()
     hist = {}
     while time.time() - t0 < 3600:
-        hist = requests.get(f"{base}/history/{pid}", timeout=30).json().get(pid) or {}
+        try:
+            hist = requests.get(f"{base}/history/{pid}", timeout=30).json().get(pid) or {}
+        except requests.ConnectionError:
+            raise AIGenError("ComfyUI crashed during generation — see its log (often a GPU driver / ROCm "
+                             "mismatch: update AMD Adrenalin and restart)") from None
         st = hist.get("status", {})
         if st.get("completed") or st.get("status_str") == "error":
             break

@@ -104,3 +104,18 @@ Extracted to `Documents\Editor Packs\` (1080p versions) and wired in:
   `LUT\FOUR Editors\`. Restart Resolve once to see them in the Effects library.
 - Not used automatically (yet): mask-type transitions (Punch Hole, Cinemarkers, CineSnip, Poster Wall) and
   Abstract Brush (contains the Four Editors logo).
+
+## AI shots (Muapi.ai — costs money per shot)
+Generate B-roll / an intro / a hero shot with AI straight into a project; the editor then uses it like any
+other clip (graded with the film look only, since AI footage is already Rec.709).
+```
+autoedit ai-models                                   # models + live prices (free)
+autoedit generate "slow drone shot over Utrecht at golden hour" --project smoke --quote   # price only
+autoedit generate "slow drone shot over Utrecht at golden hour" --project smoke           # asks y/N first
+autoedit ai-balance                                  # your Muapi credit
+```
+Setup once: account on muapi.ai → add credit → Dashboard → API Keys → put `MUAPI_KEY=...` in `.env`.
+Safety: every generation shows the exact price first, never exceeds `ai_budget_usd` in project.yaml
+(default $5), and every spend is logged in `<project>/ai_spend.json`. Failed generations aren't charged.
+Prices (5 s, 1080p, 2026-10-21): seedance-fast $0.30 · kling $0.45 · pixverse/veo3-fast $0.60 ·
+seedance $0.62 · veo3 $2.50. Note: prompts and uploaded images go to Muapi and the model providers.

@@ -134,9 +134,12 @@ def build_lut(look: str = "reference_film", strength: float = 1.0, exposure: flo
     if out.exists():
         return out
     grid = identity(size)
-    conv, _ = read_cube(SONY / conversion)
-    # exposure in S-Log3 space: one stop ≈ 0.0769 code value (261.5·log10(2)/1023)
-    c = apply_cube(conv, np.clip(grid + exposure * 0.0769, 0, 1))
+    if conversion:
+        conv, _ = read_cube(SONY / conversion)
+        # exposure in S-Log3 space: one stop ≈ 0.0769 code value (261.5·log10(2)/1023)
+        c = apply_cube(conv, np.clip(grid + exposure * 0.0769, 0, 1))
+    else:
+        c = grid                                         # footage that is already Rec.709 (AI shots, phone clips)
     if creative_cube and creative_mix > 0:
         cr, _ = read_cube(Path(creative_cube))
         c = c + (apply_cube(cr, c) - c) * creative_mix

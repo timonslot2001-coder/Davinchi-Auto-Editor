@@ -91,13 +91,16 @@ class Builder:
             from . import grade
             look = self.style.get("grade_look") or g.get("grade_look", "reference_film")
             lut = grade.build_lut(look, g.get("strength", 1.0), g.get("exposure", -1.75))
+            # AI shots are already Rec.709: film look only, no S-Log3 conversion (else way too bright/flat)
+            lut709 = grade.build_lut(look, g.get("strength", 1.0) * 0.8, 0.0, conversion=None)
             self.project.RefreshLUTList()
-            rel = grade.relative(lut)
+            rel, rel709 = grade.relative(lut), grade.relative(lut709)
             ok = 0
             for it in items:
                 graph = it.GetNodeGraph()
                 graph.ResetAllGrades()
-                ok += bool(graph.SetLUT(1, rel))
+                is_ai = (it.GetName() or "").startswith("AI_")
+                ok += bool(graph.SetLUT(1, rel709 if is_ai else rel))
                 it.SetColorOutputCache(self.resolve.CACHE_ENABLED)
             self.log(f"Grade [bold]{look}[/] (exposure {g.get('exposure', -1.75)} stops) on {ok}/{len(items)} clips")
             return

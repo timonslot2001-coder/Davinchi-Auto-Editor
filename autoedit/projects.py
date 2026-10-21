@@ -31,6 +31,8 @@ song: null                # name (part) of a song in your music folder (wins ove
 location: null            # used in captions
 variants: "A"             # "AB" = two versions with different hooks/choices
 notes: ""                 # anything Claude should keep in mind for this edit
+ai_budget_usd: 5          # max spend on AI shots (Muapi) for this project
+ai_model: null            # kling (default) / seedance / pixverse / veo3-fast / veo3
 created: "{created}"
 """
 

@@ -77,6 +77,19 @@ def main(argv=None):
     a.add_argument("name")
     sub.add_parser("tiktok-login", help="one-time TikTok authorisation (stores refresh token in .env)")
     sub.add_parser("sfx", help="show the SFX library per category")
+
+    a = sub.add_parser("generate", help="make an AI shot (Muapi.ai, costs credits) into a project — asks first")
+    a.add_argument("prompt")
+    a.add_argument("--project", required=True)
+    a.add_argument("--model", default=None, help="kling (default) / seedance / seedance-fast / pixverse / veo3-fast / veo3")
+    a.add_argument("--seconds", type=int, default=5)
+    a.add_argument("--aspect", default="16:9", choices=["16:9", "9:16", "1:1"])
+    a.add_argument("--role", default="establish", help="story role: detail/establish/subject/close/hero_wide …")
+    a.add_argument("--image", help="image-to-video: a still or URL to animate")
+    a.add_argument("--yes", action="store_true", help="skip the confirmation (only after you approved the price)")
+    a.add_argument("--quote", action="store_true", help="only show the price, generate nothing")
+    sub.add_parser("ai-models", help="AI video models + live prices (free, no key needed)")
+    sub.add_parser("ai-balance", help="your Muapi credit balance")
     sub.add_parser("optimize", help="smooth playback: proxies, render cache, heavy nodes off (existing timelines too)")
 
     args = ap.parse_args(argv)
@@ -174,6 +187,31 @@ def main(argv=None):
     elif args.cmd == "optimize":
         from .builder import optimize_project
         optimize_project(cfg)
+    elif args.cmd in ("generate", "ai-models", "ai-balance"):
+        from . import aigen, projects
+        try:
+            if args.cmd == "ai-models":
+                for k, v in aigen.PRESETS.items():
+                    i = aigen.model_info(k)
+                    price = aigen.estimate(i, aigen.build_body(i, "test", 5, "16:9"))
+                    con.print(f"  {k:14} ${price:5.2f}  {v['note']}")
+            elif args.cmd == "ai-balance":
+                con.print(f"Muapi balance: ${aigen.balance():.2f}")
+            else:
+                p = projects.find(cfg, args.project)
+                s = projects.settings(p)
+                model = args.model or s.get("ai_model") or aigen.DEFAULT_MODEL
+                if args.quote:
+                    i = aigen.model_info(model)
+                    b = aigen.build_body(i, args.prompt, args.seconds, args.aspect)
+                    led = aigen._ledger(p)
+                    con.print(f"{i['name']}: ${aigen.estimate(i, b):.2f}  (project spent ${led['spent_usd']:.2f}"
+                              f" of ${float(s.get('ai_budget_usd', 5)):.2f})")
+                else:
+                    aigen.generate(p, args.prompt, model, args.seconds, args.aspect, args.role,
+                                   float(s.get("ai_budget_usd", 5)), args.yes, args.image, log=con.print)
+        except aigen.AIGenError as e:
+            con.print(f"[yellow]{e}[/]")
     elif args.cmd == "sfx":
         from .sfx import Library
         con.print(Library(cfg.get("paths.sfx_folders", [])).summary())

@@ -120,6 +120,16 @@ Safety: every generation shows the exact price first, never exceeds `ai_budget_u
 Prices (5 s, 1080p, 2026-10-21): seedance-fast $0.30 · kling $0.45 · pixverse/veo3-fast $0.60 ·
 seedance $0.62 · veo3 $2.50. Note: prompts and uploaded images go to Muapi and the model providers.
 
+## Local AI shots (free, on your own GPU)
+Wan 2.2 5B runs in Comfy Desktop on the RX 9070 XT (AMD ROCm), no credits:
+```
+autoedit generate "drone shot over Utrecht at golden hour" --project smoke --model local-wan
+autoedit generate "..." --project smoke --model local-wan-draft     # 480p, quick prompt test
+```
+Comfy Desktop must be open. Model files live in `C:\Users\Timon\AI Models` (diffusion_models,
+text_encoders, vae), linked into Comfy via its extra models config. Quality is below Kling/Veo:
+fine for B-roll and atmosphere; use Muapi for hero shots.
+
 ## Explainer mode (onboarding / how-to videos)
 `autoedit explainer "<project>"` builds a step-by-step video from `<project>/script.yaml`: per section a b-roll
 clip + an animated card (number + title, sub-lines pop in a beat later), intro card, full-frame end card,

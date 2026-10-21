@@ -108,3 +108,7 @@ posting:
   best_times:                  # adjusted automatically by performance feedback
     instagram: ["Tue 18:30", "Wed 12:00", "Thu 19:00", "Sat 10:30"]
     tiktok:    ["Tue 19:00", "Thu 20:00", "Fri 17:00", "Sun 11:00"]
+
+# Free AI shots on your own GPU (Comfy Desktop must be running). null = auto-detect port 8000/8188
+local_ai:
+  url: null

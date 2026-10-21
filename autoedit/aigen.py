@@ -184,3 +184,54 @@ def balance() -> float:
     r = requests.get(f"{API}/account/balance", headers={"x-api-key": _key()}, timeout=30)
     r.raise_for_status()
     return float(r.json().get("balance", 0))
+
+
+def generate_audio(project: Path, prompt: str, model: str = "suno-create-music", extra: dict | None = None,
+                   budget_usd: float = 5.0, yes: bool = False, log=print, ask=input) -> Path:
+    """Music / sound from text (e.g. Suno instrumental) into <project>/music/. Same price check + budget."""
+    info = model_info(model)
+    endpoint = (info.get("endpoint_url") or info.get("endpoint") or info["name"]).strip("/")
+    body = {"prompt": prompt, **(extra or {})}
+    cost = estimate(info, body)
+    led = _ledger(project)
+    left = budget_usd - led["spent_usd"]
+    log(f"AI audio · model {info['name']} · price ${cost:.2f} · budget left ${left:.2f}")
+    if cost > left:
+        raise AIGenError(f"Over budget: ${cost:.2f} > ${left:.2f}")
+    if not yes and ask(f"  Generate for ${cost:.2f}? [y/N] ").strip().lower() not in ("y", "yes", "j", "ja"):
+        raise AIGenError("Cancelled — nothing was charged.")
+    key = _key()
+    r = requests.post(f"{API}/{endpoint}", json=body, timeout=60, headers={"x-api-key": key})
+    if not r.ok:
+        raise AIGenError(f"Muapi refused the request ({r.status_code}): {r.text[:300]}")
+    rid = r.json().get("request_id")
+    log(f"  submitted ({rid}), waiting…")
+    res = {}
+    for _ in range(360):
+        res = requests.get(f"{API}/predictions/{rid}/result", headers={"x-api-key": key}, timeout=30).json()
+        if res.get("status") == "completed":
+            break
+        if res.get("status") in ("failed", "cancelled"):
+            raise AIGenError(f"Generation {res.get('status')}: {res.get('error', '')}")
+        time.sleep(5)
+    outs = res.get("outputs") or []
+    if not outs:
+        raise AIGenError(f"No output: {res}")
+    charged = float((res.get("cost") or {}).get("amount_usd", cost))
+    (project / "music").mkdir(exist_ok=True)
+    saved = []
+    for k, url in enumerate(outs[:2]):                       # Suno returns 2 takes
+        ext = Path(url.split("?")[0]).suffix or ".mp3"
+        out = project / "music" / f"AI_music_{datetime.now():%H%M%S}_{k + 1}{ext}"
+        with requests.get(url, stream=True, timeout=300) as dl:
+            dl.raise_for_status()
+            with open(out, "wb") as f:
+                for chunk in dl.iter_content(1 << 20):
+                    f.write(chunk)
+        saved.append(out)
+    led["spent_usd"] = round(led["spent_usd"] + charged, 4)
+    led["items"].append({"file": [s.name for s in saved], "prompt": prompt, "model": info["name"], "usd": charged,
+                         "request_id": rid, "at": datetime.now().isoformat(timespec="seconds")})
+    _save_ledger(project, led)
+    log(f"  ✓ saved {', '.join(s.name for s in saved)} (${charged:.2f})")
+    return saved[0]

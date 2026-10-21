@@ -276,7 +276,8 @@ class Builder:
                            t.get("bg") or cfg.get("branding.accent_color", "#FFD400"),
                            w=self.W, h=self.H, scale=self.style.get("title_size", 0.03) if t["kind"] == "minimal" else 0.03)
             n = self.f(t["t1"] - t["t0"])
-            clip = text_clip(png, n / self.fps, self.fps, fade=0.2 if t["kind"] == "minimal" else 0.0)
+            soft = t["kind"] in ("minimal", "panel", "panel_sub", "endcard")     # cards fade in/out smoothly
+            clip = text_clip(png, n / self.fps, self.fps, fade=0.25 if soft else 0.0)
             m = self._import([clip], b_gfx)[str(clip)]
             item = self._append(m, 0, n, track, start + self.f(t["t0"]), 1)
             if item and t["kind"] != "minimal":                # minimal titles sit still, like the reference

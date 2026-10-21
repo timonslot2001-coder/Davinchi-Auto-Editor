@@ -90,6 +90,9 @@ def main(argv=None):
     a.add_argument("--quote", action="store_true", help="only show the price, generate nothing")
     sub.add_parser("ai-models", help="AI video models + live prices (free, no key needed)")
     sub.add_parser("ai-balance", help="your Muapi credit balance")
+    a = sub.add_parser("explainer", help="step-by-step explainer video from <project>/script.yaml")
+    a.add_argument("name")
+    a.add_argument("--no-render", action="store_true")
     sub.add_parser("optimize", help="smooth playback: proxies, render cache, heavy nodes off (existing timelines too)")
 
     args = ap.parse_args(argv)
@@ -212,6 +215,10 @@ def main(argv=None):
                                    float(s.get("ai_budget_usd", 5)), args.yes, args.image, log=con.print)
         except aigen.AIGenError as e:
             con.print(f"[yellow]{e}[/]")
+    elif args.cmd == "explainer":
+        from . import explainer
+        res = explainer.run(cfg, args.name, render=not args.no_render, log=con.print)
+        con.print_json(json.dumps({k: v for k, v in res.items() if k != "qc"}, ensure_ascii=False, default=str))
     elif args.cmd == "sfx":
         from .sfx import Library
         con.print(Library(cfg.get("paths.sfx_folders", [])).summary())

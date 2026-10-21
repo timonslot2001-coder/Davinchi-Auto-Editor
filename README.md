@@ -119,3 +119,9 @@ Safety: every generation shows the exact price first, never exceeds `ai_budget_u
 (default $5), and every spend is logged in `<project>/ai_spend.json`. Failed generations aren't charged.
 Prices (5 s, 1080p, 2026-10-21): seedance-fast $0.30 · kling $0.45 · pixverse/veo3-fast $0.60 ·
 seedance $0.62 · veo3 $2.50. Note: prompts and uploaded images go to Muapi and the model providers.
+
+## Explainer mode (onboarding / how-to videos)
+`autoedit explainer "<project>"` builds a step-by-step video from `<project>/script.yaml`: per section a b-roll
+clip + an animated card (number + title, sub-lines pop in a beat later), intro card, full-frame end card,
+cuts on the music's beats, a soft whoosh per section change. B-roll and music can be AI-generated
+(`autoedit generate …`, `aigen.generate_audio` for Suno music). Example: project "M365 Onboarding".

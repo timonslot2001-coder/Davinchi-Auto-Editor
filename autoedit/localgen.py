@@ -28,6 +28,7 @@ PORTS = (8000, 8188)
 # width x height for 16:9 (swapped for 9:16), steps
 LOCAL_PRESETS = {
     "local-wan":       {"size": (1280, 704), "steps": 20, "note": "Wan 2.2 5B, 720p, free (your GPU)"},
+    "local-wan-1080":  {"size": (1920, 1088), "steps": 20, "note": "Wan 2.2 5B native 1080p (experimental, slow)"},
     "local-wan-draft": {"size": (832, 480), "steps": 14, "note": "Wan 2.2 5B, 480p draft, free + fast"},
 }
 NEGATIVE = ("blurry, low quality, jpeg artifacts, distorted, deformed, extra limbs, watermark, text, subtitles, "

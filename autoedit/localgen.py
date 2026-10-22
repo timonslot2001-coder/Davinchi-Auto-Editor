@@ -3,7 +3,7 @@
   autoedit generate "drone shot over Utrecht at golden hour" --project smoke --model local-wan
   autoedit generate "..." --project smoke --model local-wan-draft      # faster, lower res (test prompts)
 
-Needs Comfy Desktop running (it serves an API on localhost; Desktop uses port 8000, plain ComfyUI 8188)
+Needs Comfy Desktop installed; if ComfyUI is not running, AutoEdit starts it headless on :8188 itself
 and the Wan 2.2 5B files in its models folders (or in "AI Models" linked via extra_model_paths.yaml):
   diffusion_models/wan2.2_ti2v_5B_fp16.safetensors
   text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors
@@ -13,8 +13,10 @@ The workflow mirrors ComfyUI's "Wan 2.2 5B Video Generation" template (24 fps, u
 from __future__ import annotations
 
 import json
+import os
 import random
 import re
+import subprocess
 import time
 import uuid
 from datetime import datetime
@@ -35,15 +37,49 @@ NEGATIVE = ("blurry, low quality, jpeg artifacts, distorted, deformed, extra lim
             "static, frozen frame, overexposed, oversaturated")
 
 
-def server(url: str | None = None) -> str:
-    cands = [url] if url else [f"http://127.0.0.1:{p}" for p in PORTS]
+COMFY = Path(os.environ.get("LOCALAPPDATA", "")) / "Comfy-Desktop"
+
+
+def _up(cands: list[str]) -> str | None:
     for u in cands:
         try:
             if requests.get(f"{u}/system_stats", timeout=3).ok:
                 return u
         except requests.RequestException:
             pass
-    raise AIGenError("ComfyUI is not running — start Comfy Desktop first (it must be open while generating)")
+    return None
+
+
+def start_server(log=print) -> None:
+    """Start Comfy Desktop's ComfyUI headless on :8188 (no need to open the app), with live previews."""
+    root = COMFY / "ComfyUI-Installs" / "ComfyUI" / "ComfyUI"
+    py, shared = root / ".venv" / "Scripts" / "python.exe", COMFY / "ComfyUI-Shared"
+    if not py.exists():
+        raise AIGenError("ComfyUI is not running and Comfy Desktop isn't installed (comfy.org/download)")
+    (shared / "custom_nodes").mkdir(parents=True, exist_ok=True)
+    env = {**os.environ, "PYTHONUNBUFFERED": "1"}
+    with open(shared / "server.log", "w", encoding="utf-8") as fh:
+        subprocess.Popen([str(py), str(root / "main.py"), "--listen", "127.0.0.1", "--port", "8188",
+                          "--base-directory", str(shared), "--use-pytorch-cross-attention", "--preview-method", "auto"],
+                         stdout=fh, stderr=subprocess.STDOUT, env=env,
+                         creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+    log("  starting ComfyUI in the background (live view: http://127.0.0.1:8188)…")
+
+
+def server(url: str | None = None, log=print) -> str:
+    cands = [url] if url else [f"http://127.0.0.1:{p}" for p in PORTS]
+    u = _up(cands)
+    if u:
+        return u
+    if url:
+        raise AIGenError(f"ComfyUI is not reachable at {url}")
+    start_server(log)
+    for _ in range(90):
+        time.sleep(2)
+        u = _up(["http://127.0.0.1:8188"])
+        if u:
+            return u
+    raise AIGenError("ComfyUI did not start — see Comfy-Desktop/ComfyUI-Shared/server.log")
 
 
 def workflow(prompt: str, seconds: int, aspect: str, preset: dict, seed: int, prefix: str,
@@ -94,7 +130,7 @@ def generate(project: Path, prompt: str, model: str = "local-wan", seconds: int 
              role: str = "establish", image: str | None = None, url: str | None = None, seed: int | None = None,
              log=print) -> Path:
     preset = LOCAL_PRESETS[model]
-    base = server(url)
+    base = server(url, log)
     seed = seed if seed is not None else random.randint(1, 2**31)
     image_name = _upload(base, Path(image)) if image else None
     prefix = f"autoedit/{uuid.uuid4().hex[:8]}"

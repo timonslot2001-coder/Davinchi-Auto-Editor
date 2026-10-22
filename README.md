@@ -126,9 +126,12 @@ Wan 2.2 5B runs in Comfy Desktop on the RX 9070 XT (AMD ROCm), no credits:
 autoedit generate "drone shot over Utrecht at golden hour" --project smoke --model local-wan
 autoedit generate "..." --project smoke --model local-wan-draft     # 480p, quick prompt test
 ```
-Comfy Desktop must be open. Model files live in `C:\Users\Timon\AI Models` (diffusion_models,
-text_encoders, vae), linked into Comfy via its extra models config. Quality is below Kling/Veo:
-fine for B-roll and atmosphere; use Muapi for hero shots.
+`local-wan` (720p, ~6.5 min per 5 s clip) is the default model; `local-wan-1080` renders native 1080p
+(~26 min). Comfy Desktop must be installed; if its server isn't running AutoEdit starts it headless
+(watch live at http://127.0.0.1:8188). Model files live in `C:\Users\Timon\AI Models`, hard-linked into
+Comfy-Desktop/ComfyUI-Shared/models. In Resolve, AI clips under 1080p get **Super Scale 2x Enhanced**
+(`local_ai.super_scale` in config.yaml). Quality is below Kling/Veo and camera motion is subtle:
+fine for B-roll and atmosphere; use Muapi (`--model kling`) for hero shots.
 
 ## Explainer mode (onboarding / how-to videos)
 `autoedit explainer "<project>"` builds a step-by-step video from `<project>/script.yaml`: per section a b-roll

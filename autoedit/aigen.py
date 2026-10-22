@@ -35,7 +35,7 @@ PRESETS = {
     "veo3-fast":      {"name": "veo3-fast-text-to-video", "note": "Google Veo 3 Fast, 8 s (~$0.60)"},
     "veo3":           {"name": "veo3-text-to-video", "note": "Google Veo 3 quality, 8 s (~$2.50)"},
 }
-DEFAULT_MODEL = "kling"                                # best price/quality for B-roll
+DEFAULT_MODEL = "local-wan"                            # free on own GPU (ComfyUI); Muapi presets cost money
 
 
 class AIGenError(RuntimeError):

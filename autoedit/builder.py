@@ -69,6 +69,24 @@ class Builder:
                 existing[c.GetClipProperty("File Path").lower()] = c
         return {str(p): existing.get(str(p).lower()) for p in paths}
 
+    def _super_scale(self, mpi: dict) -> None:
+        """Local AI clips are 720p: let Resolve Studio's Super Scale (2x Enhanced) upscale them, not a plain resize."""
+        ss = self.cfg.get("local_ai.super_scale", {"sharpness": 0.4, "noise_reduction": 0.3})
+        if not ss:
+            return
+        done = 0
+        for path, c in mpi.items():
+            if not Path(path).name.startswith("AI_") or c is None:
+                continue
+            try:
+                h = int((c.GetClipProperty("Resolution") or "0x0").lower().split("x")[1])
+            except (IndexError, ValueError):
+                continue
+            if 0 < h < 1000:
+                done += bool(c.SetClipProperty("Super Scale", 2, float(ss["sharpness"]), float(ss["noise_reduction"])))
+        if done:
+            self.log(f"Super Scale 2x Enhanced on {done} AI clip(s)")
+
     def _subfolder(self, parent, name):
         for f in parent.GetSubFolderList() or []:
             if f.GetName() == name:
@@ -169,6 +187,7 @@ class Builder:
         missing = [c for c, v in mpi.items() if v is None]
         if missing:
             raise SystemExit(f"Import failed for: {missing}")
+        self._super_scale(mpi)
         if cfg.get("performance.proxies", True):
             from .proxy import ensure_proxies
             folder = Path(cfg.get("paths.output_folder")) / "_proxies"

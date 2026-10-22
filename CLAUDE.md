@@ -24,8 +24,14 @@ The editor must get better every time, without copying references 1:1.
    does each accent have a reason? Is anything distracting, repetitive, too loud, or unmotivated?
    Less is more — remove before adding. Fix and re-render if needed, then send the video.
 
-## AI shots (Muapi) — money rule
-Generating costs Timon real money. ALWAYS run `autoedit generate ... --quote` first, tell him the model
+## AI shots — local first (free), Muapi only when asked
+Default is `--model local-wan`: Wan 2.2 5B on his own RX 9070 XT via ComfyUI, 720p (~6.5 min per 5 s),
+$0. AutoEdit starts ComfyUI headless itself if needed. In Resolve, AI clips under 1080p get Super Scale
+2x Enhanced automatically. `local-wan-draft` (480p, ~2 min) for prompt tests; `local-wan-1080` (~26 min)
+only if he asks. Local clips barely move the camera — describe motion explicitly in the prompt.
+
+### Muapi — money rule
+Muapi models (kling, veo3, …) cost Timon real money. ALWAYS run `autoedit generate ... --quote` first, tell him the model
 and price, and only run with `--yes` after he says yes in chat — for that one shot. Never raise
 `ai_budget_usd` yourself. Prefer `kling` ($0.45) unless he asks for top quality (`veo3`).
 

@@ -112,3 +112,4 @@ posting:
 # Free AI shots on your own GPU (Comfy Desktop must be running). null = auto-detect port 8000/8188
 local_ai:
   url: null
+  super_scale: {sharpness: 0.4, noise_reduction: 0.3}   # Resolve Super Scale 2x Enhanced on AI clips < 1080p; null = off

@@ -81,8 +81,8 @@ def main(argv=None):
     a = sub.add_parser("generate", help="make an AI shot (Muapi.ai, costs credits) into a project — asks first")
     a.add_argument("prompt")
     a.add_argument("--project", required=True)
-    a.add_argument("--model", default=None, help="kling (default) / seedance / seedance-fast / pixverse / veo3-fast / veo3"
-                   " / local-wan / local-wan-draft (free, own GPU via ComfyUI)")
+    a.add_argument("--model", default=None, help="local-wan (default, free) / local-wan-draft / local-wan-1080 / kling / seedance / seedance-fast / pixverse / veo3-fast / veo3"
+                   " (Muapi models cost credits)")
     a.add_argument("--seconds", type=int, default=5)
     a.add_argument("--aspect", default="16:9", choices=["16:9", "9:16", "1:1"])
     a.add_argument("--role", default="establish", help="story role: detail/establish/subject/close/hero_wide …")

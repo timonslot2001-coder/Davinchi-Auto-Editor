@@ -1,4 +1,4 @@
-# STYLE DNA — P_CINE_MONTAGE (status: pending user approval)
+# STYLE DNA — P_CINE_MONTAGE (status: approved 2026-10-25)
 
 Source of truth: `style_dna.json`. Every number below is copied from it; evidence IDs are `<ref>-C<cut>` (cut index in
 `audio_analysis/events/<ref>_events.json`) or `<ref> <seconds>` on the 480p reference copy.

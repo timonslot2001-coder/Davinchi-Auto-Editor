@@ -2,7 +2,13 @@
  "schema": "editing-dna/1.0",
  "generated": "2026-10-25",
  "approval": {
-  "P_CINE_MONTAGE": "pending_user_approval",
+  "P_CINE_MONTAGE": "approved",
+  "P_CINE_MONTAGE_approved_on": "2026-10-25",
+  "P_CINE_MONTAGE_defaults": {
+   "title_variant": "poster_condensed",
+   "accent": "#E70002",
+   "note": "approved as extracted; per-video title text, accent and variant still confirmed in each edit plan"
+  },
   "P_VERTICAL_VLOG": "not_extracted",
   "P_TALKING_CAPTIONS": "not_extracted"
  },

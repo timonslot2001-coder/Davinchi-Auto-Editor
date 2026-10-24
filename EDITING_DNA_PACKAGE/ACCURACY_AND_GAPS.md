@@ -33,7 +33,7 @@
 
 ## Not done in this stage
 - P_VERTICAL_VLOG and P_TALKING_CAPTIONS are inventoried only.
-- No ZIP yet — created after your approval (Checkpoint 8).
+- ZIP created after approval: EDITING_DNA_PACKAGE.zip (local only, contains third-party frames).
 
 ## What would improve accuracy
 1. Higher-resolution versions of any 3-4 refs with titles (R02, R04, R17, R05).

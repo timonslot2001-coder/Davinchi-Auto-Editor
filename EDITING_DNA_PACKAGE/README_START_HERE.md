@@ -1,6 +1,6 @@
 # EDITING DNA PACKAGE — start here
 
-Stage 1 output (style extraction) for Timon's AutoEdit project. Status of profile **P_CINE_MONTAGE: pending approval.**
+Stage 1 output (style extraction) for Timon's AutoEdit project. Status of profile **P_CINE_MONTAGE: approved (2026-10-25).**
 
 ## Open first
 1. `visual_report.html` — the visual report (open in a browser by double-click; everything is relative/local).

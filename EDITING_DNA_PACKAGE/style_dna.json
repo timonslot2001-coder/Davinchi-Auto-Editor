@@ -1,0 +1,1285 @@
+{
+ "schema": "editing-dna/1.0",
+ "generated": "2026-10-25",
+ "approval": {
+  "P_CINE_MONTAGE": "pending_user_approval",
+  "P_VERTICAL_VLOG": "not_extracted",
+  "P_TALKING_CAPTIONS": "not_extracted"
+ },
+ "references": [
+  {
+   "id": "R01",
+   "file": "data/ref4/r01.mp4",
+   "sha256": "7611d9523a96604fbd8596b24ad4001f7f182458a14bdf2c798dd50fdb6f3209",
+   "size": 1269360,
+   "res": "480x848",
+   "fps": 30.0,
+   "duration_s": 10.0,
+   "lufs": "-12.6 LUFS",
+   "profile": "P_VERTICAL_VLOG",
+   "content_end_s": null,
+   "rights": "third-party social media post; analysis only; do not redistribute"
+  },
+  {
+   "id": "R02",
+   "file": "data/ref4/r02.mp4",
+   "sha256": "3e9bf0b0f770cbcdd6f800b80474a1bba6c0a4d7576a2941ec2d47b169d6f85c",
+   "size": 3178241,
+   "res": "848x480",
+   "fps": 25.088,
+   "duration_s": 22.8,
+   "lufs": "-13.7 LUFS",
+   "profile": "P_CINE_MONTAGE",
+   "content_end_s": 17.34,
+   "rights": "third-party social media post; analysis only; do not redistribute"
+  },
+  {
+   "id": "R03",
+   "file": "data/ref4/r03.mp4",
+   "sha256": "f7f382f730af835ce1527e5b96093497f1a55dde3982a63bb38cc89a47cef56b",
+   "size": 1811880,
+   "res": "848x480",
+   "fps": 25.616,
+   "duration_s": 15.23,
+   "lufs": "-13.5 LUFS",
+   "profile": "P_CINE_MONTAGE",
+   "content_end_s": 8.47,
+   "rights": "third-party social media post; analysis only; do not redistribute"
+  },
+  {
+   "id": "R04",
+   "file": "data/ref4/r04.mp4",
+   "sha256": "15b3a8f8babe82936480fc86d15a1b85d679f930be200bf74539676eb18c4e28",
+   "size": 4646302,
+   "res": "848x480",
+   "fps": 25.635,
+   "duration_s": 31.52,
+   "lufs": "-13.9 LUFS",
+   "profile": "P_CINE_MONTAGE",
+   "content_end_s": 26.57,
+   "rights": "third-party social media post; analysis only; do not redistribute"
+  },
+  {
+   "id": "R05",
+   "file": "data/ref4/r05.mp4",
+   "sha256": "9dd5239b3c66bf5f6c8ee09b80ebfccf20745780504065389dcfbca1fa34ddef",
+   "size": 2578744,
+   "res": "848x480",
+   "fps": 25.311,
+   "duration_s": 18.77,
+   "lufs": "-13.4 LUFS",
+   "profile": "P_CINE_MONTAGE",
+   "content_end_s": 13.91,
+   "rights": "third-party social media post; analysis only; do not redistribute"
+  },
+  {
+   "id": "R06",
+   "file": "data/ref4/r06.mp4",
+   "sha256": "b8b406bb14134b0a77a4e63925388a478bdb735b03701316efc8d6cf222e2b8e",
+   "size": 2792780,
+   "res": "848x480",
+   "fps": 25.258,
+   "duration_s": 19.4,
+   "lufs": "-13.6 LUFS",
+   "profile": "P_CINE_MONTAGE",
+   "content_end_s": 13.74,
+   "rights": "third-party social media post; analysis only; do not redistribute"
+  },
+  {
+   "id": "R07",
+   "file": "data/ref4/r07.mp4",
+   "sha256": "621faaafc059de4605e180ca268435995e6f718447f888be27c8236d3b38d109",
+   "size": 1548101,
+   "res": "640x480",
+   "fps": 26.359,
+   "duration_s": 14.72,
+   "lufs": "-13.2 LUFS",
+   "profile": "P_CINE_MONTAGE",
+   "content_end_s": 10.13,
+   "rights": "third-party social media post; analysis only; do not redistribute"
+  },
+  {
+   "id": "R08",
+   "file": "data/ref4/r08.mp4",
+   "sha256": "b11ced8342af6bf3e981afae47340964376bad6bfbba9ccb23222c535d73c871",
+   "size": 4316167,
+   "res": "848x480",
+   "fps": 25.714,
+   "duration_s": 29.17,
+   "lufs": "-13.9 LUFS",
+   "profile": "P_CINE_MONTAGE",
+   "content_end_s": 24.42,
+   "rights": "third-party social media post; analysis only; do not redistribute"
+  },
+  {
+   "id": "R09",
+   "file": "data/ref4/r09.mp4",
+   "sha256": "42339253c732d3861fa9fa0cc2af836a120ca9a3aaf712feaac1ceeb922a500e",
+   "size": 2066995,
+   "res": "480x848",
+   "fps": 25.606,
+   "duration_s": 15.27,
+   "lufs": "-13.5 LUFS",
+   "profile": "P_VERTICAL_VLOG",
+   "content_end_s": null,
+   "rights": "third-party social media post; analysis only; do not redistribute"
+  },
+  {
+   "id": "R10",
+   "file": "data/ref4/r10.mp4",
+   "sha256": "d7afa62babb80b25be472709021a7d2fdc83a709569b8c2aaf7756d5a3d8005a",
+   "size": 2593036,
+   "res": "960x480",
+   "fps": 25.549,
+   "duration_s": 15.93,
+   "lufs": "-13.5 LUFS",
+   "profile": "P_CINE_MONTAGE",
+   "content_end_s": 11.19,
+   "rights": "third-party social media post; analysis only; do not redistribute"
+  },
+  {
+   "id": "R11",
+   "file": "data/ref4/r11.mp4",
+   "sha256": "35554ecca4225aaf56f0d278814f2f28f49ea2b0f8aed912c83e3222c89ffdd5",
+   "size": 1452383,
+   "res": "640x480",
+   "fps": 26.389,
+   "duration_s": 14.4,
+   "lufs": "-13.2 LUFS",
+   "profile": "P_CINE_MONTAGE",
+   "content_end_s": 9.85,
+   "rights": "third-party social media post; analysis only; do not redistribute"
+  },
+  {
+   "id": "R12",
+   "file": "data/ref4/r12.mp4",
+   "sha256": "fc61d9f2387c3181f8f566388c70429eac741dcfb64cb784c50a5f7bbdf6c95c",
+   "size": 2581994,
+   "res": "640x480",
+   "fps": 30.0,
+   "duration_s": 23.2,
+   "lufs": "-13.7 LUFS",
+   "profile": "P_CINE_MONTAGE",
+   "content_end_s": 19.03,
+   "rights": "third-party social media post; analysis only; do not redistribute"
+  },
+  {
+   "id": "R13",
+   "file": "data/ref4/r13.mp4",
+   "sha256": "02924abdb99eecc180c2d976e5cd1bbd0d06246d758dcb8da763282961c7c440",
+   "size": 3260130,
+   "res": "880x480",
+   "fps": 25.975,
+   "duration_s": 21.37,
+   "lufs": "-13.6 LUFS",
+   "profile": "P_CINE_MONTAGE",
+   "content_end_s": 16.71,
+   "rights": "third-party social media post; analysis only; do not redistribute"
+  },
+  {
+   "id": "R14",
+   "file": "data/ref4/r14.mp4",
+   "sha256": "a91d5eb8a02839ea9a1ebb019a567e64f62c74c07adf3fc65f4a0745c1317b62",
+   "size": 2534573,
+   "res": "848x480",
+   "fps": 30.0,
+   "duration_s": 17.87,
+   "lufs": "-13.8 LUFS",
+   "profile": "P_CINE_MONTAGE",
+   "content_end_s": 13.83,
+   "rights": "third-party social media post; analysis only; do not redistribute"
+  },
+  {
+   "id": "R15",
+   "file": "data/ref4/r15.mp4",
+   "sha256": "adde93d9cee3cb85cedf3d8850e1464acbdde3862f6e54d54c0799a966bfc0b5",
+   "size": 1779544,
+   "res": "480x608",
+   "fps": 25.388,
+   "duration_s": 17.73,
+   "lufs": "-13.6 LUFS",
+   "profile": "P_VERTICAL_VLOG",
+   "content_end_s": null,
+   "rights": "third-party social media post; analysis only; do not redistribute"
+  },
+  {
+   "id": "R16",
+   "file": "data/ref4/r16.mp4",
+   "sha256": "0671d04e5615d2c81790760e597fa77158b05d921246005116a4be1fe36c0dae",
+   "size": 2217718,
+   "res": "640x480",
+   "fps": 25.188,
+   "duration_s": 20.37,
+   "lufs": "-13.6 LUFS",
+   "profile": "P_CINE_MONTAGE",
+   "content_end_s": 13.9,
+   "rights": "third-party social media post; analysis only; do not redistribute"
+  },
+  {
+   "id": "R17",
+   "file": "data/ref4/r17.mp4",
+   "sha256": "fa15fa30d5bdee63bed4c063d88b0a1fa3399acf53c3bf65f0f863f41de1ec97",
+   "size": 1966314,
+   "res": "848x480",
+   "fps": 25.684,
+   "duration_s": 14.37,
+   "lufs": "-13.4 LUFS",
+   "profile": "P_CINE_MONTAGE",
+   "content_end_s": 9.62,
+   "rights": "third-party social media post; analysis only; do not redistribute"
+  },
+  {
+   "id": "RA",
+   "file": "data/ref3/refA.mp4",
+   "sha256": "4ed167040a7de6ed49349cd86852a98d5f595cfa6234e7d670702ae1effb2f35",
+   "size": 3549542,
+   "res": "848x480",
+   "fps": 25.84,
+   "duration_s": 23.8,
+   "lufs": "-14.0 LUFS",
+   "profile": "P_CINE_MONTAGE",
+   "content_end_s": 19.16,
+   "rights": "third-party social media post; analysis only; do not redistribute"
+  },
+  {
+   "id": "RB",
+   "file": "data/ref3/refB.mp4",
+   "sha256": "52a2343085cd752ea2b76b4cae0ed8e3fbaea5875a9269bd724af0502c7c831e",
+   "size": 3101193,
+   "res": "848x480",
+   "fps": 30.0,
+   "duration_s": 18.57,
+   "lufs": "-14.4 LUFS",
+   "profile": "P_CINE_MONTAGE",
+   "content_end_s": 16.27,
+   "rights": "third-party social media post; analysis only; do not redistribute"
+  },
+  {
+   "id": "U1",
+   "file": "C:/Users/Timon/.claude/uploads/581dca20-9074-4311-b3d0-7436865789b4/45dfe6d5-v14025g50000d5jq8hfog65t5ri4gfa0.mp4",
+   "sha256": "d68e39626f97b2fd59d6a6aa51f6ecf509c6dbfb47a2330fdf5bb115192c555e",
+   "size": 4110227,
+   "res": "576x1024",
+   "fps": 25.0,
+   "duration_s": 52.92,
+   "lufs": "-14.0 LUFS",
+   "profile": "P_TALKING_CAPTIONS",
+   "content_end_s": null,
+   "rights": "third-party social media post; analysis only; do not redistribute"
+  },
+  {
+   "id": "U2",
+   "file": "C:/Users/Timon/.claude/uploads/581dca20-9074-4311-b3d0-7436865789b4/506b1447-v15044gf0000cqlicrfog65jrq2grto0.mp4",
+   "sha256": "6c991271800c6980248ed7d300e71bb311df5a063a43839aa92e42316049594e",
+   "size": 2358144,
+   "res": "1024x576",
+   "fps": 29.97,
+   "duration_s": 15.88,
+   "lufs": "-16.7 LUFS",
+   "profile": "P_CINE_MONTAGE",
+   "content_end_s": 11.88,
+   "rights": "third-party social media post; analysis only; do not redistribute"
+  },
+  {
+   "id": "U3",
+   "file": "C:/Users/Timon/.claude/uploads/581dca20-9074-4311-b3d0-7436865789b4/a9d785ca-d0c7a2e2fe0b4c61a2c68cb38510ae7c.mp4",
+   "sha256": "017adb7061771aa2e914577a114e35ea9aacd314d2c24eefc4eaa2f1897e353f",
+   "size": 24882461,
+   "res": "720x1280",
+   "fps": 30.0,
+   "duration_s": 15.7,
+   "lufs": "-13.0 LUFS",
+   "profile": "P_TALKING_CAPTIONS",
+   "content_end_s": null,
+   "rights": "third-party social media post; analysis only; do not redistribute"
+  }
+ ],
+ "excluded_overlays": {
+  "description": "Platform overlays present in the downloaded references; NOT part of the editing style.",
+  "items": [
+   "Instagram handle watermark + IG glyph (corner)",
+   "Instagram/creator end card (last 4-5 s)",
+   "TikTok watermark + end card",
+   "music credit line under the handle (e.g. 'Don Toliver - E85')"
+  ]
+ },
+ "profiles": {
+  "P_CINE_MONTAGE": {
+   "summary": "Music-driven cinematic travel/city/food montage, no dialogue, ~10-27 s of content. Cold-open burst of very short shots, one big display title (location/topic) in a single accent colour, mostly hard cuts with 1-frame white flashes and whip-blur accents, optional frame-in-frame white card series, warm contrasty film grade, and an edit that decelerates towards a held final shot.",
+   "refs": [
+    "R02",
+    "R03",
+    "R04",
+    "R05",
+    "R06",
+    "R07",
+    "R08",
+    "R10",
+    "R11",
+    "R12",
+    "R13",
+    "R14",
+    "R16",
+    "R17",
+    "RA",
+    "RB",
+    "U2"
+   ],
+   "orientation": "16:9 primary (all P_CINE_MONTAGE refs horizontal; delivered letterboxed inside vertical posts)",
+   "pacing": {
+    "shot_len_s_p10_p50_p90": [
+     0.156,
+     0.514,
+     1.448
+    ],
+    "shot_len_median_by_fifth_s": [
+     0.356,
+     0.436,
+     0.497,
+     0.548,
+     0.543
+    ],
+    "shot_len_iqr_by_fifth_s": [
+     [
+      0.157,
+      0.732
+     ],
+     [
+      0.272,
+      0.8
+     ],
+     [
+      0.268,
+      0.758
+     ],
+     [
+      0.342,
+      0.804
+     ],
+     [
+      0.236,
+      0.733
+     ]
+    ],
+    "cuts_per_ref": {
+     "R02": 22,
+     "R03": 10,
+     "R04": 45,
+     "R05": 35,
+     "R06": 35,
+     "R07": 11,
+     "R08": 38,
+     "R10": 23,
+     "R11": 17,
+     "R12": 40,
+     "R13": 31,
+     "R14": 17,
+     "R16": 13,
+     "R17": 16,
+     "RA": 42,
+     "RB": 14,
+     "U2": 14
+    },
+    "content_length_s": {
+     "R02": 17.34,
+     "R03": 8.47,
+     "R04": 26.57,
+     "R05": 13.91,
+     "R06": 13.74,
+     "R07": 10.13,
+     "R08": 24.42,
+     "R10": 11.19,
+     "R11": 9.85,
+     "R12": 19.03,
+     "R13": 16.71,
+     "R14": 13.83,
+     "R16": 13.9,
+     "R17": 9.62,
+     "RA": 19.16,
+     "RB": 16.27,
+     "U2": 11.88
+    },
+    "final_shot_hold_s": {
+     "R02": 1.16,
+     "R03": 1.79,
+     "R04": 0.63,
+     "R05": 1.07,
+     "R06": 0.68,
+     "R07": 0.53,
+     "R08": 0.97,
+     "R10": 0.54,
+     "R11": 2.27,
+     "R12": 0.16,
+     "R13": 0.62,
+     "R14": 1.03,
+     "R16": 1.63,
+     "R17": 0.86,
+     "RA": 0.16,
+     "RB": 0.67,
+     "U2": 1.67
+    },
+    "rule": "front-loaded energy: shortest shots in the first fifth, shots lengthen ~50 % by the end",
+    "confidence": "high (440 shots, 17 refs)"
+   },
+   "music_sync": {
+    "result": "no measurable lock of cuts to beats or onsets across the set",
+    "test": {
+     "window_ms": 60,
+     "cuts_near_beat": 0.221,
+     "random_near_beat": 0.218,
+     "cuts_near_onset": 0.531,
+     "random_near_onset": 0.514,
+     "cuts_near_strong_onset": 0.283,
+     "random_near_strong_onset": 0.262
+    },
+    "lag_scan_pooled_z_at_0": 0.06,
+    "exceptions_with_sync": [
+     "U2",
+     "R04",
+     "RB"
+    ],
+    "interpretation": "rhythm is carried by shot-length variation and energy, not frame-exact beat cuts; downloaded/re-encoded audio may blur sync, so treat as 'not required' rather than 'forbidden'",
+    "confidence": "medium"
+   },
+   "transitions": {
+    "share": {
+     "flash_white": 0.17,
+     "hard_cut": 0.709,
+     "whip_blur": 0.121
+    },
+    "hard_cut": {
+     "id": "T_HARD",
+     "default": true
+    },
+    "white_flash": {
+     "id": "T_FLASH",
+     "frames": {
+      "n": 49,
+      "hist": {
+       "1": 45,
+       "2": 4
+      },
+      "median": 1.0
+     },
+     "color": "#FFFFFF",
+     "rule": "single full-white frame between two shots (45/49 one frame)",
+     "evidence": [
+      "R02-C11",
+      "R02-C13",
+      "R05-C18",
+      "R12-C08",
+      "R06-C05"
+     ]
+    },
+    "whip_blur": {
+     "id": "T_WHIP",
+     "frames": "3-6 (visual estimate from strips)",
+     "direction": "mostly horizontal",
+     "evidence": [
+      "R12-C38",
+      "R02-C06",
+      "R04-C08",
+      "R06-C20"
+     ],
+     "confidence": "medium"
+    },
+    "light_burst": {
+     "id": "T_BURST",
+     "evidence": [
+      "R12 9.10-9.97"
+     ],
+     "note": "white bloom from centre; rare"
+    },
+    "dip_black": {
+     "id": "T_DIP",
+     "evidence": [
+      "U2 1.43-1.77"
+     ],
+     "note": "rare, calm refs only"
+    }
+   },
+   "devices": {
+    "title_slam": {
+     "id": "D_TITLE",
+     "present_in": "11/17 refs",
+     "timing": {
+      "refs_with_title": "11/17",
+      "in_s_median": 0.54,
+      "in_s_range": [
+       0.0,
+       3.0
+      ],
+      "hold_s_median": 1.26,
+      "hold_s_range": [
+       0.33,
+       4.53
+      ]
+     },
+     "entry": "hard cut on a shot change (no animated entrance observed in R02/R04/R17 strips)",
+     "exit": "hard cut; may span 1-2 shots (R02 holds across C01)",
+     "variants": {
+      "poster_condensed": {
+       "refs": [
+        "R17",
+        "R11",
+        "R06"
+       ],
+       "font_candidate": "Anton (stretched vertically)",
+       "colour": "#E70002",
+       "bbox_norm": [
+        0.024,
+        0.117,
+        0.982,
+        0.856
+       ]
+      },
+      "heavy_grotesque": {
+       "refs": [
+        "R02"
+       ],
+       "font_candidate": "Archivo wght900 wdth88 tracking -0.045em",
+       "colour": "#AC0A22",
+       "bbox_norm": [
+        0.137,
+        0.375,
+        0.867,
+        0.531
+       ]
+      },
+      "tall_condensed_light": {
+       "refs": [
+        "R04"
+       ],
+       "font_candidate": "Bebas Neue",
+       "colour": "#FFFFFF",
+       "extras": "small spaced credit line under it ('FILMED BY ...') and camera badge"
+      },
+      "slab_display": {
+       "refs": [
+        "R16"
+       ],
+       "font_candidate": "unverified (heavy slab/serif)",
+       "colour": "#A00004"
+      },
+      "retro_script": {
+       "refs": [
+        "R08"
+       ],
+       "font_candidate": "Lobster-like script with 3-D extrusion (approximation)"
+      },
+      "depth_title": {
+       "refs": [
+        "R03",
+        "R07"
+       ],
+       "note": "title placed BEHIND the subject (needs subject matte)"
+      }
+     },
+     "small_lines": "optional secondary lines at frame bottom-left/right ('SHOT BY SONY ALPHA', 'FRAMES VLOG #08')"
+    },
+    "side_labels": {
+     "id": "D_LABELS",
+     "refs": [
+      "R05",
+      "R13",
+      "RA"
+     ],
+     "creator_specific": true,
+     "spec": {
+      "font": "Archivo wdth125 wght900",
+      "size_frame_h": 0.037,
+      "x_margin_frame_w": 0.045,
+      "y": 0.5,
+      "pattern": "'++LEFT' / 'RIGHT++'",
+      "hold_s": "1.3-2.9 over the opening shots"
+     }
+    },
+    "hud_labels": {
+     "id": "D_HUD",
+     "refs": [
+      "R10",
+      "R14",
+      "R17"
+     ],
+     "note": "persistent small labels for the whole video"
+    },
+    "white_card": {
+     "id": "D_CARD_WHITE",
+     "refs": [
+      "R05",
+      "RA",
+      "R13(black)",
+      "R02(cream border)"
+     ],
+     "geometry": [
+      {
+       "ref": "R05",
+       "t": 9.6,
+       "frame": [
+        848,
+        480
+       ],
+       "inset_px": [
+        153,
+        36,
+        848,
+        444
+       ],
+       "inset_norm": [
+        0.18,
+        0.075,
+        1.0,
+        0.925
+       ],
+       "width_ratio": 0.82,
+       "height_ratio": 0.85,
+       "bg_bgr": [
+        253,
+        252,
+        254
+       ]
+      },
+      {
+       "ref": "R05",
+       "t": 13.0,
+       "frame": [
+        848,
+        480
+       ],
+       "inset_px": [
+        138,
+        38,
+        848,
+        442
+       ],
+       "inset_norm": [
+        0.163,
+        0.079,
+        1.0,
+        0.921
+       ],
+       "width_ratio": 0.837,
+       "height_ratio": 0.842,
+       "bg_bgr": [
+        253,
+        252,
+        254
+       ]
+      },
+      {
+       "ref": "RA",
+       "t": 7.5,
+       "frame": [
+        848,
+        480
+       ],
+       "inset_px": [
+        130,
+        18,
+        718,
+        462
+       ],
+       "inset_norm": [
+        0.153,
+        0.038,
+        0.847,
+        0.962
+       ],
+       "width_ratio": 0.693,
+       "height_ratio": 0.925,
+       "bg_bgr": [
+        251,
+        251,
+        251
+       ]
+      },
+      {
+       "ref": "RA",
+       "t": 9.6,
+       "frame": [
+        848,
+        480
+       ],
+       "inset_px": [
+        138,
+        24,
+        711,
+        457
+       ],
+       "inset_norm": [
+        0.163,
+        0.05,
+        0.838,
+        0.952
+       ],
+       "width_ratio": 0.676,
+       "height_ratio": 0.902,
+       "bg_bgr": [
+        253,
+        252,
+        254
+       ]
+      },
+      {
+       "ref": "RA",
+       "t": 16.2,
+       "frame": [
+        848,
+        480
+       ],
+       "inset_px": [
+        131,
+        19,
+        717,
+        462
+       ],
+       "inset_norm": [
+        0.154,
+        0.04,
+        0.846,
+        0.962
+       ],
+       "width_ratio": 0.691,
+       "height_ratio": 0.923,
+       "bg_bgr": [
+        253,
+        253,
+        253
+       ]
+      }
+     ],
+     "spec": {
+      "inset_w": 0.69,
+      "inset_h": 0.92,
+      "bg": "#FDFCFD"
+     },
+     "series": "3-6 consecutive shots inside the same card, hard in/out",
+     "confidence": "high for RA, medium for R05"
+    },
+    "colour_card": {
+     "id": "D_CARD_COLOUR",
+     "refs": [
+      "R06",
+      "RB"
+     ],
+     "spec": {
+      "inset_w": 0.7,
+      "inset_h": 0.8,
+      "bg": "accent colour"
+     },
+     "confidence": "low (geometry not measured)"
+    },
+    "bw_shot": {
+     "id": "D_BW",
+     "count": 7,
+     "refs": [
+      "R04",
+      "R17",
+      "RB"
+     ],
+     "rule": "one isolated B&W shot for contrast, often entered with a white flash"
+    },
+    "pip_split": {
+     "id": "D_PIP",
+     "refs": [
+      "R08",
+      "R12",
+      "R14",
+      "RB"
+     ],
+     "note": "picture-in-picture inset or 2-3 panel split, 0.3-2.3 s"
+    },
+    "word_flash": {
+     "id": "D_WORDFLASH",
+     "refs": [
+      "R05",
+      "R06",
+      "R11"
+     ],
+     "note": "1-2 frame full-frame word or repeated stack"
+    },
+    "cutout_flash": {
+     "id": "D_CUTOUT",
+     "refs": [
+      "R03",
+      "R11",
+      "RA"
+     ],
+     "note": "white subject silhouette frame; needs subject matte"
+    }
+   },
+   "grade": {
+    "median": {
+     "sat": 97.3,
+     "L_mean": 36.8,
+     "L_p5": 4.3,
+     "L_p95": 76.9,
+     "a": 1.9,
+     "b": 5.8
+    },
+    "iqr": {
+     "sat": [
+      69.5,
+      124.2
+     ],
+     "L_mean": [
+      28.1,
+      48.0
+     ],
+     "L_p5": [
+      2.4,
+      9.0
+     ],
+     "L_p95": [
+      66.8,
+      88.1
+     ],
+     "a": [
+      -1.9,
+      5.5
+     ],
+     "b": [
+      1.4,
+      11.1
+     ]
+    },
+    "per_ref": {
+     "R02": {
+      "sat": 66.6,
+      "L_mean": 40.5,
+      "L_p5": 9.6,
+      "L_p95": 80.8,
+      "a": 2.5,
+      "b": 3.1
+     },
+     "R03": {
+      "sat": 83.8,
+      "L_mean": 35.1,
+      "L_p5": 3.7,
+      "L_p95": 83.2,
+      "a": 3.2,
+      "b": 2.5
+     },
+     "R04": {
+      "sat": 87.4,
+      "L_mean": 43.1,
+      "L_p5": 6.3,
+      "L_p95": 86.7,
+      "a": 1.4,
+      "b": 6.7
+     },
+     "R05": {
+      "sat": 95.8,
+      "L_mean": 36.2,
+      "L_p5": 3.9,
+      "L_p95": 72.2,
+      "a": 1.8,
+      "b": 6.5
+     },
+     "R06": {
+      "sat": 136.6,
+      "L_mean": 32.8,
+      "L_p5": 4.3,
+      "L_p95": 70.2,
+      "a": -1.2,
+      "b": 11.5
+     },
+     "R07": {
+      "sat": 103.8,
+      "L_mean": 35.5,
+      "L_p5": 2.4,
+      "L_p95": 82.0,
+      "a": 3.3,
+      "b": 0.0
+     },
+     "R08": {
+      "sat": 113.5,
+      "L_mean": 34.5,
+      "L_p5": 5.1,
+      "L_p95": 67.7,
+      "a": 8.6,
+      "b": 16.5
+     },
+     "R10": {
+      "sat": 74.0,
+      "L_mean": 31.1,
+      "L_p5": 3.5,
+      "L_p95": 65.5,
+      "a": 3.8,
+      "b": 2.6
+     },
+     "R11": {
+      "sat": 158.3,
+      "L_mean": 29.9,
+      "L_p5": 4.3,
+      "L_p95": 59.2,
+      "a": 14.0,
+      "b": 12.3
+     },
+     "R12": {
+      "sat": 85.2,
+      "L_mean": 44.6,
+      "L_p5": 3.1,
+      "L_p95": 84.7,
+      "a": 2.6,
+      "b": 7.8
+     },
+     "R13": {
+      "sat": 90.8,
+      "L_mean": 27.3,
+      "L_p5": 1.2,
+      "L_p95": 68.6,
+      "a": 1.0,
+      "b": 4.0
+     },
+     "R14": {
+      "sat": 96.5,
+      "L_mean": 31.3,
+      "L_p5": 2.7,
+      "L_p95": 85.5,
+      "a": 2.2,
+      "b": 2.1
+     },
+     "R16": {
+      "sat": 98.8,
+      "L_mean": 39.7,
+      "L_p5": 6.3,
+      "L_p95": 85.9,
+      "a": -3.8,
+      "b": 1.7
+     },
+     "R17": {
+      "sat": 69.6,
+      "L_mean": 48.3,
+      "L_p5": 9.6,
+      "L_p95": 82.0,
+      "a": -1.1,
+      "b": 4.8
+     },
+     "RA": {
+      "sat": 89.2,
+      "L_mean": 38.7,
+      "L_p5": 2.7,
+      "L_p95": 86.7,
+      "a": -4.9,
+      "b": 3.9
+     },
+     "RB": {
+      "sat": 99.2,
+      "L_mean": 40.2,
+      "L_p5": 8.8,
+      "L_p95": 85.7,
+      "a": 2.1,
+      "b": 5.5
+     },
+     "U2": {
+      "sat": 110.5,
+      "L_mean": 47.0,
+      "L_p5": 3.3,
+      "L_p95": 74.3,
+      "a": -9.2,
+      "b": 19.6
+     }
+    },
+    "reading": "dark-ish mids (L 37), deep blacks (p5 4), rolled highlights (p95 77), warm bias (b +5.8), moderate saturation",
+    "units": "sat = HSV S 0-255; L = CIELAB L* 0-100; a/b = CIELAB offsets"
+   },
+   "accent_colour": {
+    "rule": "exactly one accent colour per video, used by title + cards",
+    "observed": {
+     "red": [
+      "R02",
+      "R06",
+      "R16",
+      "R17"
+     ],
+     "orange": [
+      "R11",
+      "RB"
+     ],
+     "white_only": [
+      "R04",
+      "R05",
+      "RA",
+      "R13"
+     ]
+    }
+   },
+   "audio": {
+    "type": "music only (no voice) in 15/17; R11 one shouted word, RB talking hook",
+    "loudness_lufs": {
+     "R02": "-13.7 LUFS",
+     "R03": "-13.5 LUFS",
+     "R04": "-13.9 LUFS",
+     "R05": "-13.4 LUFS",
+     "R06": "-13.6 LUFS",
+     "R07": "-13.2 LUFS",
+     "R08": "-13.9 LUFS",
+     "R10": "-13.5 LUFS",
+     "R11": "-13.2 LUFS",
+     "R12": "-13.7 LUFS",
+     "R13": "-13.6 LUFS",
+     "R14": "-13.8 LUFS",
+     "R16": "-13.6 LUFS",
+     "R17": "-13.4 LUFS",
+     "RA": "-14.0 LUFS",
+     "RB": "-14.4 LUFS",
+     "U2": "-16.7 LUFS"
+    },
+    "sfx": {
+     "result": "high-frequency rise at transitions is similar for all transition types",
+     "data": {
+      "whip_blur": {
+       "n": 46,
+       "median_hf_rise_db": 9.5,
+       "share_rise_over_6db": 0.76
+      },
+      "flash_white": {
+       "n": 62,
+       "median_hf_rise_db": 8.5,
+       "share_rise_over_6db": 0.71
+      },
+      "hard_cut": {
+       "n": 280,
+       "median_hf_rise_db": 8.7,
+       "share_rise_over_6db": 0.67
+      }
+     },
+     "interpretation": "SFX per transition NOT demonstrated; inconclusive"
+    },
+    "confidence": "medium"
+   },
+   "attention_budget": {
+    "accents_per_second": 0.48,
+    "rule": "at most ONE graphic element (title, labels or card) on screen at a time; flashes and whips are never stacked on a title frame; one accent per ~2.2 s on average with clusters in the cold open"
+   },
+   "fidelity_hierarchy": {
+    "non_negotiable": [
+     "cold-open burst of short shots",
+     "one display title in a single accent colour",
+     "hard cuts as default",
+     "1-frame white flash accents",
+     "decelerating pacing towards a held last shot",
+     "warm contrasty grade"
+    ],
+    "context_dependent": [
+     "whip-blur transitions (only on motion shots)",
+     "white card series",
+     "B&W contrast shot",
+     "side labels"
+    ],
+    "optional": [
+     "HUD labels",
+     "PiP/split",
+     "word flash",
+     "cut-out flash",
+     "colour card"
+    ],
+    "breaks_style": [
+     "captions/subtitles",
+     "multiple accent colours",
+     "animated typewriter titles",
+     "long dissolves",
+     "constant zoom pulses",
+     "talking-head structure"
+    ]
+   }
+  },
+  "P_VERTICAL_VLOG": {
+   "refs": [
+    "R01",
+    "R09",
+    "R15"
+   ],
+   "status": "inventoried only — not extracted"
+  },
+  "P_TALKING_CAPTIONS": {
+   "refs": [
+    "U1",
+    "U3"
+   ],
+   "status": "inventoried only — word-by-word caption style was applied ad hoc in the JUICT project; not extracted here"
+  }
+ },
+ "rules": [
+  {
+   "id": "RULE_COLD_OPEN",
+   "trigger": "video start",
+   "response": "2-11 very short shots (0.1-0.4 s) before or around the title",
+   "timing": "first 0.3-1.3 s; first-fifth median shot 0.36 s",
+   "evidence": [
+    "R04 0.00-1.29 (11 shots)",
+    "R17 0.00-0.74",
+    "R06 0.00-1.07",
+    "R12"
+   ],
+   "psychology": "obs: shortest shots of the video are at the start. interp: a rapid visual 'drum roll' hooks attention before the scroll decision",
+   "do_not_apply_when": "footage has fewer than ~8 usable detail shots, or the user asks for a calm opener (U2/R16 style)",
+   "confidence": "high"
+  },
+  {
+   "id": "RULE_TITLE",
+   "trigger": "after the cold open, on the first strong establishing shot of the place/topic",
+   "response": "D_TITLE in the video's accent colour, hard cut in/out",
+   "timing": "in at 0-3 s (median 0.54 s), hold 0.33-4.53 s (median 1.26 s)",
+   "evidence": [
+    "R02 0.64",
+    "R04 1.29",
+    "R17 0.74",
+    "R06 1.62",
+    "R16 0.00"
+   ],
+   "psychology": "obs: 11/17 refs name the place/topic once. interp: orientation + branding moment that pays off the hook",
+   "do_not_apply_when": "no clear single place/topic; never repeat the title later",
+   "confidence": "high"
+  },
+  {
+   "id": "RULE_DECELERATE",
+   "trigger": "second half of the edit",
+   "response": "lengthen shots gradually (+~50 % vs the opening) and end on the longest/most scenic shot",
+   "timing": "by fifth: 0.36 / 0.44 / 0.50 / 0.55 / 0.54 s",
+   "evidence": [
+    "R04 17-26 s",
+    "R08 24.4-29.2",
+    "R16"
+   ],
+   "psychology": "obs: measured pacing curve. interp: viewers get a resolving 'exhale' and the last image lingers",
+   "do_not_apply_when": "loop-style edits",
+   "confidence": "high"
+  },
+  {
+   "id": "RULE_FLASH",
+   "trigger": "change of place/scene or an energy accent in the music",
+   "response": "T_FLASH: one white frame between the shots",
+   "timing": "exactly 1 frame (2 at most)",
+   "evidence": [
+    "R02-C11",
+    "R02-C13",
+    "R05 7.11/7.47",
+    "R12"
+   ],
+   "psychology": "obs: 17 % of transitions. interp: a camera-shutter 'blink' that marks a new beat of the story without slowing it",
+   "do_not_apply_when": "two flashes within ~1 s, or into/out of a title frame",
+   "confidence": "high"
+  },
+  {
+   "id": "RULE_WHIP",
+   "trigger": "outgoing shot already pans/moves",
+   "response": "T_WHIP: 3-6 frames directional blur continuing the motion",
+   "timing": "at the cut",
+   "evidence": [
+    "R12-C38",
+    "R02-C06",
+    "R14"
+   ],
+   "psychology": "obs: 12 % of transitions, strongest in R12/R14. interp: carries momentum across the cut so fast sequences feel continuous",
+   "do_not_apply_when": "static shots on both sides",
+   "confidence": "medium"
+  },
+  {
+   "id": "RULE_CARD_SERIES",
+   "trigger": "a sub-sequence of 3-6 related shots (one location, one activity)",
+   "response": "D_CARD_WHITE for the whole series",
+   "timing": "hard in/out; inner shots 0.2-1.0 s",
+   "evidence": [
+    "RA 6.50-11.15",
+    "R05 9.48-10.81",
+    "R05 12.41-13.91"
+   ],
+   "psychology": "obs: 3 refs. interp: shifts texture to a 'photo album' chapter and resets attention mid-video",
+   "do_not_apply_when": "fewer than 3 shots; more than twice per video",
+   "confidence": "medium-high"
+  },
+  {
+   "id": "RULE_BW",
+   "trigger": "a single reflective or contrast moment",
+   "response": "D_BW on one shot, often entered with T_FLASH",
+   "timing": "0.5-1 s",
+   "evidence": [
+    "R04 3.04-3.82",
+    "R17 8.76-9.62"
+   ],
+   "psychology": "interp: momentary contrast; draws the eye by removing colour",
+   "do_not_apply_when": "more than one per video",
+   "confidence": "medium"
+  },
+  {
+   "id": "RULE_ONE_ACCENT",
+   "trigger": "always",
+   "response": "one accent colour across title and cards; everything else white",
+   "timing": "-",
+   "evidence": [
+    "R02 red",
+    "R06 red",
+    "R17 red",
+    "R11 orange"
+   ],
+   "psychology": "obs: no ref mixes accent colours. interp: brand consistency, poster-like look",
+   "do_not_apply_when": "-",
+   "confidence": "high"
+  },
+  {
+   "id": "RULE_NO_TEXT_OVERLOAD",
+   "trigger": "always",
+   "response": "no captions/subtitles; text only for the title and optional labels",
+   "timing": "-",
+   "evidence": [
+    "all 17 refs"
+   ],
+   "psychology": "obs: zero captions in the profile. interp: the music and images carry the story",
+   "do_not_apply_when": "the user explicitly adds speech",
+   "confidence": "high"
+  }
+ ],
+ "assets": {
+  "fonts": [
+   {
+    "family": "Anton",
+    "file": "assets/fonts/Anton-Regular.ttf",
+    "license": "SIL OFL 1.1",
+    "source": "https://github.com/google/fonts/tree/main/ofl/anton",
+    "use": "poster_condensed titles"
+   },
+   {
+    "family": "Archivo (variable wdth 62-125, wght 100-900)",
+    "file": "assets/fonts/Archivo-VF.ttf",
+    "license": "SIL OFL 1.1",
+    "source": "https://github.com/google/fonts/tree/main/ofl/archivo",
+    "use": "heavy_grotesque titles, side labels, HUD"
+   },
+   {
+    "family": "Bebas Neue",
+    "file": "assets/fonts/BebasNeue-Regular.ttf",
+    "license": "SIL OFL 1.1",
+    "source": "https://github.com/google/fonts/tree/main/ofl/bebasneue",
+    "use": "tall_condensed_light titles"
+   },
+   {
+    "family": "Bodoni Moda",
+    "file": "assets/fonts/BodoniModa-VF.ttf",
+    "license": "SIL OFL 1.1",
+    "source": "https://github.com/google/fonts/tree/main/ofl/bodonimoda",
+    "use": "RB 'AUSTRIA' style (optional)"
+   },
+   {
+    "family": "Lobster",
+    "file": "assets/fonts/Lobster-Regular.ttf",
+    "license": "SIL OFL 1.1",
+    "source": "https://github.com/google/fonts/tree/main/ofl/lobster",
+    "use": "retro_script approximation"
+   }
+  ],
+  "sfx": "none required by the evidence; reuse user's FOUR Editors pack only if added deliberately (licensed to the user)"
+ },
+ "priority": [
+  "RULE_NO_TEXT_OVERLOAD",
+  "RULE_ONE_ACCENT",
+  "RULE_TITLE",
+  "RULE_COLD_OPEN",
+  "RULE_DECELERATE",
+  "RULE_FLASH",
+  "RULE_CARD_SERIES",
+  "RULE_WHIP",
+  "RULE_BW"
+ ]
+}

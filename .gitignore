@@ -8,3 +8,7 @@ __pycache__/
 data/
 *.part.mov
 content_plan_*.md
+
+# third-party reference material (analysis only, do not publish)
+EDITING_DNA_PACKAGE/reference_frames/
+EDITING_DNA_PACKAGE/annotated_comparisons/

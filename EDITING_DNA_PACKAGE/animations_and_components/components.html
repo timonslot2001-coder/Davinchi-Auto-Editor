@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>P_CINE_MONTAGE components</title>
+<!--
+  Reusable HTML/CSS/SVG components for style profile P_CINE_MONTAGE (see ../style_dna.json).
+  Deterministic: every component is a pure function of time t, so a renderer can capture any frame.
+  URL params:
+    c      component id: title_slam | side_labels | white_card | colour_card | white_flash | whip_blur | bw_shot | hud_labels | demo
+    t      time in seconds inside the component (frame capture); omit + add play=1 to animate in real time
+    plate  background image/video path (the shot)    plate2  next shot (whip_blur / series)
+    text, text2, color, width (title width ratio of frame), bg (card colour)
+  SYNTHETIC TEST: plates used in comparisons are reference frames; outputs are reconstructions, not reference footage.
+-->
+<style>
+  @font-face { font-family: "Anton"; src: url("../assets/fonts/Anton-Regular.ttf"); }
+  @font-face { font-family: "Archivo"; src: url("../assets/fonts/Archivo-VF.ttf"); font-stretch: 62% 125%; font-weight: 100 900; }
+  @font-face { font-family: "Bebas Neue"; src: url("../assets/fonts/BebasNeue-Regular.ttf"); }
+  :root {
+    --title-red: #E70002;      /* HUARAZ (R17) sampled */
+    --title-red-deep: #AC0A22; /* BUENOS AIRES (R02) sampled */
+    --title-orange: #F05F05;   /* OBSESSED (R11) sampled */
+    --card-white: #FDFCFD;     /* white card bg (R05/RA) sampled */
+    --card-red: #CC0000;       /* R06 red card — approximate, not sampled */
+  }
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  #stage { position: relative; width: 100vw; height: 100vh; overflow: hidden; background: #000; container-type: size; }
+  .layer { position: absolute; inset: 0; }
+  .plate { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .title-slam {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    font-family: "Anton", sans-serif; text-transform: uppercase; line-height: .86; white-space: nowrap;
+    letter-spacing: -0.01em; text-align: center;
+  }
+  .label {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    font-family: "Archivo", sans-serif; font-stretch: 125%; font-weight: 800; text-transform: uppercase;
+    color: #fff; font-size: 3.7cqh; font-weight: 900; letter-spacing: .01em; white-space: nowrap;
+    text-shadow: 0 0 .6cqh rgba(0,0,0,.35);
+  }
+  .card { position: absolute; inset: 0; }
+  .card .inset { position: absolute; overflow: hidden; }
+  .card .inset img, .card .inset video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .flash { position: absolute; inset: 0; background: #fff; }
+  .hud { position: absolute; font-family: "Archivo", sans-serif; font-stretch: 100%; font-weight: 600;
+         color: rgba(255,255,255,.85); font-size: 1.9cqh; letter-spacing: .28em; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<svg width="0" height="0" style="position:absolute">
+  <filter id="hblur" x="-20%" y="0" width="140%" height="100%"><feGaussianBlur id="hblurdev" stdDeviation="0 0"/></filter>
+</svg>
+<script>
+const Q = new URLSearchParams(location.search);
+const stage = document.getElementById("stage");
+const P = (k, d) => Q.get(k) ?? d;
+const FPS = parseFloat(P("fps", "25"));
+
+// ---------------------------------------------------------------- components (pure functions of t)
+const C = {
+  // Big display title: hard cut in on a shot change, held 0.33-4.53 s (median 1.26 s), hard cut out.
+  title_slam(t, o) {
+    plate(o.plate);
+    const el = div("title-slam", (o.text || "HUARAZ").split("|").join("<br>"));
+    el.style.color = o.color || "var(--title-red)";
+    if (o.font === "grotesque") {                          // R02-type: wide heavy grotesque, tight tracking
+      el.style.fontFamily = "Archivo"; el.style.fontWeight = 900; el.style.fontStretch = "88%";
+      el.style.letterSpacing = "-0.045em";
+    }
+    fitBox(el, parseFloat(o.width || "0.96"), o.height ? parseFloat(o.height) : null);
+  },
+  // Mid-height side labels "++LEFT" / "RIGHT++" framing the shot (R05, R13, RA; persistent variant R10/R14/R17).
+  side_labels(t, o) {
+    plate(o.plate);
+    const l = div("label", "++" + (o.text || "04 DAYS IN")); l.style.left = "4.5cqw";
+    const r = div("label", (o.text2 || "MARRAKECH") + "++"); r.style.right = "4.5cqw";
+  },
+  // Frame-in-frame on white card, centred; series of 3-6 shots stays inside the same card.
+  white_card(t, o) { card(o, o.bg || "var(--card-white)", 0.69, 0.92); },
+  // Same device on a solid accent colour (R06 red, RB orange border).
+  colour_card(t, o) { card(o, o.bg || "var(--card-red)", 0.70, 0.80); },
+  // 1-frame full white frame between two shots (45 of 49 measured flashes are 1 frame).
+  white_flash(t, o) {
+    const f = Math.floor(t * FPS);
+    if (f === 0) div("flash", ""); else plate(o.plate2 || o.plate);
+  },
+  // Whip: 3-6 frames of horizontal motion blur, outgoing shot slides out, incoming slides in, peak blur at the cut.
+  whip_blur(t, o) {
+    const d = parseFloat(o.dur || "0.20"), k = Math.min(Math.max(t / d, 0), 1);
+    const incoming = k >= 0.5;
+    const img = plate(incoming ? (o.plate2 || o.plate) : o.plate);
+    const s = Math.sin(Math.PI * k);                       // blur envelope 0 -> 1 -> 0
+    const dir = incoming ? (1 - k) : -k;                   // slide left
+    img.style.transform = `translateX(${dir * 18}%) scale(${1 + 0.08 * s})`;
+    document.getElementById("hblurdev").setAttribute("stdDeviation", `${(60 * s).toFixed(1)} 0`);
+    img.style.filter = "url(#hblur)";
+  },
+  bw_shot(t, o) { plate(o.plate).style.filter = "grayscale(1) contrast(1.15)"; },
+  // Persistent small HUD labels for the whole video (R10 'LIFE AS / OF LATE', R17 'OUTSIDE THE ROUTINE / VLOG LIFE #08').
+  hud_labels(t, o) {
+    plate(o.plate);
+    const l = div("hud", o.text || "OUTSIDE THE ROUTINE"); l.style.left = "4cqw"; l.style.top = "48cqh";
+    const r = div("hud", o.text2 || "VLOG LIFE #08"); r.style.right = "4cqw"; r.style.top = "48cqh";
+  },
+};
+
+// ---------------------------------------------------------------- helpers
+function div(cls, html) { const d = document.createElement("div"); d.className = cls; d.innerHTML = html; stage.appendChild(d); return d; }
+function plate(src) {
+  if (!src) return div("plate", "");
+  const isVid = /\.(mp4|mov|webm)$/i.test(src);
+  const el = document.createElement(isVid ? "video" : "img"); el.className = "plate"; el.src = src;
+  if (isVid) { el.muted = true; el.currentTime = parseFloat(P("pt", "0")); }
+  stage.appendChild(el); return el;
+}
+function card(o, bg, wr, hr) {
+  const c = div("card", ""); c.style.background = bg;
+  const i = document.createElement("div"); i.className = "inset";
+  i.style.left = `${(1 - wr) / 2 * 100}%`; i.style.top = `${(1 - hr) / 2 * 100}%`;
+  i.style.width = `${wr * 100}%`; i.style.height = `${hr * 100}%`;
+  const img = document.createElement("img"); img.src = o.plate; i.appendChild(img); c.appendChild(i);
+}
+// Fit the title's ink box to a share of the frame width (and optionally height: the R17/R11 'poster'
+// titles are taller than any free condensed face, so they are matched with a vertical stretch).
+function fitBox(el, wr, hr) {
+  const W = stage.clientWidth, H = stage.clientHeight;
+  el.style.fontSize = "100px";
+  const r = el.getBoundingClientRect();
+  const s = wr * W / r.width;
+  const sy = hr ? (hr * H) / (r.height * 0.86 * s) : 1;    // 0.86: cap height share of the Anton em box (approx.)
+  el.style.transform = `translate(-50%, -50%) scale(${s}, ${s * sy})`;
+}
+function render(t) {
+  stage.innerHTML = "";
+  const id = P("c", "title_slam"), o = Object.fromEntries(Q.entries());
+  (C[id] || C.title_slam)(t, o);
+}
+Promise.all(["100px Anton", "900 100px Archivo", "100px \"Bebas Neue\""].map(f => document.fonts.load(f))).then(() => {
+  if (Q.get("play")) { const t0 = performance.now(); const loop = () => { render((performance.now() - t0) / 1000 % 3); requestAnimationFrame(loop); }; loop(); }
+  else render(parseFloat(P("t", "0")));
+  document.title = "ready";
+});
+</script>
+</body>
+</html>

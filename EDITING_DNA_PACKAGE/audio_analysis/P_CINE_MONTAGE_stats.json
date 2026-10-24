@@ -1,0 +1,285 @@
+{
+ "refs": {
+  "R02": {
+   "tempo": 95.7,
+   "cuts": 22,
+   "on_beat_80ms": 0.18,
+   "transitions": {
+    "flash_white": 9,
+    "hard_cut": 7,
+    "whip_blur": 6
+   },
+   "letterboxed": [
+    0,
+    0,
+    848,
+    480
+   ]
+  },
+  "R03": {
+   "tempo": 95.7,
+   "cuts": 10,
+   "on_beat_80ms": 0.3,
+   "transitions": {
+    "whip_blur": 2,
+    "hard_cut": 8
+   },
+   "letterboxed": [
+    0,
+    0,
+    848,
+    480
+   ]
+  },
+  "R04": {
+   "tempo": 172.3,
+   "cuts": 45,
+   "on_beat_80ms": 0.58,
+   "transitions": {
+    "hard_cut": 34,
+    "whip_blur": 8,
+    "flash_white": 3
+   },
+   "letterboxed": [
+    0,
+    0,
+    848,
+    480
+   ]
+  },
+  "R05": {
+   "tempo": 103.4,
+   "cuts": 35,
+   "on_beat_80ms": 0.37,
+   "transitions": {
+    "hard_cut": 27,
+    "flash_white": 8
+   },
+   "letterboxed": [
+    0,
+    0,
+    848,
+    480
+   ]
+  },
+  "R06": {
+   "tempo": 136.0,
+   "cuts": 35,
+   "on_beat_80ms": 0.2,
+   "transitions": {
+    "flash_white": 16,
+    "whip_blur": 4,
+    "hard_cut": 15
+   },
+   "letterboxed": [
+    0,
+    0,
+    848,
+    480
+   ]
+  },
+  "R07": {
+   "tempo": 123.0,
+   "cuts": 11,
+   "on_beat_80ms": 0.18,
+   "transitions": {
+    "hard_cut": 11
+   },
+   "letterboxed": [
+    0,
+    0,
+    640,
+    480
+   ]
+  },
+  "R08": {
+   "tempo": 92.3,
+   "cuts": 38,
+   "on_beat_80ms": 0.21,
+   "transitions": {
+    "hard_cut": 29,
+    "flash_white": 7,
+    "whip_blur": 2
+   },
+   "letterboxed": [
+    0,
+    0,
+    848,
+    480
+   ]
+  },
+  "R10": {
+   "tempo": 103.4,
+   "cuts": 23,
+   "on_beat_80ms": 0.39,
+   "transitions": {
+    "hard_cut": 23
+   },
+   "letterboxed": [
+    0,
+    0,
+    960,
+    480
+   ]
+  },
+  "R11": {
+   "tempo": 129.2,
+   "cuts": 17,
+   "on_beat_80ms": 0.29,
+   "transitions": {
+    "flash_white": 1,
+    "hard_cut": 16
+   },
+   "letterboxed": [
+    0,
+    0,
+    640,
+    480
+   ]
+  },
+  "R12": {
+   "tempo": 83.4,
+   "cuts": 40,
+   "on_beat_80ms": 0.25,
+   "transitions": {
+    "flash_white": 12,
+    "hard_cut": 14,
+    "whip_blur": 14
+   },
+   "letterboxed": [
+    0,
+    0,
+    640,
+    480
+   ]
+  },
+  "R13": {
+   "tempo": 73.8,
+   "cuts": 31,
+   "on_beat_80ms": 0.26,
+   "transitions": {
+    "hard_cut": 29,
+    "whip_blur": 2
+   },
+   "letterboxed": [
+    0,
+    0,
+    880,
+    480
+   ]
+  },
+  "R14": {
+   "tempo": 95.7,
+   "cuts": 17,
+   "on_beat_80ms": 0.35,
+   "transitions": {
+    "hard_cut": 11,
+    "whip_blur": 4,
+    "flash_white": 2
+   },
+   "letterboxed": [
+    0,
+    0,
+    848,
+    480
+   ]
+  },
+  "R16": {
+   "tempo": 103.4,
+   "cuts": 13,
+   "on_beat_80ms": 0.15,
+   "transitions": {
+    "hard_cut": 11,
+    "whip_blur": 2
+   },
+   "letterboxed": [
+    0,
+    0,
+    640,
+    480
+   ]
+  },
+  "R17": {
+   "tempo": 129.2,
+   "cuts": 16,
+   "on_beat_80ms": 0.19,
+   "transitions": {
+    "hard_cut": 10,
+    "whip_blur": 1,
+    "flash_white": 5
+   },
+   "letterboxed": [
+    10,
+    5,
+    840,
+    475
+   ]
+  },
+  "RA": {
+   "tempo": 129.2,
+   "cuts": 42,
+   "on_beat_80ms": 0.38,
+   "transitions": {
+    "hard_cut": 29,
+    "flash_white": 8,
+    "whip_blur": 5
+   },
+   "letterboxed": [
+    0,
+    0,
+    848,
+    480
+   ]
+  },
+  "RB": {
+   "tempo": 117.5,
+   "cuts": 14,
+   "on_beat_80ms": 0.36,
+   "transitions": {
+    "hard_cut": 13,
+    "flash_white": 1
+   },
+   "letterboxed": [
+    0,
+    0,
+    848,
+    480
+   ]
+  },
+  "U2": {
+   "tempo": 161.5,
+   "cuts": 14,
+   "on_beat_80ms": 0.5,
+   "transitions": {
+    "whip_blur": 1,
+    "hard_cut": 13
+   },
+   "letterboxed": [
+    0,
+    0,
+    1024,
+    576
+   ]
+  }
+ },
+ "transitions": {
+  "flash_white": 72,
+  "hard_cut": 300,
+  "whip_blur": 51
+ },
+ "treatments": {
+  "black_and_white": 7,
+  "colour_border": 2,
+  "frame_in_frame_white": 1
+ },
+ "summary": {
+  "shots": 440,
+  "shot_len_p10_p50_p90": [
+   0.156,
+   0.514,
+   1.448
+  ],
+  "cuts_within_80ms_of_beat": 0.317,
+  "cuts_within_40ms_of_beat": 0.135
+ }
+}

@@ -1,0 +1,324 @@
+[
+ {
+  "file": "data\\ref4\\r01.mp4",
+  "size": 1269360,
+  "sha256": "7611d9523a96604fbd8596b24ad4001f7f182458a14bdf2c798dd50fdb6f3209",
+  "duration": "00:00:10.00",
+  "res": "480x848",
+  "fps": "30",
+  "audio": [
+   " aac (LC) (mp4a / 0x6134706D)",
+   " 44100 Hz",
+   " stereo"
+  ],
+  "dup_of": null
+ },
+ {
+  "file": "data\\ref4\\r02.mp4",
+  "size": 3178241,
+  "sha256": "3e9bf0b0f770cbcdd6f800b80474a1bba6c0a4d7576a2941ec2d47b169d6f85c",
+  "duration": "00:00:22.80",
+  "res": "848x480",
+  "fps": "25.09",
+  "audio": [
+   " aac (LC) (mp4a / 0x6134706D)",
+   " 44100 Hz",
+   " stereo"
+  ],
+  "dup_of": null
+ },
+ {
+  "file": "data\\ref4\\r03.mp4",
+  "size": 1811880,
+  "sha256": "f7f382f730af835ce1527e5b96093497f1a55dde3982a63bb38cc89a47cef56b",
+  "duration": "00:00:15.23",
+  "res": "848x480",
+  "fps": "25.62",
+  "audio": [
+   " aac (LC) (mp4a / 0x6134706D)",
+   " 44100 Hz",
+   " stereo"
+  ],
+  "dup_of": null
+ },
+ {
+  "file": "data\\ref4\\r04.mp4",
+  "size": 4646302,
+  "sha256": "15b3a8f8babe82936480fc86d15a1b85d679f930be200bf74539676eb18c4e28",
+  "duration": "00:00:31.52",
+  "res": "848x480",
+  "fps": "25.63",
+  "audio": [
+   " aac (LC) (mp4a / 0x6134706D)",
+   " 44100 Hz",
+   " stereo"
+  ],
+  "dup_of": null
+ },
+ {
+  "file": "data\\ref4\\r05.mp4",
+  "size": 2578744,
+  "sha256": "9dd5239b3c66bf5f6c8ee09b80ebfccf20745780504065389dcfbca1fa34ddef",
+  "duration": "00:00:18.77",
+  "res": "848x480",
+  "fps": "25.31",
+  "audio": [
+   " aac (LC) (mp4a / 0x6134706D)",
+   " 44100 Hz",
+   " stereo"
+  ],
+  "dup_of": null
+ },
+ {
+  "file": "data\\ref4\\r06.mp4",
+  "size": 2792780,
+  "sha256": "b8b406bb14134b0a77a4e63925388a478bdb735b03701316efc8d6cf222e2b8e",
+  "duration": "00:00:19.40",
+  "res": "848x480",
+  "fps": "25.26",
+  "audio": [
+   " aac (LC) (mp4a / 0x6134706D)",
+   " 44100 Hz",
+   " stereo"
+  ],
+  "dup_of": null
+ },
+ {
+  "file": "data\\ref4\\r07.mp4",
+  "size": 1548101,
+  "sha256": "621faaafc059de4605e180ca268435995e6f718447f888be27c8236d3b38d109",
+  "duration": "00:00:14.72",
+  "res": "640x480",
+  "fps": "26.36",
+  "audio": [
+   " aac (LC) (mp4a / 0x6134706D)",
+   " 44100 Hz",
+   " stereo"
+  ],
+  "dup_of": null
+ },
+ {
+  "file": "data\\ref4\\r08.mp4",
+  "size": 4316167,
+  "sha256": "b11ced8342af6bf3e981afae47340964376bad6bfbba9ccb23222c535d73c871",
+  "duration": "00:00:29.17",
+  "res": "848x480",
+  "fps": "25.71",
+  "audio": [
+   " aac (LC) (mp4a / 0x6134706D)",
+   " 44100 Hz",
+   " stereo"
+  ],
+  "dup_of": null
+ },
+ {
+  "file": "data\\ref4\\r09.mp4",
+  "size": 2066995,
+  "sha256": "42339253c732d3861fa9fa0cc2af836a120ca9a3aaf712feaac1ceeb922a500e",
+  "duration": "00:00:15.27",
+  "res": "480x848",
+  "fps": "25.61",
+  "audio": [
+   " aac (LC) (mp4a / 0x6134706D)",
+   " 44100 Hz",
+   " stereo"
+  ],
+  "dup_of": null
+ },
+ {
+  "file": "data\\ref4\\r10.mp4",
+  "size": 2593036,
+  "sha256": "d7afa62babb80b25be472709021a7d2fdc83a709569b8c2aaf7756d5a3d8005a",
+  "duration": "00:00:15.93",
+  "res": "960x480",
+  "fps": "25.55",
+  "audio": [
+   " aac (LC) (mp4a / 0x6134706D)",
+   " 44100 Hz",
+   " stereo"
+  ],
+  "dup_of": null
+ },
+ {
+  "file": "data\\ref4\\r11.mp4",
+  "size": 1452383,
+  "sha256": "35554ecca4225aaf56f0d278814f2f28f49ea2b0f8aed912c83e3222c89ffdd5",
+  "duration": "00:00:14.40",
+  "res": "640x480",
+  "fps": "26.39",
+  "audio": [
+   " aac (LC) (mp4a / 0x6134706D)",
+   " 44100 Hz",
+   " stereo"
+  ],
+  "dup_of": null
+ },
+ {
+  "file": "data\\ref4\\r12.mp4",
+  "size": 2581994,
+  "sha256": "fc61d9f2387c3181f8f566388c70429eac741dcfb64cb784c50a5f7bbdf6c95c",
+  "duration": "00:00:23.20",
+  "res": "640x480",
+  "fps": "30",
+  "audio": [
+   " aac (LC) (mp4a / 0x6134706D)",
+   " 44100 Hz",
+   " stereo"
+  ],
+  "dup_of": null
+ },
+ {
+  "file": "data\\ref4\\r13.mp4",
+  "size": 3260130,
+  "sha256": "02924abdb99eecc180c2d976e5cd1bbd0d06246d758dcb8da763282961c7c440",
+  "duration": "00:00:21.37",
+  "res": "880x480",
+  "fps": "25.98",
+  "audio": [
+   " aac (LC) (mp4a / 0x6134706D)",
+   " 44100 Hz",
+   " stereo"
+  ],
+  "dup_of": null
+ },
+ {
+  "file": "data\\ref4\\r14.mp4",
+  "size": 2534573,
+  "sha256": "a91d5eb8a02839ea9a1ebb019a567e64f62c74c07adf3fc65f4a0745c1317b62",
+  "duration": "00:00:17.87",
+  "res": "848x480",
+  "fps": "30",
+  "audio": [
+   " aac (LC) (mp4a / 0x6134706D)",
+   " 44100 Hz",
+   " stereo"
+  ],
+  "dup_of": null
+ },
+ {
+  "file": "data\\ref4\\r15.mp4",
+  "size": 1779544,
+  "sha256": "adde93d9cee3cb85cedf3d8850e1464acbdde3862f6e54d54c0799a966bfc0b5",
+  "duration": "00:00:17.73",
+  "res": "480x608",
+  "fps": "25.39",
+  "audio": [
+   " aac (LC) (mp4a / 0x6134706D)",
+   " 44100 Hz",
+   " stereo"
+  ],
+  "dup_of": null
+ },
+ {
+  "file": "data\\ref4\\r16.mp4",
+  "size": 2217718,
+  "sha256": "0671d04e5615d2c81790760e597fa77158b05d921246005116a4be1fe36c0dae",
+  "duration": "00:00:20.37",
+  "res": "640x480",
+  "fps": "25.19",
+  "audio": [
+   " aac (LC) (mp4a / 0x6134706D)",
+   " 44100 Hz",
+   " stereo"
+  ],
+  "dup_of": null
+ },
+ {
+  "file": "data\\ref4\\r17.mp4",
+  "size": 1966314,
+  "sha256": "fa15fa30d5bdee63bed4c063d88b0a1fa3399acf53c3bf65f0f863f41de1ec97",
+  "duration": "00:00:14.37",
+  "res": "848x480",
+  "fps": "25.68",
+  "audio": [
+   " aac (LC) (mp4a / 0x6134706D)",
+   " 44100 Hz",
+   " stereo"
+  ],
+  "dup_of": null
+ },
+ {
+  "file": "data\\ref3\\refA.mp4",
+  "size": 3549542,
+  "sha256": "4ed167040a7de6ed49349cd86852a98d5f595cfa6234e7d670702ae1effb2f35",
+  "duration": "00:00:23.80",
+  "res": "848x480",
+  "fps": "25.84",
+  "audio": [
+   " aac (LC) (mp4a / 0x6134706D)",
+   " 44100 Hz",
+   " stereo"
+  ],
+  "dup_of": null
+ },
+ {
+  "file": "data\\ref3\\refB.mp4",
+  "size": 3101193,
+  "sha256": "52a2343085cd752ea2b76b4cae0ed8e3fbaea5875a9269bd724af0502c7c831e",
+  "duration": "00:00:18.57",
+  "res": "848x480",
+  "fps": "30",
+  "audio": [
+   " aac (LC) (mp4a / 0x6134706D)",
+   " 44100 Hz",
+   " stereo"
+  ],
+  "dup_of": null
+ },
+ {
+  "file": "C:\\Users\\Timon\\.claude\\uploads\\581dca20-9074-4311-b3d0-7436865789b4\\45dfe6d5-v14025g50000d5jq8hfog65t5ri4gfa0.mp4",
+  "size": 4110227,
+  "sha256": "d68e39626f97b2fd59d6a6aa51f6ecf509c6dbfb47a2330fdf5bb115192c555e",
+  "duration": "00:00:52.96",
+  "res": "576x1024",
+  "fps": "25",
+  "audio": [
+   " aac (LC) (mp4a / 0x6134706D)",
+   " 44100 Hz",
+   " stereo"
+  ],
+  "dup_of": null
+ },
+ {
+  "file": "C:\\Users\\Timon\\.claude\\uploads\\581dca20-9074-4311-b3d0-7436865789b4\\506b1447-v15044gf0000cqlicrfog65jrq2grto0.mp4",
+  "size": 2358144,
+  "sha256": "6c991271800c6980248ed7d300e71bb311df5a063a43839aa92e42316049594e",
+  "duration": "00:00:15.90",
+  "res": "1024x576",
+  "fps": "29.97",
+  "audio": [
+   " aac (LC) (mp4a / 0x6134706D)",
+   " 44100 Hz",
+   " stereo"
+  ],
+  "dup_of": null
+ },
+ {
+  "file": "C:\\Users\\Timon\\.claude\\uploads\\581dca20-9074-4311-b3d0-7436865789b4\\96d26a2f-v15044gf0000cqlicrfog65jrq2grto0.mp4",
+  "size": 2358144,
+  "sha256": "6c991271800c6980248ed7d300e71bb311df5a063a43839aa92e42316049594e",
+  "duration": "00:00:15.90",
+  "res": "1024x576",
+  "fps": "29.97",
+  "audio": [
+   " aac (LC) (mp4a / 0x6134706D)",
+   " 44100 Hz",
+   " stereo"
+  ],
+  "dup_of": "C:\\Users\\Timon\\.claude\\uploads\\581dca20-9074-4311-b3d0-7436865789b4\\506b1447-v15044gf0000cqlicrfog65jrq2grto0.mp4"
+ },
+ {
+  "file": "C:\\Users\\Timon\\.claude\\uploads\\581dca20-9074-4311-b3d0-7436865789b4\\a9d785ca-d0c7a2e2fe0b4c61a2c68cb38510ae7c.mp4",
+  "size": 24882461,
+  "sha256": "017adb7061771aa2e914577a114e35ea9aacd314d2c24eefc4eaa2f1897e353f",
+  "duration": "00:00:15.70",
+  "res": "720x1280",
+  "fps": "30",
+  "audio": [
+   " aac (LC) (mp4a / 0x6134706D)",
+   " 44100 Hz",
+   " stereo"
+  ],
+  "dup_of": null
+ }
+]

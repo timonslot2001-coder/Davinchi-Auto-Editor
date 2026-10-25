@@ -9,13 +9,18 @@
   true peak −1.3 dBFS; title at 0.52 s after a cold open; card series cuts hard. Result: `tests/smoke_result.json`.
 - Skill file `../.claude/skills/cine-montage/SKILL.md` with valid YAML frontmatter (name, description).
 
+- First real edit **Smoke Sesh** (A6700 S-Log3 + 3 local Wan AI clips, song Austria, title SMOKE SESH): plan approved by
+  Timon ("Plan approved, do the final render."), EDL e305441655cd rendered to
+  `exports/cine_montage_20261025_1009.mp4`: 1920x1080 25 fps, 13.04 s, no black/frozen frames, −14.4 LUFS, TP −1.5 dBFS.
+  S-Log3 detected via the Sony sidecar XML; title, white card series, whip and last shot checked on frames.
+
 ## Untested (not claimed working)
-- Real footage: S-Log3 auto-detection, LUT grading, whip transitions on real pans, music onset snapping on a real song.
+- Music onset snapping on a longer song; whip on fast real pans.
 - Skill discovery/invocation in a fresh Claude Code session (file is in the documented project-skill location).
 - Loudness on full-length songs (single-pass loudnorm; target −14 LUFS).
 
 ## Approval state per video
-- No real video planned yet.
+- Smoke Sesh — approved + rendered (2026-10-25).
 
 ## Next allowed step
-Timon provides a project (clips + song + title) → `plan` → storyboard to Timon → wait for gate B approval.
+Next project: Timon provides clips + song + title → `plan` → storyboard to Timon → wait for gate B approval.

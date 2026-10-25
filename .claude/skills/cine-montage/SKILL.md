@@ -38,3 +38,12 @@ No captions · one accent colour · one title only · no flash/whip on the title
 ## Known limits
 Depth titles and cut-out flashes need a subject matte (not built). Fonts are verified OFL approximations. Cuts are
 paced, not beat-locked (snapped to a strong onset only within 2 frames).
+
+## Learnings from real runs
+- Smoke Sesh (2026-10-25, first real edit): song length caps the edit — a 13 s song gives a 13 s video; say so at gate B.
+- Sony S-Log3 clips are detected from the `<stem>M01.XML` sidecar; the pixel heuristic missed two of them. Keep sidecars
+  next to the clips.
+- AI drone clips can look sharper than real footage and get picked too often; the planner caps them at 2 uses — mention
+  near-duplicate AI shots in the plan summary.
+- Final 1080p export of 13 s is ~40 MB (CRF 16); make a smaller phone copy before sending over Remote Control.
+- A song lifted from a reference video is fine for private use but flag the copyright risk before posting.

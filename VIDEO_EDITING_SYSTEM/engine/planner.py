@@ -101,10 +101,16 @@ def plan(p: Profile, inv: dict, music: dict | None, title: str | None, length: f
     # ---------------------------------------------------------------- assign footage to slots
     pool = sorted(segs, key=lambda s: -s["score"])
     used: dict[tuple, int] = {}
+    clip_uses: dict[str, int] = {}
+    n_clips = len({s["clip"] for s in segs})
+    cap = {c: (2 if Path(c).name.startswith("AI_") else 99) for c in {s["clip"] for s in segs}}   # own footage leads; AI shots are support
+
+    def capped(s):
+        return clip_uses.get(s["clip"], 0) < cap[s["clip"]]
 
     def pick(role: str, need: float, last_clip: str | None):
         def ok(s):
-            return s["end"] - s["start"] >= need and s["clip"] != last_clip
+            return s["end"] - s["start"] >= need and s["clip"] != last_clip and capped(s)
 
         prefs = {"cold_open": lambda s: ("detail" in s["tags"] or "motion" in s["tags"]),
                  "title": lambda s: "establishing" in s["tags"],
@@ -126,6 +132,7 @@ def plan(p: Profile, inv: dict, music: dict | None, title: str | None, length: f
         s = pick(role, need, last)
         k = used.get((s["clip"], s["start"]), 0)
         used[(s["clip"], s["start"])] = k + 1
+        clip_uses[s["clip"]] = clip_uses.get(s["clip"], 0) + 1
         span = s["end"] - s["start"]
         # take a different window each reuse; centre the first use (heuristic: middle of a segment is steadiest)
         free = max(span - need, 0)

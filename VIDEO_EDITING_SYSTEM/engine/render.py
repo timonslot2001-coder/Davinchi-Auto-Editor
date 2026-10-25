@@ -21,7 +21,14 @@ CARD = {"inset_w": 0.69, "inset_h": 0.92, "bg": (0xFD, 0xFC, 0xFD)}      # style
 
 # ---------------------------------------------------------------- grade
 def detect_log(clip: str) -> bool:
-    """Heuristic S-Log detection: flat (lifted blacks, low saturation). Logged in the render notes."""
+    """S-Log detection: Sony sidecar XML (<stem>M01.XML, CaptureGammaEquation) when present, else a heuristic
+    (lifted blacks, low saturation). Logged in the render notes."""
+    import re
+    side = Path(clip).with_name(Path(clip).stem + "M01.XML")
+    if side.exists():
+        m = re.search(r'CaptureGammaEquation"\s+value="([^"]+)"', side.read_text(encoding="utf-8", errors="ignore"))
+        if m:
+            return "log" in m[1].lower()
     cap = cv2.VideoCapture(clip)
     n = cap.get(cv2.CAP_PROP_FRAME_COUNT) or 1
     cap.set(cv2.CAP_PROP_POS_FRAMES, int(n / 2))

@@ -87,11 +87,13 @@ def analyse_video(path: Path, meta: dict, step: float = 0.2) -> list[Segment]:
         cut = prev_h is not None and 0.5 * np.abs(hist - prev_h).sum() > 0.45
         hsv = cv2.cvtColor(small, cv2.COLOR_BGR2HSV)
         rows.append({"t": idx / fps, "motion": float(np.abs(g2.astype(np.float32) - g).mean()),
-                     "dx": float(np.median(flow[..., 0])), "sharp": float(cv2.Laplacian(cv2.cvtColor(f, cv2.COLOR_BGR2GRAY), cv2.CV_32F).var()),
+                     "dx": float(np.median(flow[..., 0])), "sharp": float(cv2.Laplacian(cv2.cvtColor(cv2.resize(f, (640, int(640 * f.shape[0] / f.shape[1]))), cv2.COLOR_BGR2GRAY), cv2.CV_32F).var()),  # same scale for 4K and HD
                      "luma": float(g.mean()), "sat": float(hsv[..., 1].mean()), "cut": cut})
         prev, prev_h = g, hist
     segs, cur = [], []
     for r in rows + [{"cut": True, "t": meta["duration"]}]:
+        if cur and not r["cut"] and r["t"] - cur[0]["t"] >= 3.2 and meta["duration"] - r["t"] >= 1.2:
+            r = {**r, "cut": True}                           # split long takes into ~3 s windows (variety + per-window scores)
         if r["cut"] and cur:
             a, b = cur[0]["t"], r["t"]
             if b - a >= 0.4:

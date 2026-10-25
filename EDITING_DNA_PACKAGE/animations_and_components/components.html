@@ -135,6 +135,7 @@ function fitBox(el, wr, hr) {
 }
 function render(t) {
   stage.innerHTML = "";
+  if (Q.get("transparent")) { for (const el of [document.documentElement, document.body, stage]) el.style.background = "transparent"; }
   const id = P("c", "title_slam"), o = Object.fromEntries(Q.entries());
   (C[id] || C.title_slam)(t, o);
 }

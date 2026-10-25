@@ -13,3 +13,6 @@ content_plan_*.md
 EDITING_DNA_PACKAGE/reference_frames/
 EDITING_DNA_PACKAGE/annotated_comparisons/
 EDITING_DNA_PACKAGE.zip
+VIDEO_EDITING_SYSTEM/tests/_synthetic_project/
+VIDEO_EDITING_SYSTEM/tests/_smoke.log
+__pycache__/

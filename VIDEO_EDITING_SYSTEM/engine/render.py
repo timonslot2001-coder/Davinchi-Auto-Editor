@@ -14,6 +14,7 @@ import numpy as np
 from . import REPO
 from .edl import EDL
 from . import graphics
+from .gridflow import grid_flow
 
 FF = imageio_ffmpeg.get_ffmpeg_exe()
 CARD = {"inset_w": 0.69, "inset_h": 0.92, "bg": (0xFD, 0xFC, 0xFD)}      # style_dna D_CARD_WHITE (RGB)
@@ -57,10 +58,11 @@ def _ff_path(p: Path) -> str:
 
 
 # ---------------------------------------------------------------- source decoding
-def read_event(ev, edl: EDL, lut: Path | None) -> np.ndarray:
-    """All output frames of one event as an array (n, H, W, 3) uint8 BGR."""
+def read_event(ev, edl: EDL, lut: Path | None, extra: int = 0) -> np.ndarray:
+    """All output frames of one event as an array (n, H, W, 3) uint8 BGR; `extra` frames past the out point are
+    appended (the outgoing shot's handle for an overlapping transition)."""
     W, H, fps = edl.width, edl.height, edl.fps
-    n = int(round((ev.out_out - ev.out_in) * fps))
+    n = int(round((ev.out_out - ev.out_in) * fps)) + extra
     dur = n / fps + 0.2
     vf = []
     if lut:
@@ -154,9 +156,19 @@ def render(edl: EDL, out: Path, work: Path, grade_mode: str = "auto", preview: b
                            stdin=subprocess.PIPE)
     frame_no = 0
     events = edl.events
+    handle = None                                                # outgoing frames for a T_GRID_FLOW into this event
     for k, ev in enumerate(events):
-        frames = read_event(ev, edl, luts.get(ev.source))
         nxt = events[k + 1] if k + 1 < len(events) else None
+        gf = int(nxt.params.get("grid_flow_frames", 12)) if nxt is not None and nxt.transition_in == "T_GRID_FLOW" else 0
+        frames = read_event(ev, edl, luts.get(ev.source), extra=gf)
+        if gf:                                                   # A keeps playing under the first gf frames of B
+            frames, nxt_handle = frames[:-gf], frames[-gf:]
+        else:
+            nxt_handle = None
+        if handle is not None:
+            d = min(len(handle), len(frames))
+            frames[:d] = grid_flow(handle[:d], frames[:d], **ev.params.get("grid_flow", {}))
+        handle = nxt_handle
         for i, f in enumerate(frames):
             t = ev.out_in + i / fps
             if "D_BW" in ev.treatment:

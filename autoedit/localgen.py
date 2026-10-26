@@ -106,8 +106,8 @@ def workflow(prompt: str, seconds: int, aspect: str, preset: dict, seed: int, pr
                                                    "model": ["6", 0], "positive": ["4", 0], "negative": ["5", 0],
                                                    "latent_image": ["7", 0]}},
         # tiled decode: a plain VAEDecode of 121 frames at 720p wants ~18 GB VRAM (16 GB card)
-        "9": {"class_type": "VAEDecodeTiled", "inputs": {"samples": ["8", 0], "vae": ["3", 0], "tile_size": 512,
-                                                         "overlap": 64, "temporal_size": 64, "temporal_overlap": 8}},
+        "9": {"class_type": "VAEDecodeTiled", "inputs": {"samples": ["8", 0], "vae": ["3", 0], "tile_size": 256,
+                                                         "overlap": 32, "temporal_size": 32, "temporal_overlap": 4}},
         "10": {"class_type": "CreateVideo", "inputs": {"images": ["9", 0], "fps": 24.0}},
         "11": {"class_type": "SaveVideo", "inputs": {"video": ["10", 0], "filename_prefix": prefix,
                                                      "format": "mp4", "codec": "h264"}},

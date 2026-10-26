@@ -3,7 +3,7 @@
  "title_capture_rgba": true,
  "events": 21,
  "transitions": {
-  "T_HARD": 18,
+  "T_HARD": 17,
   "T_FLASH": 3,
   "T_WHIP": 0
  },
@@ -18,7 +18,9 @@
   "has_audio": true,
   "lufs": -15.6,
   "true_peak_dbfs": -1.3,
-  "problems": []
+  "problems": [
+   "frozen at ['9.44'] (check: may be an intentional held shot)"
+  ]
  },
  "title_in_s": 0.52,
  "PASS": true

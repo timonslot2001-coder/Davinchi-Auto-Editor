@@ -1072,7 +1072,8 @@
      "whip-blur transitions (only on motion shots)",
      "white card series",
      "B&W contrast shot",
-     "side labels"
+     "side labels",
+     "Grid Flow transition (Timon's own, max 1-2x)"
     ],
     "optional": [
      "HUD labels",
@@ -1235,6 +1236,18 @@
    "psychology": "obs: zero captions in the profile. interp: the music and images carry the story",
    "do_not_apply_when": "the user explicitly adds speech",
    "confidence": "high"
+  },
+  {
+   "id": "RULE_GRID_FLOW",
+   "trigger": "a scene change in the body of the edit (after the title, before the wind-down)",
+   "response": "T_GRID_FLOW: 4x4 grid, wipe left, per-tile +4-stop exposure flash, white grid lines; 12 frames (0.48 s)",
+   "timing": "1x per video (2x when the edit is >= 16 s); >= 1 s from any other accent; never on the title, card series or final shot",
+   "evidence": [
+    "Timon-approved addition 2026-10-26 (gate C test gridflow_test.mp4, own RAM Grid Flow transition)"
+   ],
+   "psychology": "not from the references: Timon's own signature transition; a rare structured accent that makes the edit his own",
+   "do_not_apply_when": "edit shorter than ~8 s, or no clean scene change between two steady shots",
+   "confidence": "user-approved (not reference evidence)"
   }
  ],
  "assets": {
@@ -1286,6 +1299,7 @@
   "RULE_FLASH",
   "RULE_CARD_SERIES",
   "RULE_WHIP",
-  "RULE_BW"
+  "RULE_BW",
+  "RULE_GRID_FLOW"
  ]
 }

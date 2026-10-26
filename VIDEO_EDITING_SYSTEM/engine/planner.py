@@ -64,7 +64,7 @@ def _snap(times: list[float], onsets: list[float], fps: float) -> list[float]:
 
 def plan(p: Profile, inv: dict, music: dict | None, title: str | None, length: float | None = None,
          accent: str | None = None, fps: float = 25.0, size=(1920, 1080), seed: int = 1, card: str = "auto",
-         bw: str = "auto", title_variant: str | None = None) -> EDL:
+         bw: str = "auto", title_variant: str | None = None, grid_flow: str = "auto") -> EDL:
     rng = random.Random(seed)
     segs = [s for c in inv["clips"] if c["kind"] == "video" for s in c["segments"] if "soft" not in s["tags"]]
     notes, questions = [], []
@@ -203,6 +203,37 @@ def plan(p: Profile, inv: dict, music: dict | None, title: str | None, length: f
             e.treatment.append("D_BW"); e.rule.append("RULE_BW")
             if e.transition_in == "T_HARD":
                 e.transition_in = "T_FLASH"; e.rule.append("RULE_FLASH")
+
+    # ---------------------------------------------------------------- Grid Flow, Timon's own transition (RULE_GRID_FLOW)
+    if grid_flow != "off" and "RULE_GRID_FLOW" in p.rules and L >= 8:
+        n_gf = 2 if L >= 16 else 1
+        frames = 12
+        accents = [e.out_in for e in events if e.transition_in != "T_HARD"]
+        gcand = []
+        for e_prev, e in zip(events, events[1:]):
+            t = e.out_in
+            if (t <= t_hi + 0.01 or t > L * 0.85 or e.params["role"] == "final" or e.treatment or e_prev.treatment
+                    or e_prev.source == e.source or e.out_out - e.out_in < (frames + 2) / fps):
+                continue
+            calm = 2 - min(abs(e_prev.params["pan_dx"]), 2) - min(abs(e.params["pan_dx"]), 2) / 2
+            gcand.append((calm + (e.out_out - e.out_in), e))
+        gcand.sort(key=lambda c: -c[0])
+        placed = []
+        for _, e in gcand:
+            if len(placed) == n_gf:
+                break
+            others = [a for a in accents if abs(a - e.out_in) > 1e-3]
+            if all(abs(e.out_in - a) >= 1.0 for a in others + placed):
+                if e.transition_in != "T_HARD":                       # replaces the accent that was on this cut
+                    accents.remove(e.out_in)
+                    e.rule = [r for r in e.rule if r not in ("RULE_WHIP", "RULE_FLASH")]
+                e.transition_in = "T_GRID_FLOW"; e.rule.append("RULE_GRID_FLOW")
+                e.params.update({"grid_flow_frames": frames, "grid_flow": {}})   # {} = 4x4 wipe left, exposure flash
+                placed.append(e.out_in)
+        if placed:
+            notes.append(f"Grid Flow at {', '.join(f'{t:.2f}s' for t in placed)}")
+        else:
+            notes.append("Grid Flow not placed: no clean scene change >= 1 s from other accents")
 
     overlays = []
     if title and title_ev:

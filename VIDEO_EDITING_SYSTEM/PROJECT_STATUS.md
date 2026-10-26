@@ -14,7 +14,12 @@
   `exports/cine_montage_20261025_1009.mp4`: 1920x1080 25 fps, 13.04 s, no black/frozen frames, −14.4 LUFS, TP −1.5 dBFS.
   S-Log3 detected via the Sony sidecar XML; title, white card series, whip and last shot checked on frames.
 
+- RULE_GRID_FLOW (Timon's Grid Flow, approved 2026-10-26): engine/gridflow.py + planner placement (1×, 2× from 16 s).
+  Test render on real Smoke Sesh shots and an in-memory re-plan (Grid Flow at 4.36 s, validate ok); smoke test PASS.
+  The approved Smoke Sesh export predates it and has no Grid Flow.
+
 ## Untested (not claimed working)
+- Grid Flow look vs. the original RAM transition inside Resolve (not compared side by side).
 - Music onset snapping on a longer song; whip on fast real pans.
 - Skill discovery/invocation in a fresh Claude Code session (file is in the documented project-skill location).
 - Loudness on full-length songs (single-pass loudnorm; target −14 LUFS).

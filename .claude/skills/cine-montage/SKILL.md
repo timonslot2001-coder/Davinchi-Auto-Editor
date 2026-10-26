@@ -32,7 +32,8 @@ Python: `C:\Users\Timon\.aev\Scripts\python.exe` (run from `VIDEO_EDITING_SYSTEM
    card series and the last shot. Fix and re-render if needed, then send the MP4 (or a <30 MB preview for the phone).
 
 ## Rules of thumb (from the DNA)
-No captions · one accent colour · one title only · no flash/whip on the title · card series 3-6 shots cut hard ·
+No captions · one accent colour · one title only · no flash/whip/grid flow on the title · card series 3-6 shots cut hard ·
+Grid Flow (Timon's own transition, 4x4 wipe left + exposure flash, 0.48 s) 1× per video, 2× from 16 s (`--grid-flow off` to skip) ·
 ≤ ~0.5 accents/s · end on the longest scenic shot · do not copy any reference creator's handles or end cards.
 
 ## Known limits

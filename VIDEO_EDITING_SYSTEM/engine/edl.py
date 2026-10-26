@@ -14,7 +14,7 @@ class Event:
     source: str                        # clip path (or "" for generated)
     src_in: float
     src_out: float
-    transition_in: str = "T_HARD"      # T_HARD | T_FLASH | T_WHIP | T_GRID_FLOW (gate C test)
+    transition_in: str = "T_HARD"      # T_HARD | T_FLASH | T_WHIP | T_GRID_FLOW
     treatment: list = field(default_factory=list)   # e.g. ["D_CARD_WHITE"], ["D_BW"]
     rule: list = field(default_factory=list)        # DNA rule ids
     why: str = ""

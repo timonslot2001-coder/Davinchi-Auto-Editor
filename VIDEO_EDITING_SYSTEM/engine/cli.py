@@ -50,6 +50,7 @@ def main(argv=None):
     a.add_argument("--accent"); a.add_argument("--seed", type=int, default=1); a.add_argument("--song")
     a.add_argument("--fps", type=float, default=25.0); a.add_argument("--variant", choices=["poster_condensed", "heavy_grotesque"])
     a.add_argument("--card", choices=["auto", "on", "off"], default="auto"); a.add_argument("--bw", choices=["auto", "off"], default="auto")
+    a.add_argument("--grid-flow", choices=["auto", "off"], default="auto")
     a.add_argument("--grade", choices=["auto", "slog3", "rec709", "none"], default="auto")
     a = sub.add_parser("approve"); a.add_argument("project"); a.add_argument("--by", required=True); a.add_argument("--note", required=True)
     for c in ("preview", "render", "qa"):
@@ -76,7 +77,7 @@ def main(argv=None):
         songs = [Path(args.song)] if args.song else [Path(m) for m in inv["music"]]
         mus = media.music_map(songs[0], work / "cache") if songs else None
         edl = planner.plan(p, inv, mus, args.title, args.length, args.accent, args.fps, seed=args.seed,
-                           card=args.card, bw=args.bw, title_variant=args.variant)
+                           card=args.card, bw=args.bw, title_variant=args.variant, grid_flow=args.grid_flow)
         errs = edl.validate()
         if errs:
             raise SystemExit("EDL invalid: " + "; ".join(errs))

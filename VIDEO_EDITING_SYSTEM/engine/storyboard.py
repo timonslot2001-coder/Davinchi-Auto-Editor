@@ -56,7 +56,7 @@ def build(edl: EDL, outdir: Path, grade_mode: str = "auto") -> Path:
 <title>Storyboard</title><style>
 body{{margin:0;background:#111;color:#eee;font:14px/1.45 system-ui,Segoe UI,sans-serif}} main{{max-width:1300px;margin:auto;padding:16px}}
 .g{{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}} .t img{{width:100%;display:block;border-radius:4px}}
-.cap{{padding:4px 2px;font-size:12px}} .tr{{padding:0 5px;border-radius:6px;background:#333}} .T_FLASH{{background:#eee;color:#111}} .T_WHIP{{background:#2a5ba8}}
+.cap{{padding:4px 2px;font-size:12px}} .tr{{padding:0 5px;border-radius:6px;background:#333}} .T_FLASH{{background:#eee;color:#111}} .T_WHIP{{background:#2a5ba8}} .T_GRID_FLOW{{background:#E70002}}
 table{{border-collapse:collapse;width:100%;font-size:12px}} td,th{{border:1px solid #333;padding:3px 5px}} h2{{margin-top:28px}}
 </style></head><body><main>
 <h1>Storyboard — {e(Path(edl.project).name)}</h1>

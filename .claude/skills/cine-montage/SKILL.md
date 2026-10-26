@@ -48,3 +48,5 @@ paced, not beat-locked (snapped to a strong onset only within 2 frames).
   near-duplicate AI shots in the plan summary.
 - Final 1080p export of 13 s is ~40 MB (CRF 16); make a smaller phone copy before sending over Remote Control.
 - A song lifted from a reference video is fine for private use but flag the copyright risk before posting.
+- 2026-10-26: Timon saw the white-card image squashed — the 16:9 frame was resized into the ~4:3 inset. The card now
+  centre-crops (cover). Check proportions (faces, round objects) on card frames at QA.

@@ -84,7 +84,9 @@ def card(frame: np.ndarray) -> np.ndarray:
     out = np.empty_like(frame)
     out[:] = CARD["bg"][::-1]
     x0, y0 = (W - w) // 2, (H - h) // 2
-    out[y0:y0 + h, x0:x0 + w] = cv2.resize(frame, (w, h), interpolation=cv2.INTER_AREA)
+    cw = min(W, int(round(H * w / h)))                           # centre-crop to the inset's aspect, never squash
+    cx = (W - cw) // 2
+    out[y0:y0 + h, x0:x0 + w] = cv2.resize(frame[:, cx:cx + cw], (w, h), interpolation=cv2.INTER_AREA)
     return out
 
 

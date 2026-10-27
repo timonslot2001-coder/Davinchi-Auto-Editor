@@ -3,6 +3,8 @@
 Drop clips in, and out comes a finished 9:16 edit with your PowerGrade, effects, SFX, music, hook text and captions, plus a 4:5 version, a cover and caption suggestions. Nothing goes online without your OK.
 
 ## Getting started
+New PC? First run `setup\install.ps1`. It restores the skills, plugins, Comfy models and Resolve add-ons; see [setup/README.md](setup/README.md).
+
 1. Open **DaVinci Resolve Studio** (Preferences → System → General → *External scripting using: Local*, which is already set).
 2. Double-click **`autoedit.bat`** to open the dashboard in your browser.
    - Or in a terminal: `autoedit run "C:\Users\Timon\Videos\Shoot" --style fitness --variants AB`

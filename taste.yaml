@@ -44,6 +44,9 @@ rules:
   - id: leaks_not_whiteout
     said: "(Claude's own review) the analog-light transition washed the picture out to white"   # 2026-10-19
     rule: "light/leak overlays stay below a white-out: ~75% opacity on cuts, the picture must stay readable"
+  - id: client_film_intact
+    said: "de orginele bedrijfsfilm mag je intact houden, enkel het IT Synergy boekje weglaten ... geen ondertitels, niks"   # 2026-10-28, JUICT
+    rule: "a client's finished company film stays as delivered: only swap in our brand intro, remove the shots he names (cut on whole beats so the music stays in time) and add the photo snaps; no subtitles, name cards or interview changes unless asked"
 
 # numbers the director reads
 knobs:

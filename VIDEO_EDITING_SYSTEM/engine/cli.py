@@ -73,6 +73,9 @@ def main(argv=None):
         from .graphics import browser
         print("browser:", browser())
         print("ffmpeg:", media.FF)
+        sys.path.insert(0, str(REPO / "tools"))
+        import doc_check                                         # docs vs DNA/code (EDITING_PSYCHOLOGY.md §11)
+        doc_check.main()
         return
 
     proj = find_project(args.project)
@@ -83,8 +86,9 @@ def main(argv=None):
     if args.cmd == "plan":
         p = dna_mod.load()
         inv = media.inventory(proj, work / "cache")
-        songs = [Path(args.song)] if args.song else [Path(m) for m in inv["music"]]
-        mus = media.music_map(songs[0], work / "cache") if songs else None
+        song, song_src = media.pick_song(proj, inv, args.song)
+        mus = media.music_map(song, work / "cache") if song else None
+        print(f"song: {song.name if song else 'none'} ({song_src})")
         edl = planner.plan(p, inv, mus, args.title, args.length, args.accent, args.fps, seed=args.seed,
                            card=args.card, bw=args.bw, title_variant=args.variant, grid_flow=args.grid_flow)
         fixed = style_checks.fix(edl)

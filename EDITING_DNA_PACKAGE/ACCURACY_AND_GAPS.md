@@ -17,6 +17,15 @@
 - Whip duration 3-6 frames and direction (visual estimate, not measured per frame).
 - Colour-card geometry (R06/RB) — not measured.
 
+## User-approved (Timon's decisions, not reference evidence)
+- RULE_GRID_FLOW (2026-10-26): Timon's own Grid Flow transition, rebuilt from the behaviour of his RAM .drfx
+  (`VIDEO_EDITING_SYSTEM/engine/gridflow.py`). Not compared side by side with the original inside Resolve.
+- Defaults (2026-10-25): title variant poster_condensed, accent #E70002 (`VIDEO_EDITING_SYSTEM/STYLE_SELECTION.md`).
+
+## Learned on real projects
+- Smoke Sesh (2026-10-25/26): song length caps the edit; S-Log3 is detected reliably only from the Sony sidecar XML;
+  AI shots must be capped; the white card must centre-crop, not squash. Details: `EDITING_PSYCHOLOGY.md` §10.
+
 ## Approximated
 - Fonts: no reference title font is confirmed. Anton (stretched) matches R17/R11 closely
   (`annotated_comparisons/title_slam_HUARAZ_compare.jpg`); Archivo 900 approximates R02; side labels use Archivo
@@ -38,4 +47,6 @@
 ## What would improve accuracy
 1. Higher-resolution versions of any 3-4 refs with titles (R02, R04, R17, R05).
 2. The names of the title fonts if you know the creators' templates.
-3. Your choice of the default title variant (poster_condensed vs heavy_grotesque) and accent colour for your own work.
+3. ~~Default title variant and accent colour~~ — decided 2026-10-25: poster_condensed, #E70002.
+4. A side-by-side render of the RAM Grid Flow in Resolve and `gridflow.py` on the same two shots.
+5. More real projects with Timon's feedback; each one adds a row to `EDITING_PSYCHOLOGY.md` §10.

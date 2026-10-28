@@ -47,6 +47,11 @@
 - Captions: keywords first, max 5 hashtags, no generic tags, and a call to send or save.
 - Performance feedback (`autoedit stats`) weighs **shares and saves heavier than likes** and adjusts hashtags and posting times automatically.
 
+## Keeping this current
+Trends move every few months. This report reflects October 2026. To refresh it, redo the research, update this file
+and `trends.yaml` together (the editor reads only `trends.yaml`), and let `autoedit stats` / `autoedit report` show
+what actually works for your account. Your own numbers beat any blog.
+
 ## Sources
 - [Instagram Reels Algorithm 2026 (SocialPilot)](https://www.socialpilot.co/blog/instagram-reels-algorithm) · [Sprout Social: Instagram algorithm](https://sproutsocial.com/insights/instagram-algorithm/) · [Xyla: 3 signals](https://www.xyla.ai/instagram-algorithm/) · [Creatorflow](https://creatorflow.so/blog/instagram-algorithm/)
 - [Hootsuite: TikTok algorithm 2026](https://blog.hootsuite.com/tiktok-algorithm/) · [OpusClip: TikTok's new algorithm](https://www.opus.pro/blog/tiktoks-new-algorithm-2026) · [Avocado Social: TikTok SEO](https://avocadosocial.com/tiktok-seo-update-add-keywords-to-your-content-for-more-reach/)

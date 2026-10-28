@@ -1,4 +1,4 @@
-# STYLE DNA — P_CINE_MONTAGE (status: approved 2026-10-25)
+# STYLE DNA — P_CINE_MONTAGE (status: approved 2026-10-25; RULE_GRID_FLOW added by Timon 2026-10-26)
 
 Source of truth: `style_dna.json`. Every number below is copied from it; evidence IDs are `<ref>-C<cut>` (cut index in
 `audio_analysis/events/<ref>_events.json`) or `<ref> <seconds>` on the 480p reference copy.
@@ -35,8 +35,10 @@ Pacing curve (median shot length per fifth): **0.36 → 0.44 → 0.50 → 0.55 �
 | RULE_DECELERATE | second half | lengthen shots ~50 %, end on the longest scenic shot | ending on a fast burst |
 | RULE_ONE_ACCENT | always | one accent colour for title + cards, otherwise white | mixing red and orange etc. |
 | RULE_NO_TEXT_OVERLOAD | always | no captions; text = title (+ optional labels) only | subtitles, lower thirds |
+| RULE_GRID_FLOW | clean scene change in the body, steady shots both sides | T_GRID_FLOW: 4×4 wipe left, per-tile +4-stop exposure flash, white grid lines, 12 frames | on the title, card series or final shot; within 1 s of another accent; more than 1× (2× from 16 s) |
 
-Conflict priority: NO_TEXT_OVERLOAD > ONE_ACCENT > TITLE > COLD_OPEN > DECELERATE > FLASH > CARD_SERIES > WHIP > BW.
+Conflict priority: NO_TEXT_OVERLOAD > ONE_ACCENT > TITLE > COLD_OPEN > DECELERATE > FLASH > CARD_SERIES > WHIP > BW >
+GRID_FLOW. RULE_GRID_FLOW is Timon's own addition, not reference evidence (see `EDITING_PSYCHOLOGY.md` §7).
 
 ## 4. Transition vocabulary (measured on 423 cut candidates)
 | type | share | spec |
@@ -46,7 +48,9 @@ Conflict priority: NO_TEXT_OVERLOAD > ONE_ACCENT > TITLE > COLD_OPEN > DECELERAT
 | T_WHIP whip blur | 12.1 % | 3-6 frames, mostly horizontal (visual estimate) |
 | T_BURST light burst | rare | white bloom from centre (R12 9.10) |
 | T_DIP dip to black | rare | calm refs only (U2 1.43) |
+| T_GRID_FLOW grid flow | user-added | 12 frames, 1× per video (2× from 16 s); `VIDEO_EDITING_SYSTEM/engine/gridflow.py` |
 Accent density: 0.48 non-hard transitions per second of content (≈ one per 2.1 s), clustered in the cold open.
+Every plan is checked against these numbers by `engine/style_checks.py` (shown on top of the storyboard).
 
 ## 5. Typography (title devices)
 | variant | refs | font (closest verified free match) | colour | geometry |

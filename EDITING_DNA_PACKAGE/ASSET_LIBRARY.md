@@ -22,6 +22,14 @@ pages are JS-only and could not be read.
 | T_WHIP | SVG feGaussianBlur with x-only stdDeviation + translate | `c=whip_blur` |
 | D_BW | CSS grayscale + contrast | `c=bw_shot` |
 
+In the final render these devices are drawn in Python, not captured from HTML, except the title and labels:
+
+| component | how | file |
+|---|---|---|
+| D_CARD_WHITE | inset 69 % × 92 % on #FDFCFD, centre-cropped (never squashed) | `VIDEO_EDITING_SYSTEM/engine/render.py` `card()` |
+| T_FLASH / T_WHIP / D_BW | numpy per frame | `VIDEO_EDITING_SYSTEM/engine/render.py` |
+| T_GRID_FLOW (Timon's) | n×n tiles switch in direction order with per-tile exposure flash and grid lines; rebuilt from the RAM .drfx behaviour, the .drfx itself is not shipped | `VIDEO_EDITING_SYSTEM/engine/gridflow.py` |
+
 ## Needs a non-HTML technique
 | element | why | local alternative |
 |---|---|---|

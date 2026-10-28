@@ -173,6 +173,35 @@ def inventory(project: Path, cache_dir: Path) -> dict:
     return inv
 
 
+def pick_song(project: Path, inv: dict, song: str | None) -> tuple[Path | None, str]:
+    """Same order as AutoEdit's `project` command: --song, then `song:` in project.yaml, then the first file in music/.
+    A name part is looked up in the project's music/ and then in AutoEdit's music folder (config.yaml paths.music_folder).
+    Returns (path, where it came from)."""
+    import yaml
+    from . import REPO
+
+    def settings(p: Path) -> dict:
+        try:
+            return yaml.safe_load(p.read_text(encoding="utf-8")) or {}
+        except (OSError, yaml.YAMLError):
+            return {}
+
+    choice, src = song, "--song"
+    if not choice:
+        choice, src = settings(project / "project.yaml").get("song"), "project.yaml song"
+    if not choice:
+        return (Path(inv["music"][0]), "first file in music/") if inv["music"] else (None, "none")
+    if Path(choice).exists():
+        return Path(choice), src
+    folder = Path((settings(REPO / "config.yaml").get("paths") or {}).get("music_folder") or "")
+    tracks = [Path(m) for m in inv["music"]]
+    tracks += sorted(p for p in folder.glob("*") if p.suffix.lower() in AUDIO_EXT) if folder.is_dir() else []
+    hits = [t for t in tracks if str(choice).lower() in t.stem.lower()]
+    if not hits:
+        raise SystemExit(f"{src} '{choice}' matches no song in music/ or {folder}: {[t.name for t in tracks] or 'none'}")
+    return hits[0], src
+
+
 def music_map(path: Path, cache_dir: Path) -> dict:
     """Tempo, beats, strong onsets and an energy envelope of the song (librosa)."""
     import librosa

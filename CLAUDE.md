@@ -24,9 +24,18 @@ The editor must get better every time, without copying references 1:1.
    does each accent have a reason? Is anything distracting, repetitive, too loud, or unmotivated?
    Less is more — remove before adding. Fix and re-render if needed, then send the video.
 
+## Two editors in this repo
+- **AutoEdit** (`autoedit/`, the loop above): TikTok/Reels edits built in Resolve.
+- **Cine montage** (`VIDEO_EDITING_SYSTEM/`, skill `.claude/skills/cine-montage/`): applies the approved Editing DNA
+  (`EDITING_DNA_PACKAGE/`). Gates: plan + storyboard → **wait for Timon's explicit yes** → `approve` → `render`. Never
+  approve or render without his yes on that specific plan. Every plan runs the style checks
+  (`engine/style_checks.py`). Feedback on a cine montage goes into `EDITING_DNA_PACKAGE/EDITING_PSYCHOLOGY.md` §10 and
+  the skill's "Learnings" (not `taste.yaml`).
+
 ## AI shots — local first (free), Muapi only when asked
-Default is `--model local-wan`: Wan 2.2 5B on his own RX 9070 XT via ComfyUI, 720p (~6.5 min per 5 s),
-$0. AutoEdit starts ComfyUI headless itself if needed. In Resolve, AI clips under 1080p get Super Scale
+Default is `--model local-wan`: Wan 2.2 5B on his own RX 9070 XT via ComfyUI, 1280x704, $0. Recent runs took 32–46 min
+per 5 s clip (first measured 6.5 min). `generate` gives up waiting after 60 min while ComfyUI keeps going; then poll
+`http://127.0.0.1:8188/queue` and copy the newest file from `%LOCALAPPDATA%/Comfy-Desktop/ComfyUI-Shared/output/autoedit/`. AutoEdit starts ComfyUI headless itself if needed. In Resolve, AI clips under 1080p get Super Scale
 2x Enhanced automatically. `local-wan-draft` (480p, ~2 min) for prompt tests; `local-wan-1080` (~26 min)
 only if he asks. Local clips barely move the camera — describe motion explicitly in the prompt.
 
@@ -36,8 +45,12 @@ and price, and only run with `--yes` after he says yes in chat — for that one 
 `ai_budget_usd` yourself. Prefer `kling` ($0.45) unless he asks for top quality (`veo3`).
 
 ## Practical notes
-- Python: run with the venv that works on this PC (Windows Smart App Control blocks a venv
-  created by Claude inside Documents; see README).
+- Python: `C:\Users\Timon\.aev\Scripts\python.exe` with `PYTHONIOENCODING=utf-8`. Windows Smart App Control blocks
+  the venv inside Documents (`.venv` here). `.aev` is a junction to a venv inside a Claude session's scratch folder; if
+  that folder is removed, `.aev` breaks. Rebuild it with `setup/install.ps1`, which prints the command.
+- New PC / new skill, plugin, pack or model: `setup/install.ps1` and `python setup/snapshot.py` (see `setup/README.md`).
+- After changing any document or `style_dna.json`: `python tools/doc_check.py` must pass.
+- Never commit third-party material: reference frames, the RAM `.drfx`, bought packs, songs from references.
 - Resolve must be open; never call `comp.Render()` (modal dialog). Fusion comps only render if
   imported from a file (`fx.commit`).
 - Grade = one baked LUT (`autoedit/grade.py`): Sony S-Log3 → Rec.709 + `reference_film` look,

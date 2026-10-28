@@ -128,12 +128,27 @@ Wan 2.2 5B runs in Comfy Desktop on the RX 9070 XT (AMD ROCm), no credits:
 autoedit generate "drone shot over Utrecht at golden hour" --project smoke --model local-wan
 autoedit generate "..." --project smoke --model local-wan-draft     # 480p, quick prompt test
 ```
-`local-wan` (720p, ~6.5 min per 5 s clip) is the default model; `local-wan-1080` renders native 1080p
-(~26 min). Comfy Desktop must be installed; if its server isn't running AutoEdit starts it headless
+`local-wan` (1280x704, 20 steps) is the default model; `local-wan-1080` renders native 1080p. Speed: ~6.5 min per
+5 s clip when first measured (2026-10-21, 1080p ~26 min). The runs of 2026-10-26/27 took 32–46 min per clip. Those
+were image-to-video runs, after the VAE decode tiles were made smaller to stop a crash. Plan for half an hour. Comfy Desktop must be installed; if its server isn't running AutoEdit starts it headless
 (watch live at http://127.0.0.1:8188). Model files live in `C:\Users\Timon\AI Models`, hard-linked into
 Comfy-Desktop/ComfyUI-Shared/models. In Resolve, AI clips under 1080p get **Super Scale 2x Enhanced**
 (`local_ai.super_scale` in config.yaml). Quality is below Kling/Veo and camera motion is subtle:
 fine for B-roll and atmosphere; use Muapi (`--model kling`) for hero shots.
+
+## Cine montage (music-only montages in the approved style)
+A second editor next to the TikTok pipeline. It applies the Editing DNA (`EDITING_DNA_PACKAGE/`, profile
+P_CINE_MONTAGE) to a project. The result is a fast cold open, one poster title, hard cuts with 1-frame white flashes and
+whips, a white card series, your Grid Flow 1–2×, and a slow, scenic ending.
+```
+cd VIDEO_EDITING_SYSTEM
+C:\Users\Timon\.aev\Scripts\python.exe -m engine plan "smoke" --title "SMOKE SESH"   # plan + storyboard + style checks
+C:\Users\Timon\.aev\Scripts\python.exe -m engine approve "smoke" --by Timon --note "<your words>"
+C:\Users\Timon\.aev\Scripts\python.exe -m engine render "smoke"                      # refuses without your approval
+```
+Or tell Claude: *"maak een cine montage van smoke"*. Claude shows you the storyboard first and only renders after your
+yes. Details: `VIDEO_EDITING_SYSTEM/README_START_HERE.md`; why each choice is made:
+`EDITING_DNA_PACKAGE/EDITING_PSYCHOLOGY.md`.
 
 ## Explainer mode (onboarding / how-to videos)
 `autoedit explainer "<project>"` builds a step-by-step video from `<project>/script.yaml`: per section a b-roll

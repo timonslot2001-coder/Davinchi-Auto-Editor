@@ -13,7 +13,9 @@ Python: `C:\Users\Timon\.aev\Scripts\python.exe` (run from `VIDEO_EDITING_SYSTEM
 
 ## Inputs
 - Required: an AutoEdit project folder (`C:\Users\Timon\Videos\AutoEdit Projects\<name>`) with video in `clips/`.
-- Optional: song in `music/` (the style is music-only — ask if missing), title text (place/topic), accent colour
+- Song (the style is music-only — ask if missing): `--song`, else `song:` in project.yaml (name part, also searched in
+  AutoEdit's music folder), else the first file in `music/`. The plan prints which one it took; say it at gate B.
+- Optional: title text (place/topic), accent colour
   (default #E70002), length (default 18 s), title variant (poster_condensed | heavy_grotesque).
 - Footage may be S-Log3 (Timon's A6700) or Rec.709; `--grade auto` detects it; say which grade was used.
 
@@ -43,6 +45,8 @@ Depth titles and cut-out flashes need a subject matte (not built). Fonts are ver
 paced, not beat-locked (snapped to a strong onset only within 2 frames).
 
 ## Learnings from real runs
+- 2026-10-28: `engine plan` ignored `song:` in project.yaml and took the first file in `music/`. A re-plan of Smoke
+  Sesh would have used the Shanghai track instead of Austria. Fixed; always state the song and its source at gate B.
 - 2026-10-28: style checks on the approved Smoke Sesh plan flagged the AI drone shot as the title shot. The planner now
   prefers real footage for title/final. On a re-plan, the B&W entry flash landed within 1 s of another accent, and the
   checks removed it.

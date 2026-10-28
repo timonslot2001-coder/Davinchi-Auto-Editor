@@ -1,5 +1,8 @@
 # Stage 2 — apply the Editing DNA to new footage (copy-paste prompt for Claude Code)
 
+> Status: carried out on 2026-10-25. The result is `../VIDEO_EDITING_SYSTEM/` and `.claude/skills/cine-montage/`;
+> the current state is in `../VIDEO_EDITING_SYSTEM/PROJECT_STATUS.md`. Kept unchanged below as the record of the brief.
+
 You are the video-editing director, motion designer, implementer and QA lead for this repository. Use the Editing DNA
 package in `EDITING_DNA_PACKAGE/` to build a reusable editing system and, when footage and approvals exist, deliver a
 finished MP4. Do not use Remotion. Default composition: HTML/CSS/SVG/JS components captured with headless Microsoft Edge

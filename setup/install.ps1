@@ -80,9 +80,25 @@ foreach ($l in $T.resolve.lut_folders.PSObject.Properties) {
 }
 
 Write-Host "== Python"
-if (-not (Test-Path (Join-Path $HOME ".aev\Scripts\python.exe"))) {
-    $todo.Add("Python env: py -3.12 -m venv $HOME\.aev ; $HOME\.aev\Scripts\pip install -r requirements.txt")
-} else { Write-Host "  ok  $HOME\.aev" }
+# The venv lives in %USERPROFILE%\.autoedit\venv: not in Documents (Smart App Control) and not in AppData (from inside
+# the Claude app, writes there are redirected into its package folder). %USERPROFILE%\.aev is a junction to it, so every
+# script and doc can use C:\Users\<you>\.aev\Scripts\python.exe.
+$Venv = Join-Path $HOME ".autoedit\venv"
+$Aev = Join-Path $HOME ".aev"
+$Lock = Join-Path $Repo "requirements-lock.txt"
+if (Test-Path (Join-Path $Aev "Scripts\python.exe")) { Write-Host "  ok  $Aev -> $((Get-Item $Aev).Target)" }
+elseif ($DryRun) { Write-Host "  [dry] venv $Venv from requirements-lock.txt + junction $Aev" }
+else {
+    $py = (Get-Command py -ErrorAction SilentlyContinue)
+    if (-not $py) { $todo.Add("Install Python 3.12 (python.org), then re-run this script") }
+    else {
+        if (-not (Test-Path (Join-Path $Venv "Scripts\python.exe"))) { & py -3.12 -m venv $Venv }
+        & (Join-Path $Venv "Scripts\python.exe") -m pip install -q -r $Lock
+        if (Test-Path $Aev) { cmd /c rmdir "$Aev" }           # removes a broken junction only, never its target
+        cmd /c mklink /J "$Aev" "$Venv" | Out-Null
+        Write-Host "  built $Venv, $Aev points to it"
+    }
+}
 
 Write-Host ""
 if ($todo.Count) { Write-Host "Still to do by hand:"; $todo | ForEach-Object { Write-Host "  - $_" } }

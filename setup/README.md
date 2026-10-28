@@ -10,7 +10,7 @@ Everything AutoEdit needs outside the Python code, so a new PC can be set up the
 | Bought Resolve packs (`.drfx`, FOUR Editors LUTs, PowerGrade LUTs) | **not in the repo** (public; licences); `toolchain.json` lists name + sha256 | `-PacksBackup <folder>` restores them from your own backup, checked by hash |
 | ComfyUI Wan 2.2 5B models (~17 GB) | `toolchain.json` → `comfy.models` (Hugging Face URL + size) | `-Models` downloads them into Comfy Desktop's models folder |
 | `AutoEdit_*.cube` LUTs | generated | rebuilt by `autoedit/grade.py` on the first grade |
-| Python packages | `requirements.txt` | `pip install -r requirements.txt` in `~/.aev` |
+| Python packages | `requirements-lock.txt` (exact `pip freeze` incl. torch CPU, demucs, faster-whisper) | `install.ps1` builds `%USERPROFILE%\.autoedit\venv` from it and points `~/.aev` there |
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File setup\install.ps1 -DryRun                            # what is missing

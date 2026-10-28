@@ -46,8 +46,9 @@ and price, and only run with `--yes` after he says yes in chat — for that one 
 
 ## Practical notes
 - Python: `C:\Users\Timon\.aev\Scripts\python.exe` with `PYTHONIOENCODING=utf-8`. Windows Smart App Control blocks
-  the venv inside Documents (`.venv` here). `.aev` is a junction to a venv inside a Claude session's scratch folder; if
-  that folder is removed, `.aev` breaks. Rebuild it with `setup/install.ps1`, which prints the command.
+  the venv inside Documents (`.venv` here). `.aev` is a junction to `C:\Users\Timon\.autoedit\venv`, built from
+  `requirements-lock.txt`. Never put it under AppData: from inside the Claude app, writes there are redirected into the
+  app's package folder. `av`/faster-whisper is blocked by Smart App Control in every venv on this PC (known). After installing a package: `pip freeze` into `requirements-lock.txt` (keep its header).
 - New PC / new skill, plugin, pack or model: `setup/install.ps1` and `python setup/snapshot.py` (see `setup/README.md`).
 - After changing any document or `style_dna.json`: `python tools/doc_check.py` must pass.
 - Never commit third-party material: reference frames, the RAM `.drfx`, bought packs, songs from references.

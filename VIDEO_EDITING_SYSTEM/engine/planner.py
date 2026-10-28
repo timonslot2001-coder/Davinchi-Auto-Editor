@@ -112,9 +112,10 @@ def plan(p: Profile, inv: dict, music: dict | None, title: str | None, length: f
         def ok(s):
             return s["end"] - s["start"] >= need and s["clip"] != last_clip and capped(s)
 
+        real = lambda s: not Path(s["clip"]).name.startswith("AI_")             # title/final: real footage first
         prefs = {"cold_open": lambda s: ("detail" in s["tags"] or "motion" in s["tags"]),
-                 "title": lambda s: "establishing" in s["tags"],
-                 "final": lambda s: ("establishing" in s["tags"] or "static" in s["tags"]),
+                 "title": lambda s: "establishing" in s["tags"] and real(s),
+                 "final": lambda s: ("establishing" in s["tags"] or "static" in s["tags"]) and real(s),
                  "body": lambda s: True}[role]
         for stage in (lambda s: ok(s) and prefs(s) and used.get((s["clip"], s["start"]), 0) == 0,
                       lambda s: ok(s) and used.get((s["clip"], s["start"]), 0) == 0,

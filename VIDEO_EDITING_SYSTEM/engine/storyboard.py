@@ -13,7 +13,7 @@ from . import graphics
 from .render import bw, card, lut_for, over, read_event
 
 
-def build(edl: EDL, outdir: Path, grade_mode: str = "auto") -> Path:
+def build(edl: EDL, outdir: Path, grade_mode: str = "auto", checks: list | None = None) -> Path:
     outdir.mkdir(parents=True, exist_ok=True)
     fr_dir = outdir / "frames"
     fr_dir.mkdir(exist_ok=True)
@@ -52,11 +52,18 @@ def build(edl: EDL, outdir: Path, grade_mode: str = "auto") -> Path:
     ovs = "".join(f"<li>{o.id} {o.component} {o.out_in:.2f}-{o.out_out:.2f}s · {e(str(o.params))} · {e(', '.join(o.rule))}</li>" for o in edl.overlays)
     qs = "".join(f"<li>{e(q)}</li>" for q in edl.open_questions) or "<li>none</li>"
     ns = "".join(f"<li>{e(n)}</li>" for n in edl.notes + notes)
+    icon = {"ok": "&#9989;", "warn": "&#9888;&#65039;", "fail": "&#10060;"}
+    order = {"fail": 0, "warn": 1, "ok": 2}
+    chk = "".join(f'<li class="{c["status"]}">{icon[c["status"]]} {e(c["msg"])} <small>{e(c["rule"])}</small></li>'
+                  for c in sorted(checks or [], key=lambda c: order[c["status"]]))
+    n_bad = sum(c["status"] != "ok" for c in checks or [])
+    chk_head = (f"Style checks — {'all ok' if not n_bad else f'{n_bad} to look at'}" if checks else "")
     doc = f"""<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Storyboard</title><style>
 body{{margin:0;background:#111;color:#eee;font:14px/1.45 system-ui,Segoe UI,sans-serif}} main{{max-width:1300px;margin:auto;padding:16px}}
 .g{{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}} .t img{{width:100%;display:block;border-radius:4px}}
 .cap{{padding:4px 2px;font-size:12px}} .tr{{padding:0 5px;border-radius:6px;background:#333}} .T_FLASH{{background:#eee;color:#111}} .T_WHIP{{background:#2a5ba8}} .T_GRID_FLOW{{background:#E70002}}
+ul.chk{{list-style:none;padding:0}} ul.chk li{{padding:2px 0}} .warn{{color:#ffd166}} .fail{{color:#ff6b6b}} ul.chk small{{color:#888}}
 table{{border-collapse:collapse;width:100%;font-size:12px}} td,th{{border:1px solid #333;padding:3px 5px}} h2{{margin-top:28px}}
 </style></head><body><main>
 <h1>Storyboard — {e(Path(edl.project).name)}</h1>
@@ -64,6 +71,7 @@ table{{border-collapse:collapse;width:100%;font-size:12px}} td,th{{border:1px so
 music: {e(Path(edl.music).name) if edl.music else 'NONE'}</p>
 <p><b>Status: waiting for approval.</b> Frames are real source frames with the planned grade, card/B&W and title applied
 (half resolution). Flash = 1 white frame at the start of the event; whip = blur over the cut.</p>
+{f'<h2>{chk_head}</h2><ul class="chk">{chk}</ul>' if checks else ''}
 <h2>Open questions</h2><ul>{qs}</ul>
 <h2>Frames</h2><div class="g">{tiles}</div>
 <h2>Overlays</h2><ul>{ovs or '<li>none</li>'}</ul>

@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import subprocess
+import time
 from pathlib import Path
 from urllib.parse import urlencode
 
@@ -37,6 +38,10 @@ def capture(params: dict, size: tuple[int, int], cache: Path) -> np.ndarray:
                         "--allow-file-access-from-files", "--default-background-color=00000000",
                         "--virtual-time-budget=4000", f"--window-size={size[0]},{size[1]}", f"--screenshot={out}", url],
                        check=True, capture_output=True, timeout=90)
+        for _ in range(100):                                     # while Edge updates, msedge.exe hands off to new_msedge.exe
+            if out.exists() and out.stat().st_size:              # and returns before the screenshot is written
+                break
+            time.sleep(0.1)
     img = cv2.imread(str(out), cv2.IMREAD_UNCHANGED)
     if img is None or img.shape[2] != 4:
         raise RuntimeError(f"capture failed or not transparent: {out}")

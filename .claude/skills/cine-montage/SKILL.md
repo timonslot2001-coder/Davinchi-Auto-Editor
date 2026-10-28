@@ -21,8 +21,10 @@ Python: `C:\Users\Timon\.aev\Scripts\python.exe` (run from `VIDEO_EDITING_SYSTEM
 1. `python -m engine validate` — DNA approved + Edge + FFmpeg present.
 2. `python -m engine plan "<project>" --title "<TEXT>" [--length 18] [--accent #HEX] [--seed N]`
    → `<project>/cine_montage/edl.json`, `storyboard/storyboard.html`, `storyboard/storyboard_sheet.jpg`.
+   The plan step also runs the style checks (`engine/style_checks.py`, from EDITING_PSYCHOLOGY.md). It auto-removes
+   rule-breaking accents and prints ok/warn/fail; they also sit at the top of the storyboard. `engine check` re-runs them.
 3. Look at the storyboard sheet yourself first (does each shot make sense, title readable, no ugly frames?). Re-plan with
-   another `--seed`/length if needed. Then send Timon the sheet + a short summary (length, song, title, accents, open
+   another `--seed`/length if needed, and on any `FAIL`. Then send Timon the sheet + a short summary (length, song, title, accents, open
    questions). **STOP — gate B. Wait for an explicit yes in chat.** Style approval is not approval of this video.
 4. Optional review clip before approval: `python -m engine preview "<project>"` (half size).
 5. New fonts/colours/effects outside the DNA → show a test and ask first (gate C).
@@ -41,6 +43,9 @@ Depth titles and cut-out flashes need a subject matte (not built). Fonts are ver
 paced, not beat-locked (snapped to a strong onset only within 2 frames).
 
 ## Learnings from real runs
+- 2026-10-28: style checks on the approved Smoke Sesh plan flagged the AI drone shot as the title shot. The planner now
+  prefers real footage for title/final. On a re-plan, the B&W entry flash landed within 1 s of another accent, and the
+  checks removed it.
 - Smoke Sesh (2026-10-25, first real edit): song length caps the edit — a 13 s song gives a 13 s video; say so at gate B.
 - Sony S-Log3 clips are detected from the `<stem>M01.XML` sidecar; the pixel heuristic missed two of them. Keep sidecars
   next to the clips.

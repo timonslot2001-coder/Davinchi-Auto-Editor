@@ -3,6 +3,7 @@
   python -m engine validate                      DNA + dependencies
   python -m engine plan  <project> [--title X] [--length 18] [--accent #E70002] [--seed 1]
                                                  inventory + EDL + storyboard  -> STOP (gate B)
+  python -m engine check <project>              style checks on the current plan (EDITING_PSYCHOLOGY.md)
   python -m engine approve <project> --by "<who>" --note "<user's words>"     record the user's approval of the plan
   python -m engine preview <project>            half-size review render (allowed before approval)
   python -m engine render <project>             final MP4 (refuses unless the current plan is approved)
@@ -21,7 +22,7 @@ from pathlib import Path
 
 from . import DNA_DIR, REPO
 from . import dna as dna_mod
-from . import media, planner, qa, render, storyboard
+from . import media, planner, qa, render, storyboard, style_checks
 from .edl import EDL
 
 PROJECTS = Path("C:/Users/Timon/Videos/AutoEdit Projects")
@@ -41,6 +42,14 @@ def edl_hash(path: Path) -> str:
     return hashlib.sha1(path.read_bytes()).hexdigest()[:12]
 
 
+def print_checks(checks: list[dict], fixed: list[str]) -> None:
+    for x in fixed:
+        print("  fixed:", x)
+    for c in checks:
+        print(f"  {c['status'].upper():4} {c['rule']:22} {c['msg']}")
+    print("style checks:", style_checks.summary(checks))
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="engine")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -53,7 +62,7 @@ def main(argv=None):
     a.add_argument("--grid-flow", choices=["auto", "off"], default="auto")
     a.add_argument("--grade", choices=["auto", "slog3", "rec709", "none"], default="auto")
     a = sub.add_parser("approve"); a.add_argument("project"); a.add_argument("--by", required=True); a.add_argument("--note", required=True)
-    for c in ("preview", "render", "qa"):
+    for c in ("check", "preview", "render", "qa"):
         a = sub.add_parser(c); a.add_argument("project")
         a.add_argument("--grade", choices=["auto", "slog3", "rec709", "none"], default="auto")
     args = ap.parse_args(argv)
@@ -78,11 +87,14 @@ def main(argv=None):
         mus = media.music_map(songs[0], work / "cache") if songs else None
         edl = planner.plan(p, inv, mus, args.title, args.length, args.accent, args.fps, seed=args.seed,
                            card=args.card, bw=args.bw, title_variant=args.variant, grid_flow=args.grid_flow)
+        fixed = style_checks.fix(edl)
         errs = edl.validate()
         if errs:
             raise SystemExit("EDL invalid: " + "; ".join(errs))
         edl.save(edl_path)
-        sb = storyboard.build(edl, work / "storyboard", args.grade)
+        checks = style_checks.check(edl)
+        print_checks(checks, fixed)
+        sb = storyboard.build(edl, work / "storyboard", args.grade, checks=checks)
         appr_path.write_text(json.dumps({"status": "pending", "edl_sha1": edl_hash(edl_path),
                                          "created": datetime.now().isoformat(timespec="seconds")}, indent=1), encoding="utf-8")
         print(f"plan: {len(edl.events)} events, {edl.duration:.2f} s, problems in footage: {inv['problems'] or 'none'}")
@@ -100,6 +112,9 @@ def main(argv=None):
         return
 
     edl = EDL.load(edl_path)
+    if args.cmd == "check":
+        print_checks(style_checks.check(edl), [])
+        return
     if args.cmd == "preview":
         out = work / "preview.mp4"
         res = render.render(edl, out, work / "render", args.grade, preview=True)

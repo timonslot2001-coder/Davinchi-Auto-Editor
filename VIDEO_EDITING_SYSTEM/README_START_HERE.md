@@ -14,8 +14,10 @@ Claude Code skill: `../.claude/skills/cine-montage/SKILL.md`.
 | `engine/graphics.py` | captures the DNA's HTML components to transparent PNG with headless Edge |
 | `engine/render.py` | FFmpeg decode per event (+ AutoEdit LUT) → numpy devices → FFmpeg H.264/AAC, loudnorm −14 LUFS |
 | `engine/storyboard.py` | HTML storyboard + contact sheet from real graded frames |
+| `engine/style_checks.py` | style checks on the plan (EDITING_PSYCHOLOGY.md §1/§2): auto-fix accents, ok/warn/fail in the storyboard |
 | `engine/qa.py` | size/fps/duration, black/frozen, LUFS/true peak |
-| `engine/cli.py` | `validate / plan / approve / preview / render / qa` with the approval gate |
+| `engine/cli.py` | `validate / plan / check / approve / preview / render / qa` with the approval gate |
+| `tests/style_checks_test.py` | style checks + auto-fix on a deliberately broken plan |
 | `tests/smoke_test.py` | SYNTHETIC end-to-end test (generated clips + beat) |
 
 ## Use

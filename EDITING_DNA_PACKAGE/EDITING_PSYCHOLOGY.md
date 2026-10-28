@@ -150,6 +150,8 @@ Not from the references: it is Timon's own transition (4×4 wipe left, per-tile 
 - obs rows rest on 17 reposted 480p references; see `ACCURACY_AND_GAPS.md`.
 - mech rows are standard perception and editing knowledge. They explain the observations; they were not tested on
   these references.
-- Not automated yet: `engine qa` checks the export technically (size, length, black/frozen frames, loudness). The checks
-  in §1/§2 are read on the plan/storyboard at gate B. Automating them from the EDL is the next step.
+- Automated: `engine plan` runs `engine/style_checks.py` on every plan. It first removes accents that break a rule
+  (too close, on a card edge, a second B&W, too many Grid Flows), then lists the checks from §1/§2 as ok, warn or fail
+  at the top of the storyboard. `engine check <project>` re-runs them. `engine qa` checks the export technically.
+  Not automatable from the EDL: eye trace, brightness jumps and scale changes (§3). Read those on the storyboard frames.
 - Each real project with Timon's feedback adds a row to §10. That is how this document improves.

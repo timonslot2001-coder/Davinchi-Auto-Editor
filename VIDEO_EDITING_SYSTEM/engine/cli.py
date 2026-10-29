@@ -2,6 +2,7 @@
 
   python -m engine validate                      DNA + dependencies
   python -m engine plan  <project> [--title X] [--length 18] [--accent #E70002] [--seed 1]
+                         [--title-shot CLIP[:s]] [--final-shot CLIP[:s]] [--order story]
                                                  inventory + EDL + storyboard  -> STOP (gate B)
   python -m engine check <project>              style checks on the current plan (EDITING_PSYCHOLOGY.md)
   python -m engine approve <project> --by "<who>" --note "<user's words>"     record the user's approval of the plan
@@ -38,6 +39,17 @@ def find_project(name: str) -> Path:
     raise SystemExit(f"project '{name}' not found (or ambiguous: {[h.name for h in hits]})")
 
 
+def story_order(proj: Path) -> list | str:
+    """`order:` from project.yaml (clip names in story order), else "time" (file time)."""
+    f = proj / "project.yaml"
+    if f.exists():
+        import yaml
+        order = (yaml.safe_load(f.read_text(encoding="utf-8")) or {}).get("order")
+        if order:
+            return [str(c) for c in order]
+    return "time"
+
+
 def edl_hash(path: Path) -> str:
     return hashlib.sha1(path.read_bytes()).hexdigest()[:12]
 
@@ -63,11 +75,18 @@ def main(argv=None):
     a.add_argument("--grade", choices=["auto", "slog3", "rec709", "none"], default="auto")
     a.add_argument("--title-shot", help="clip for the title, CLIP[:seconds], e.g. C0086:7")
     a.add_argument("--final-shot", help="clip for the last shot, CLIP[:seconds]")
+    a.add_argument("--order", choices=["best", "story"], default="best",
+                   help="story = body shots in shooting order (recipes); uses `order:` from project.yaml, else file time")
     a = sub.add_parser("approve"); a.add_argument("project"); a.add_argument("--by", required=True); a.add_argument("--note", required=True)
     for c in ("check", "preview", "render", "qa"):
         a = sub.add_parser(c); a.add_argument("project")
         a.add_argument("--grade", choices=["auto", "slog3", "rec709", "none"], default="auto")
+    for a in (sub.choices[c] for c in ("plan", "preview", "render")):
+        a.add_argument("--look", choices=["reference_film", "clean_warm", "moody"], default="reference_film",
+                       help="film look on top of the grade (autoedit/grade.py); clean_warm suits food")
     args = ap.parse_args(argv)
+    if getattr(args, "look", "reference_film") != "reference_film":
+        args.grade = f"{args.grade}:{args.look}"
 
     if args.cmd == "validate":
         p = dna_mod.load()
@@ -93,7 +112,8 @@ def main(argv=None):
         print(f"song: {song.name if song else 'none'} ({song_src})")
         edl = planner.plan(p, inv, mus, args.title, args.length, args.accent, args.fps, seed=args.seed,
                            card=args.card, bw=args.bw, title_variant=args.variant, grid_flow=args.grid_flow,
-                           pinned={"title": args.title_shot, "final": args.final_shot})
+                           pinned={"title": args.title_shot, "final": args.final_shot},
+                           order=story_order(proj) if args.order == "story" else None)
         fixed = style_checks.fix(edl)
         errs = edl.validate()
         if errs:

@@ -50,6 +50,11 @@ paced, not beat-locked (snapped to a strong onset only within 2 frames).
   and final are always the top-scoring shot, whatever the seed, and the top "establishing" shot was a hoodie close-up:
   look at the title/final on the sheet and pin better ones with `--title-shot CLIP[:s]` / `--final-shot CLIP[:s]`.
   Large footage on another drive: link it as `clips/` with a junction (`mklink /J`) instead of copying.
+- 2026-10-29 (Beef Tartaar, recipe): a recipe needs cooking order, and the planner picks by score. `--order story`
+  puts the body shots in shooting order (the cold open stays a teaser). `order:` in project.yaml lists the clips in story
+  order, and `NAME:a-b` uses only those seconds; clips that are not listed are left out (empty sink, tap). Build that
+  list by content: the DJI clock ran 1 h off the Sony. Dim kitchen footage looked milky with reference_film; `--look
+  clean_warm` keeps food natural. The score likes sharp, empty frames (a bare counter), so check the sheet for them.
 - 2026-10-28: `engine plan` ignored `song:` in project.yaml and took the first file in `music/`. A re-plan of Smoke
   Sesh would have used the Shanghai track instead of Austria. Fixed; always state the song and its source at gate B.
 - 2026-10-28: style checks on the approved Smoke Sesh plan flagged the AI drone shot as the title shot. The planner now

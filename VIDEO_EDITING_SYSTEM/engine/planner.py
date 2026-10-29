@@ -65,10 +65,20 @@ def _snap(times: list[float], onsets: list[float], fps: float) -> list[float]:
 def plan(p: Profile, inv: dict, music: dict | None, title: str | None, length: float | None = None,
          accent: str | None = None, fps: float = 25.0, size=(1920, 1080), seed: int = 1, card: str = "auto",
          bw: str = "auto", title_variant: str | None = None, grid_flow: str = "auto",
-         pinned: dict | None = None) -> EDL:
+         pinned: dict | None = None, order: list | str | None = None) -> EDL:
     rng = random.Random(seed)
     segs = [s for c in inv["clips"] if c["kind"] == "video" for s in c["segments"] if "soft" not in s["tags"]]
     notes, questions = [], []
+    if isinstance(order, list):
+        # an order list also chooses the footage: 'NAME' or 'NAME:a-b' (seconds); clips not listed are left out
+        win = {}
+        for item in order:
+            name, _, rng_s = str(item).partition(":")
+            a, _, b = rng_s.partition("-")
+            win[name.strip().lower()] = (float(a or 0), float(b or 1e9))
+        segs = [s for s in segs if Path(s["clip"]).stem.lower() in win
+                and s["start"] < win[Path(s["clip"]).stem.lower()][1] and s["end"] > win[Path(s["clip"]).stem.lower()][0]]
+        order = list(win)
     if not segs:
         raise ValueError("no usable video segments in the project")
     L = length or 18.0
@@ -151,10 +161,11 @@ def plan(p: Profile, inv: dict, music: dict | None, title: str | None, length: f
                 return cand[0]
         return max(pool, key=lambda s: s["end"] - s["start"])
 
-    events, last = [], None
+    events, last, seg_of = [], None, {}
     for i, ((dur_nom, role), a, b) in enumerate(zip(slots, bounds, bounds[1:])):
         need = b - a
         s = pick(role, need, last)
+        seg_of[f"E{i:02d}"] = s
         k = used.get((s["clip"], s["start"]), 0)
         used[(s["clip"], s["start"])] = k + 1
         clip_uses[s["clip"]] = clip_uses.get(s["clip"], 0) + 1
@@ -172,6 +183,22 @@ def plan(p: Profile, inv: dict, music: dict | None, title: str | None, length: f
         events.append(Event(f"E{i:02d}", round(a, 4), round(b, 4), s["clip"], src_in, round(src_in + max(need, 0.04), 3),
                             rule=rule, why=why, params={"role": role, "tags": s["tags"], "pan_dx": s["pan_dx"]}))
         last = s["clip"]
+
+    # ---------------------------------------------------------------- story order (recipes, how-tos): the body follows
+    # the shoot, the cold open stays a teaser. A list = clip names in story order; "time" = file time, then name.
+    if order:
+        rank = {Path(c).stem.lower(): k for k, c in enumerate(order)} if isinstance(order, list) else None
+        story = (lambda s: (rank.get(Path(s["clip"]).stem.lower(), len(rank)), s["start"])) if rank is not None else \
+                (lambda s: (Path(s["clip"]).stat().st_mtime, Path(s["clip"]).name, s["start"]))
+        body_ev = [e for e in events if e.params["role"] == "body"]
+        segs_sorted = sorted((seg_of[e.id] for e in body_ev), key=story)
+        for e, s in zip(body_ev, segs_sorted):
+            need = e.out_out - e.out_in
+            src_in = round(min(max(s["start"], (s["start"] + s["end"] - need) / 2), max(s["end"] - need, 0)), 3)
+            e.source, e.src_in, e.src_out = s["clip"], src_in, round(src_in + max(need, 0.04), 3)
+            e.params.update({"tags": s["tags"], "pan_dx": s["pan_dx"]})
+            e.why += " (story order)"
+        notes.append("body in story order: " + ("order list" if rank is not None else "file time"))
 
     # ---------------------------------------------------------------- transitions (RULE_FLASH / RULE_WHIP), attention budget
     title_ev = next((e for e in events if e.params["role"] == "title"), None)

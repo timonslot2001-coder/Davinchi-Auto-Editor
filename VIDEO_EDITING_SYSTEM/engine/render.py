@@ -42,14 +42,17 @@ def detect_log(clip: str) -> bool:
 
 
 def lut_for(mode: str, clip: str, notes: list) -> Path | None:
+    """mode = auto | slog3 | rec709 | none, optionally ':<look>' (autoedit/grade.py LOOKS, default reference_film)."""
+    mode, _, look = mode.partition(":")
+    look = look or "reference_film"
     if mode == "none":
         return None
     sys.path.insert(0, str(REPO))
     from autoedit import grade                                   # AutoEdit's baked film-look LUTs
     is_log = detect_log(clip) if mode == "auto" else mode == "slog3"
-    p = grade.build_lut("reference_film", conversion="SLog3SGamut3.CineToLC-709TypeA.cube" if is_log else None,
+    p = grade.build_lut(look, conversion="SLog3SGamut3.CineToLC-709TypeA.cube" if is_log else None,
                         exposure=-1.75 if is_log else 0.0)
-    notes.append(f"grade {Path(clip).name}: {'S-Log3 conversion + ' if is_log else ''}reference_film LUT ({p.name})")
+    notes.append(f"grade {Path(clip).name}: {'S-Log3 conversion + ' if is_log else ''}{look} LUT ({p.name})")
     return p
 
 

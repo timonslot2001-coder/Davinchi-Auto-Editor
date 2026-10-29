@@ -18,7 +18,8 @@ SKIP = ("/.claude/skills/popular-web-designs/", "/.venv/", "/data/", "/reference
 LOCAL_OK = ("reference_frames", "annotated_comparisons", "data/", ".env", "exports/", "cine_montage/", "clips/", "music/",
             "project.yaml", "_review.", "ai_spend.json", "qa.json", "APPROVAL.json", "edl.json", "storyboard",
             "EDITING_DNA_PACKAGE.zip", "OdysseyPowergrade.drx", "user_styles.yaml", "script.yaml", "tags.json",
-            "smoke_result.json", "packs_index.json", "toolchain.json", "gridflow_strip", "gridflow_test.mp4")
+            "smoke_result.json", "packs_index.json", "toolchain.json", "gridflow_strip", "gridflow_test.mp4",
+            "branding/", "photos/", "photo_", "source/")       # client files, read from the project folder
 EXT = (".py", ".md", ".json", ".yaml", ".html", ".ps1", ".bat", ".png", ".jpg", ".ttf", ".txt")
 
 
@@ -161,6 +162,52 @@ def check_reference(problems: list) -> None:
                 problems.append(f"README.md: command reference misses `{tool} {c}`")
 
 
+def check_taste(problems: list) -> None:
+    """Every taste rule says where it is enforced, and that text is still in that file."""
+    import yaml
+    taste = yaml.safe_load((REPO / "taste.yaml").read_text(encoding="utf-8"))
+    for r in taste.get("rules", []):
+        refs = r.get("enforced_by") or []
+        if not refs:
+            problems.append(f"taste.yaml: rule {r.get('id')} has no enforced_by")
+        for ref in refs:
+            if ref.startswith("manual:"):
+                continue
+            path, _, anchor = ref.partition(": ")
+            f = REPO / path
+            if not f.exists():
+                problems.append(f"taste.yaml: rule {r['id']} names {path}, which does not exist")
+            elif anchor not in f.read_text(encoding="utf-8"):
+                problems.append(f"taste.yaml: rule {r['id']}: '{anchor}' is no longer in {path}")
+
+
+def check_inventory(problems: list) -> None:
+    """Every technique in inventory.yaml is one the director can actually place."""
+    import yaml
+    inv = yaml.safe_load((REPO / "inventory.yaml").read_text(encoding="utf-8"))
+    code = "\n".join(p.read_text(encoding="utf-8") for p in (REPO / "autoedit").glob("*.py"))
+    for name, t in (inv.get("techniques") or {}).items():
+        kind = t.get("type")
+        if kind == "vfx" and not re.search(rf"[\"']{name}[\"']", code):
+            problems.append(f"inventory.yaml: vfx '{name}' is not implemented in autoedit/")
+        elif kind in ("overlay", "ambient") and not t.get("categories"):
+            problems.append(f"inventory.yaml: {kind} '{name}' has no pack categories")
+        elif kind not in ("vfx", "overlay", "ambient", "series", "text", "setting"):
+            problems.append(f"inventory.yaml: '{name}' has unknown type {kind!r}")
+
+
+def stale() -> list[str]:
+    """Documents whose 'Review by: YYYY-MM-DD' date has passed (a warning, not a failure)."""
+    import datetime
+    today = datetime.date.today().isoformat()
+    out = []
+    for d in docs():
+        m = re.search(r"^Review by: (\d{4}-\d{2}-\d{2})", d.read_text(encoding="utf-8"), re.M)
+        if m and m[1] < today:
+            out.append(f"{rel(d)}: review date {m[1]} has passed, re-check its sources")
+    return out
+
+
 def main() -> int:
     dna = json.loads((DNA / "style_dna.json").read_text(encoding="utf-8"))
     problems: list[str] = []
@@ -171,9 +218,13 @@ def main() -> int:
     check_map(problems)
     check_decisions(problems)
     check_reference(problems)
+    check_taste(problems)
+    check_inventory(problems)
     n = len(docs())
     for p in problems:
         print("OUT OF DATE:", p)
+    for s in stale():
+        print("REVIEW DUE:", s)
     print(f"doc_check: {n} documents, {len(problems)} problem(s)")
     return 1 if problems else 0
 

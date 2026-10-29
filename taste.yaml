@@ -1,56 +1,85 @@
 # ============================================================
 #  Your taste — feedback you gave, turned into rules the editor always follows.
 #  Claude adds a line here every time you react to an edit (see CLAUDE.md), so it keeps learning.
+#  enforced_by: where the code makes the rule happen ('<file>: <text found in that file>'), or 'manual: <how>'.
+#  tools/doc_check.py fails when a rule has no enforced_by or the text is no longer in that file.
 # ============================================================
 
 rules:
   - id: no_bounce
     said: "the 6 clips pop-in looks gay, give it a more neutral snap"   # 2026-10-19
     rule: "entrances snap in (max 3% settle over 2 frames), never grow-from-zero or overshoot"
+    enforced_by:
+      - 'autoedit/fx.py: settles 3% over 2 frames'
   - id: subtle_fx
     said: "not too much visual effect, just small"                        # 2026-10-19
     rule: "effects intensity 0.4; never more than budget.accents_per_10s; prefer no effect over a random one"
+    enforced_by:
+      - 'config.yaml: intensity: 0.4'
+      - 'autoedit/director.py: budget["accents_per_10s"]'
   - id: snappy
     said: "make the cuts more snappy"
     rule: "short shots where the music is loud; long holds only when the music is quiet"
+    enforced_by:
+      - 'autoedit/planner.py: quiet → hold, loud → cut faster'
   - id: one_style
     said: "make the editor global, I give the category, but it all has to be the same style"
     rule: "always the cinematic house style; category only changes captions/hashtags"
+    enforced_by:
+      - 'config.yaml: default_style: "cinematic"'
   - id: natural
     said: "don't overdo it, make it look natural, the sfx has to make sense and the vfx too"
     rule: "every accent needs a reason (hit, motion, scene change); every VFX gets its matching SFX; no SFX without a visual reason"
+    enforced_by:
+      - 'autoedit/director.py: if o.get("ambient") or not t.get("sfx")'
+      - 'autoedit/review.py: judge it against the budget and your taste'
   - id: no_copy
     said: "now you made the videos exactly the same as the ones I sent"
     rule: "references feed the inventory; never rebuild a reference's structure 1:1 — mix techniques freshly per video"
+    enforced_by:
+      - 'autoedit/planner.py: taste: no 1:1 copies'
+      - 'manual: CLAUDE.md learning loop step 1 (references feed inventory.yaml)'
   - id: less_bass
     said: "there's too much bass in here"
     rule: "music bed bass -4 dB by default"
+    enforced_by:
+      - 'config.yaml: music_bass_db: -4'
   - id: big_title
     said: "make the SMOKE SESH title bigger"
     rule: "title_size 0.065 of the short side"
+    enforced_by:
+      - 'styles.yaml: title_size: 0.065'
 
   - id: director_level_ok
     said: "yes, this feels natural, good"                                  # 2026-10-19, smoke sesh director edit
     rule: "this density is the benchmark: ~3 accents/10 s, each motivated, one matching sound each — keep it here"
+    enforced_by:
+      - 'inventory.yaml: accents_per_10s: 3.2'
   - id: slowmo_sometimes
     said: "the slowmos are not that necessary but they can be there sometimes"   # 2026-10-19
     rule: "speed ramp only in roughly a quarter of the videos"
+    enforced_by:
+      - 'inventory.yaml: slow-mo is nice sometimes, not needed every video'
   - id: must_look_good
     said: "you have to check the video and make it make sense, the slowmo wasn't even smooth"   # 2026-10-19
     rule: "an accent is only allowed if it looks good on THIS footage: slow-mo only on ≥50p clips at real speed, review checks smoothness; when in doubt leave it out"
+    enforced_by:
+      - 'autoedit/director.py: only footage shot at ≥ 2× the timeline rate'
+      - 'autoedit/review.py: slow motion must be smooth'
   - id: clean_title
     said: "(Claude's own review) title over a frame-in-frame looked cluttered"   # 2026-10-19
     rule: "the title sits on a clean full frame: no frame-in-frame / B&W while the title is on screen"
+    enforced_by:
+      - 'inventory.yaml: title on top of a small photo = cluttered'
   - id: leaks_not_whiteout
     said: "(Claude's own review) the analog-light transition washed the picture out to white"   # 2026-10-19
     rule: "light/leak overlays stay below a white-out: ~75% opacity on cuts, the picture must stay readable"
-  - id: client_film_intact
-    said: "de orginele bedrijfsfilm mag je intact houden, enkel het IT Synergy boekje weglaten ... geen ondertitels, niks"   # 2026-10-28, JUICT
-    rule: "a client's finished company film stays as delivered: only swap in our brand intro, remove the shots he names (cut on whole beats so the music stays in time) and add the photo snaps; no subtitles, name cards or interview changes unless asked"
+    enforced_by:
+      - 'inventory.yaml: opacity: 75'
+  # Client work (e.g. JUICT, 2026-10-28) is not taste for your own videos: see docs/decisions/0010-client-films-stay-intact.md
 
-# numbers the director reads
+# numbers the director reads (effect strength itself: config.yaml → effects.intensity)
 knobs:
-  effects_intensity: 0.4
   accents_scale: 1.0          # lower = fewer accents overall (feedback 'too much' → ×0.8)
   sfx_scale: 1.0              # lower = fewer sounds
   sfx_level_db: 0             # global SFX level offset

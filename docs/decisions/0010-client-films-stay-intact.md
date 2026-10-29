@@ -3,7 +3,8 @@
 - Status: accepted
 - Date: 2026-10-28
 - Source: Timon on the JUICT film, "de orginele bedrijfsfilm mag je intact houden, enkel het IT Synergy boekje weglaten
-  ... geen ondertitels, niks" (`taste.yaml` → `client_film_intact`)
+  ... geen ondertitels, niks" (first logged in `taste.yaml` on 2026-10-28, moved here on 2026-10-29 because client work
+  is not taste for Timon's own videos)
 
 ## Context
 Versions 1–10 of the JUICT aftermovie re-cut the interview, replaced a speaker, and added subtitles and a name card.

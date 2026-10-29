@@ -59,6 +59,9 @@ def qc(path: Path, expect=(1080, 1920)) -> QCReport:
         r.problems.append(f"{len(flashes)} black flash frame(s) at {', '.join(f'{s[0]:.2f}s' for s in flashes)}")
     if r.true_peak is not None and r.true_peak > -0.5:
         r.problems.append(f"audio clipping (true peak {r.true_peak:.1f} dBTP)")
+    mbps = path.stat().st_size * 8 / max(r.duration, 0.1) / 1e6
+    if mbps > 25:                                    # Instagram Graph API maximum (docs/PLATFORM_SPECS.md)
+        r.problems.append(f"bitrate {mbps:.1f} Mbps is above Instagram's 25 Mbps upload maximum")
     return r
 
 
@@ -91,8 +94,8 @@ def loudnorm(src: Path, dst: Path, target: float = -14.0, ceiling: float = 0.84)
 def reframe_4x5(src: Path, dst: Path) -> Path:
     """Instagram feed version: 1080×1350 centre crop (the 9:16 safe zone keeps text inside)."""
     subprocess.run([FFMPEG, "-y", "-v", "error", "-i", str(src), "-vf", "crop=1080:1350:0:(ih-1350)/2",
-                    "-c:v", "libx264", "-preset", "slow", "-crf", "16", "-pix_fmt", "yuv420p",
-                    "-c:a", "copy", "-movflags", "+faststart", str(dst)], check=True)
+                    "-c:v", "libx264", "-preset", "slow", "-crf", "16", "-maxrate", "20M", "-bufsize", "40M",
+                    "-pix_fmt", "yuv420p", "-c:a", "copy", "-movflags", "+faststart", str(dst)], check=True)
     return dst
 
 

@@ -3,6 +3,20 @@
 What changed, in words you would notice in an edit or on the PC. Newest first. Small fixes are folded into the day's
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
+## 2026-10-29 — Documentation, round 3 to 5
+- Client work is a separate track: `client_edits/` with the JUICT film as a standalone script that reproduces v12
+  (no client files or personal names in git). The docs map now starts with *which editor for which goal*, own
+  channels first.
+- `taste.yaml`: every rule says where the code enforces it (`enforced_by`); `doc_check` fails when that code changes.
+  Removed the unused `effects_intensity` knob (the real setting is `config.yaml` → `effects.intensity`), and moved the
+  JUICT rule out of `taste.yaml` into decision 0010, because client work is not taste for your own videos.
+- `doc_check` also checks that every technique in `inventory.yaml` can actually be placed by the director.
+- New [docs/PLATFORM_SPECS.md](docs/PLATFORM_SPECS.md) from Meta's and TikTok's own documentation. Found: Instagram's
+  API refuses video above 25 Mbps, and AutoEdit rendered at exactly 25 Mbps. Now 20 Mbps, the 4:5 copy is capped too,
+  and the QC flags anything above 25 Mbps.
+- `TRENDS_REPORT.md`: re-checked which claims trace back to Instagram itself.
+- Documents with a *Review by* date get a warning from `doc_check` once that date has passed.
+
 ## 2026-10-29 — Documentation, round 1 and 2
 - New: [docs/README.md](docs/README.md), a map that tells you which document answers which question.
 - New: decision records ([docs/decisions/](docs/decisions/README.md)), this changelog and a Dutch ↔ English

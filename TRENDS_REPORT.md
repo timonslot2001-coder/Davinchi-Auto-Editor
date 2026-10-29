@@ -1,7 +1,13 @@
 # Trend report: lifestyle · fashion · fitness · travel
 *TikTok & Instagram Reels, status October 2026*
 
+Review by: 2027-01-29
+
 > Note: most of the sources are marketing and creator blogs. The direction is consistent across them, but treat individual numbers as indicative, not as official platform data.
+> Re-checked 2026-10-29: Instagram's three top ranking signals (watch time, likes per reach, sends per reach) go back to
+> Adam Mosseri (head of Instagram, January 2025) and are repeated consistently. The often-quoted "sends weigh 3-5× likes"
+> could not be traced to Instagram itself: treat it as a third-party estimate. Upload specs and safe zones:
+> [docs/PLATFORM_SPECS.md](docs/PLATFORM_SPECS.md).
 
 ## 1. What the algorithms reward right now (and therefore why things work)
 

@@ -409,7 +409,9 @@ def render(timeline_name: str, out_dir: Path, name: str, log=con.print) -> Path:
         "TargetDir": str(out_dir), "CustomName": name,
         "FormatWidth": int(tl.GetSetting("timelineResolutionWidth") or W),
         "FormatHeight": int(tl.GetSetting("timelineResolutionHeight") or H), "FrameRate": float(tl.GetSetting("timelineFrameRate") or 25),
-        "VideoQuality": 25000, "AudioCodec": "aac", "AudioSampleRate": 48000, "ExportVideo": True, "ExportAudio": True,
+        # 20 Mbps: under the Instagram Graph API's 25 Mbps maximum (docs/PLATFORM_SPECS.md), still far above what
+        # Instagram/TikTok re-encode to
+        "VideoQuality": 20000, "AudioCodec": "aac", "AudioSampleRate": 48000, "ExportVideo": True, "ExportAudio": True,
         "ExportSubtitle": True, "SubtitleFormat": "BurnIn",
     })
     job = p.AddRenderJob()

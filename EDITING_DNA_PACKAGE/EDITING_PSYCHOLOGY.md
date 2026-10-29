@@ -19,6 +19,25 @@ When labels disagree: **user > obs > mech > interp.**
 4. **Accents:** place them inside the budget (§5), Grid Flow last (§7).
 5. **Check:** read the plan against the checks in §1/§2 and the failure table (§9), then show it at gate B.
 
+## 0b. Where this style sits in Murch's six criteria
+Walter Murch (*In the Blink of an Eye*) ranks what a cut must serve: **emotion > story > rhythm > eye trace > 2-D screen
+plane > 3-D space**. When a cut cannot serve all of them, give up the lowest first. (mech; the ranking is widely quoted,
+the exact weights often attached to it are second-hand and not used here.) In a music-only montage the six map onto
+this document like this:
+
+| Murch | in this style | where |
+|---|---|---|
+| emotion | the arc: hook tension → title payoff → momentum → exhale on the final shot | §1, §5 |
+| story | place and order: establish, explore, resolve; day → night; process in chronological order | §1, §8 |
+| rhythm | the pacing curve and the accent budget, phrase-level music fit (not beat-locked) | §5, §6 |
+| eye trace | point of interest kept across hard cuts; brightness jumps only where an accent belongs | §3 |
+| 2-D screen plane | whip direction follows the motion; Grid Flow moves left; screen direction on cuts | §2, §7 |
+| 3-D space | spatial continuity: mostly irrelevant in a montage, so it is the first thing given up | — |
+
+Consequence for conflicts that the rule priority does not settle: keep the cut that serves the higher criterion. A
+perfectly beat-timed cut (rhythm) loses to a shot that lands the arc (emotion); a clean eye-trace match loses to the
+right shot order (story).
+
 ## 1. The emotional arc
 | phase | obs | mech | interp | check |
 |---|---|---|---|---|
@@ -145,6 +164,7 @@ Not from the references: it is Timon's own transition (4×4 wipe left, per-tile 
 | 2026-10-25 | Smoke Sesh | AI drone shots were picked too often | §4: AI = support, cap 2 |
 | 2026-10-26 | Smoke Sesh | "the video in the frame looks squashed" | §2/§9: card centre-crops; check proportions |
 | 2026-10-26 | — | "4x4 wipe left with exposure flash, max 1-2 per video" | RULE_GRID_FLOW, §7 |
+| 2026-10-28 | JUICT (client film, not a montage) | "de orginele bedrijfsfilm mag je intact houden … geen ondertitels" | none here: client films are out of this style's scope (decision 0010, `CLAUDE.md` → *Client films*). The photo snap he liked is a candidate device, not part of P_CINE_MONTAGE |
 
 ## 11. Confidence and what would raise it
 - obs rows rest on 17 reposted 480p references; see `ACCURACY_AND_GAPS.md`.

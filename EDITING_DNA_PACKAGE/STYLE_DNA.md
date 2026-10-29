@@ -40,6 +40,24 @@ Pacing curve (median shot length per fifth): **0.36 → 0.44 → 0.50 → 0.55 �
 Conflict priority: NO_TEXT_OVERLOAD > ONE_ACCENT > TITLE > COLD_OPEN > DECELERATE > FLASH > CARD_SERIES > WHIP > BW >
 GRID_FLOW. RULE_GRID_FLOW is Timon's own addition, not reference evidence (see `EDITING_PSYCHOLOGY.md` §7).
 
+### 3b. Right vs wrong, per rule
+What each rule looks like when it works, what it looks like when it breaks, where that was actually seen, and what
+catches it. "style check" = `engine/style_checks.py` on every plan (fix = removed automatically, warn/fail = shown on
+the storyboard).
+
+| rule | looks right (reference) | looks wrong | seen | caught by |
+|---|---|---|---|---|
+| RULE_COLD_OPEN | R04 0-1.29: 11 detail shots, no repeats | a repeated shot in the burst reads as a loop | calm openers U2, R16 | style check: ≥ 2 cuts in 1.3 s, no repeat |
+| RULE_TITLE | R17 0.74: one establishing shot, hard in/out | title on a busy or AI shot; title touched by a flash | Smoke Sesh plan: AI drone shot carried the title (2026-10-28) | style check warn; planner now prefers real footage |
+| RULE_FLASH | R04 cold open: single white frames on place changes | two accents within 1 s feel like a glitch | Smoke Sesh re-plan: B&W entry flash within 1 s of another accent | style check fix (keeps the more valuable accent) |
+| RULE_WHIP | blur continues the pan direction | blur against the motion, or between two static shots | not yet on a real run | style check: whip direction |
+| RULE_CARD_SERIES | RA: 3-6 related shots, 69 % × 92 % inset, hard edges | 16:9 shot squashed into the inset; heads cropped | Smoke Sesh (2026-10-26, Timon: "looks squashed") | render centre-crops; style check: 3-6 shots, ≤ 2 series |
+| RULE_BW | one reflective shot, often after a flash | a second B&W shot; B&W on food or a sunset | style check test plan | style check fix (keeps one) |
+| RULE_DECELERATE | R04 17-26, R08 24.4: longer holds, scenic last shot | the edit ends on a burst and feels cut off | — | style check: last fifth ≥ 1.3 × first fifth, final shot longest of last 5 |
+| RULE_ONE_ACCENT | R17 red title, everything else white | red title + orange card | — | style check: one accent colour |
+| RULE_NO_TEXT_OVERLOAD | no text besides the title | captions, lower thirds | — | style check: no text overload |
+| RULE_GRID_FLOW | once, on a clean change between steady shots | on a busy cut, on the title/card/final shot, or in a short edit | — | style check fix: 0 under 8 s, 1×, 2× from 16 s |
+
 ## 4. Transition vocabulary (measured on 423 cut candidates)
 | type | share | spec |
 |---|---|---|

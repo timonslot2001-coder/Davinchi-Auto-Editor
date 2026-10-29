@@ -1,5 +1,7 @@
 """Keeps the project's documents true: rules, numbers, paths and commands named in the docs must match the code and
-EDITING_DNA_PACKAGE/style_dna.json. Run after changing a document or the DNA:  python tools/doc_check.py
+EDITING_DNA_PACKAGE/style_dna.json; every document is in the map (docs/README.md), every decision record is complete and
+indexed, and README's command reference names every command. Run after changing a document, a command or the DNA:
+python tools/doc_check.py
 Exit code 1 when something is out of date; each line says which document and what."""
 from __future__ import annotations
 
@@ -114,6 +116,51 @@ def check_paths(problems: list) -> None:
                 problems.append(f"{rel(d)}: names `{t}`, which does not exist")
 
 
+def links(d: Path) -> set[Path]:
+    """Documents a markdown file links to, resolved to absolute paths."""
+    out = set()
+    for t in re.findall(r"\]\(([^)#\s]+)", d.read_text(encoding="utf-8")):
+        if "://" not in t:
+            out.add((d.parent / t).resolve())
+    return out
+
+
+def check_map(problems: list) -> None:
+    """Every tracked document is reachable from docs/README.md (decision records through their index)."""
+    home = REPO / "docs" / "README.md"
+    index = REPO / "docs" / "decisions" / "README.md"
+    reach = links(home) | links(index) | {home.resolve()}
+    for d in docs():
+        if d.resolve() not in reach:
+            problems.append(f"docs/README.md: {rel(d)} is not in the documentation map")
+
+
+def check_decisions(problems: list) -> None:
+    folder = REPO / "docs" / "decisions"
+    listed = links(folder / "README.md")
+    for d in sorted(folder.glob("[0-9][0-9][0-9][0-9]-*.md")):
+        text = d.read_text(encoding="utf-8")
+        for need in ("- Status:", "- Date:", "## Context", "## Decision", "## Consequences"):
+            if need not in text:
+                problems.append(f"{rel(d)}: missing '{need}'")
+        if d.resolve() not in listed:
+            problems.append(f"docs/decisions/README.md: {d.name} is not in the index")
+
+
+def check_reference(problems: list) -> None:
+    """README's command reference names every autoedit and engine command."""
+    text = (REPO / "README.md").read_text(encoding="utf-8")
+    m = re.search(r"## Command reference\n(.*?)(?:\n## |\Z)", text, re.S)
+    if not m:
+        problems.append("README.md: no '## Command reference' section")
+        return
+    code = " ".join(re.findall(r"`([^`\n]+)`", m[1]))
+    for tool, cmds in cli_commands().items():
+        for c in sorted(cmds):
+            if not re.search(rf"(?<![\w-]){re.escape(c)}(?![\w-])", code):
+                problems.append(f"README.md: command reference misses `{tool} {c}`")
+
+
 def main() -> int:
     dna = json.loads((DNA / "style_dna.json").read_text(encoding="utf-8"))
     problems: list[str] = []
@@ -121,6 +168,9 @@ def main() -> int:
     check_numbers(problems)
     check_commands(problems)
     check_paths(problems)
+    check_map(problems)
+    check_decisions(problems)
+    check_reference(problems)
     n = len(docs())
     for p in problems:
         print("OUT OF DATE:", p)

@@ -64,7 +64,8 @@ def _snap(times: list[float], onsets: list[float], fps: float) -> list[float]:
 
 def plan(p: Profile, inv: dict, music: dict | None, title: str | None, length: float | None = None,
          accent: str | None = None, fps: float = 25.0, size=(1920, 1080), seed: int = 1, card: str = "auto",
-         bw: str = "auto", title_variant: str | None = None, grid_flow: str = "auto") -> EDL:
+         bw: str = "auto", title_variant: str | None = None, grid_flow: str = "auto",
+         pinned: dict | None = None) -> EDL:
     rng = random.Random(seed)
     segs = [s for c in inv["clips"] if c["kind"] == "video" for s in c["segments"] if "soft" not in s["tags"]]
     notes, questions = [], []
@@ -108,7 +109,29 @@ def plan(p: Profile, inv: dict, music: dict | None, title: str | None, length: f
     def capped(s):
         return clip_uses.get(s["clip"], 0) < cap[s["clip"]]
 
+    def pinned_seg(role: str, need: float):
+        """Timon's own choice for the title/final shot: 'CLIP[:seconds]', any segment of that clip (soft ones too)."""
+        want = (pinned or {}).get(role)
+        if not want:
+            return None
+        name, _, sec = want.partition(":")
+        mine = [s for c in inv["clips"] if c["kind"] == "video" for s in c["segments"]
+                if Path(s["clip"]).stem.lower() == Path(name).stem.lower()]
+        if not mine:
+            raise ValueError(f"--{role}-shot {want}: no clip named {name} in the project")
+        t = float(sec) if sec else None
+        fits = [s for s in mine if s["end"] - s["start"] >= need] or mine
+        s = (min(fits, key=lambda s: 0 if s["start"] <= t < s["end"] else min(abs(s["start"] - t), abs(s["end"] - t)))
+             if t is not None else max(fits, key=lambda s: s["score"]))
+        notes.append(f"{role} shot pinned to {Path(s['clip']).name} {s['start']:.1f}-{s['end']:.1f} s")
+        return s
+
     def pick(role: str, need: float, last_clip: str | None):
+        if role in ("title", "final"):
+            s = pinned_seg(role, need)
+            if s:
+                return s
+
         def ok(s):
             return s["end"] - s["start"] >= need and s["clip"] != last_clip and capped(s)
 
@@ -123,7 +146,8 @@ def plan(p: Profile, inv: dict, music: dict | None, title: str | None, length: f
                       lambda s: s["end"] - s["start"] >= need):
             cand = [s for s in pool if stage(s)]
             if cand:
-                cand.sort(key=lambda s: (used.get((s["clip"], s["start"]), 0), -s["score"]))
+                # spread over clips: a fresh clip beats another window of a clip already in the edit
+                cand.sort(key=lambda s: (used.get((s["clip"], s["start"]), 0), clip_uses.get(s["clip"], 0), -s["score"]))
                 return cand[0]
         return max(pool, key=lambda s: s["end"] - s["start"])
 

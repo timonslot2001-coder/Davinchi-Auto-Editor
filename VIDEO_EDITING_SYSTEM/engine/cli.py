@@ -61,6 +61,8 @@ def main(argv=None):
     a.add_argument("--card", choices=["auto", "on", "off"], default="auto"); a.add_argument("--bw", choices=["auto", "off"], default="auto")
     a.add_argument("--grid-flow", choices=["auto", "off"], default="auto")
     a.add_argument("--grade", choices=["auto", "slog3", "rec709", "none"], default="auto")
+    a.add_argument("--title-shot", help="clip for the title, CLIP[:seconds], e.g. C0086:7")
+    a.add_argument("--final-shot", help="clip for the last shot, CLIP[:seconds]")
     a = sub.add_parser("approve"); a.add_argument("project"); a.add_argument("--by", required=True); a.add_argument("--note", required=True)
     for c in ("check", "preview", "render", "qa"):
         a = sub.add_parser(c); a.add_argument("project")
@@ -90,7 +92,8 @@ def main(argv=None):
         mus = media.music_map(song, work / "cache") if song else None
         print(f"song: {song.name if song else 'none'} ({song_src})")
         edl = planner.plan(p, inv, mus, args.title, args.length, args.accent, args.fps, seed=args.seed,
-                           card=args.card, bw=args.bw, title_variant=args.variant, grid_flow=args.grid_flow)
+                           card=args.card, bw=args.bw, title_variant=args.variant, grid_flow=args.grid_flow,
+                           pinned={"title": args.title_shot, "final": args.final_shot})
         fixed = style_checks.fix(edl)
         errs = edl.validate()
         if errs:

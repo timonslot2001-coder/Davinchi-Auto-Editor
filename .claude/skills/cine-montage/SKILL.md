@@ -45,6 +45,11 @@ Depth titles and cut-out flashes need a subject matte (not built). Fonts are ver
 paced, not beat-locked (snapped to a strong onset only within 2 frames).
 
 ## Learnings from real runs
+- 2026-10-29 (Mongolie 2025, 69 clips): with many clips the planner put one clip in 11 of 34 shots, because it only
+  avoided reusing the same *segment*. It now prefers clips that are not yet in the edit (34 clips in 34 shots). Title
+  and final are always the top-scoring shot, whatever the seed, and the top "establishing" shot was a hoodie close-up:
+  look at the title/final on the sheet and pin better ones with `--title-shot CLIP[:s]` / `--final-shot CLIP[:s]`.
+  Large footage on another drive: link it as `clips/` with a junction (`mklink /J`) instead of copying.
 - 2026-10-28: `engine plan` ignored `song:` in project.yaml and took the first file in `music/`. A re-plan of Smoke
   Sesh would have used the Shanghai track instead of Austria. Fixed; always state the song and its source at gate B.
 - 2026-10-28: style checks on the approved Smoke Sesh plan flagged the AI drone shot as the title shot. The planner now

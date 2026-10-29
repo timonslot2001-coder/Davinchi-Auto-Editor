@@ -4,12 +4,23 @@ Which document answers which question. Sorted by what you want to do (after the 
 something up, understand why). Every tracked document is listed here; `python tools/doc_check.py` fails when one is
 missing.
 
+## Which editor for which goal
+Timon's own channels come first; client work runs on a separate track so it never changes the house style.
+
+| goal | editor | output |
+|---|---|---|
+| Own Instagram Reels / TikTok | AutoEdit, `--aspect 9:16` (or `aspect: "9:16"` in project.yaml) | 9:16 + 4:5 feed copy, captions, queued for approval |
+| Own YouTube / 16:9 videos | AutoEdit (house style default) | 16:9 |
+| Own montage posts (travel, food, a place) | Cine montage (P_CINE_MONTAGE) | 16:9 montage after storyboard approval |
+| How-to / onboarding videos | AutoEdit explainer mode | step-by-step video from `script.yaml` |
+| A client's film (event, company) | a script in [client_edits/](../client_edits/README.md) | the client's film, intact + only the asked changes |
+
 ## I want to get something done (how-to)
 | question | open |
 |---|---|
 | Edit a shoot into a TikTok/Reel or 16:9 video | [README.md](../README.md) → *Edit a shoot* |
 | Make a cine montage in the approved style | [VIDEO_EDITING_SYSTEM/README_START_HERE.md](../VIDEO_EDITING_SYSTEM/README_START_HERE.md) |
-| Re-edit a client's finished film (intro/outro, remove a shot, photo snaps) | [CLAUDE.md](../CLAUDE.md) → *Client films* |
+| Re-edit a client's finished film (intro/outro, remove a shot, photo snaps) | [client_edits/README.md](../client_edits/README.md), [CLAUDE.md](../CLAUDE.md) → *Client films* |
 | Make an AI shot (free local, or paid Muapi) | [README.md](../README.md) → *AI shots* |
 | Post to Instagram / TikTok | [README.md](../README.md) → *Posting* |
 | Set up a new PC | [setup/README.md](../setup/README.md) |
@@ -23,6 +34,7 @@ missing.
 | What is measured vs estimated | [EDITING_DNA_PACKAGE/ACCURACY_AND_GAPS.md](../EDITING_DNA_PACKAGE/ACCURACY_AND_GAPS.md) |
 | The approved style and its limits | [VIDEO_EDITING_SYSTEM/STYLE_SELECTION.md](../VIDEO_EDITING_SYSTEM/STYLE_SELECTION.md) |
 | Where the engine stands, what is tested | [VIDEO_EDITING_SYSTEM/PROJECT_STATUS.md](../VIDEO_EDITING_SYSTEM/PROJECT_STATUS.md) |
+| Upload limits, frame rate, bitrate, safe zones per platform | [PLATFORM_SPECS.md](PLATFORM_SPECS.md) |
 | Trends, hooks, hashtags per niche | [TRENDS_REPORT.md](../TRENDS_REPORT.md) (data: `trends.yaml`) |
 | A word you don't know (Dutch ↔ English) | [GLOSSARY.md](GLOSSARY.md) |
 | Settings | `config.yaml`, `styles.yaml`, `inventory.yaml`, `taste.yaml` (each explains itself in its header) |

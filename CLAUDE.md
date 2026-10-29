@@ -35,8 +35,11 @@ The editor must get better every time, without copying references 1:1.
 - **Client films** (see below): a small script per project that starts from the client's finished film.
 
 ## Client films (e.g. JUICT)
-Decision `docs/decisions/0010-client-films-stay-intact.md`. Bespoke script `edit_v<N>.py` in the project folder
-(`Videos/AutoEdit Projects/<name>/`), one new version per round of feedback, never overwrite an export.
+Decision `docs/decisions/0010-client-films-stay-intact.md`. Client work is a separate track from Timon's own channels:
+its feedback never goes into `taste.yaml` or the montage style. Iterate with `edit_v<N>.py` in the project folder
+(`Videos/AutoEdit Projects/<name>/`), one version per round of feedback, never overwrite an export. The delivered
+version goes into the repo as `client_edits/<client>_<film>/edit.py` (no client files, no personal names; see
+`client_edits/README.md`).
 - The original stays as delivered. Change only what Timon names: brand intro/outro, a shot to remove, photo snaps. No
   subtitles, name cards or interview changes unless he asks.
 - Remove footage in **whole beats** (beat grid from `analysis/beats.npy` or librosa) and cut picture and sound at the

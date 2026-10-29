@@ -3,13 +3,15 @@
 Drop clips in, and out comes a finished edit in the cinematic house style: graded, cut to the music, with effects and
 their sounds, title, captions, cover and caption suggestions. Nothing goes online without your OK.
 
-There are three ways this repo edits:
+It is built first for your own channels; client work runs on a separate track. Three ways this repo edits:
 
 | editor | for | start |
 |---|---|---|
-| **AutoEdit** (`autoedit/`) | your own shoots → Reel / TikTok / 16:9 video, learns from your feedback | [Edit a shoot](#edit-a-shoot) |
-| **Cine montage** (`VIDEO_EDITING_SYSTEM/`) | music-only montages in the approved P_CINE_MONTAGE style, with approval gates | [Cine montage](#cine-montage) |
-| **Client films** (a script per project) | re-editing a client's finished film: brand intro/outro, remove a shot, photo snaps | `CLAUDE.md` → *Client films* |
+| **AutoEdit** (`autoedit/`) | your own shoots → Reels / TikTok (9:16) or YouTube (16:9), learns from your feedback | [Edit a shoot](#edit-a-shoot) |
+| **Cine montage** (`VIDEO_EDITING_SYSTEM/`) | your own music-only montages in the approved P_CINE_MONTAGE style, with approval gates | [Cine montage](#cine-montage) |
+| **Client films** (`client_edits/`) | re-editing a client's finished film: brand intro/outro, remove a shot, photo snaps | [client_edits/README.md](client_edits/README.md) |
+
+Which editor for which goal: [docs/README.md](docs/README.md) → *Which editor for which goal*.
 
 Which document answers which question: [docs/README.md](docs/README.md). What changed: [CHANGELOG.md](CHANGELOG.md).
 

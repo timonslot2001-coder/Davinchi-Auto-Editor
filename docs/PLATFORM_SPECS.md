@@ -38,7 +38,7 @@ Sources: [Meta, IG User Media reference](https://developers.facebook.com/docs/in
 |---|---|---|---|---|
 | codec / container | H.264 or HEVC MP4 from Resolve, faststart after loudness | H.264 MP4, CRF 16 | H.264 MP4, CRF 16 | ok |
 | bitrate | Resolve `VideoQuality` 20000 (20 Mbps); 4:5 copy capped at 20 Mbps; QC flags > 25 Mbps | CRF 16, uncapped (a 13 s Smoke Sesh export ≈ 25 Mbps) | ≈ 10 Mbps (JUICT v12) | AutoEdit ok since 2026-10-29; montage: make an upload copy before posting through the API |
-| frame rate | 25 fps (`config.yaml`) | 25 fps | 29.97 fps (client source) | inside the API's 23-60, below the help centre's "30 fps minimum" — **open question for Timon** |
+| frame rate | 25 fps (`config.yaml`) | 25 fps | 29.97 fps (client source) | ok: 25 fps on purpose (decision [0011](decisions/0011-stay-at-25-fps.md)), inside the API's 23-60 |
 | safe zone (9:16) | top 260, bottom 480, left 70, right 160 px (`autoedit/media_prep.py`) | 16:9, n/a | 16:9, n/a | top/sides meet Meta's ad guidance; bottom 480 px is less than Meta's 35 % (672 px) but more than TikTok's 250 px |
 | loudness | −14 LUFS, true peak ≈ −1.5 dBTP | −14 LUFS, TP ≤ −1 | original mix (client) | ok |
 

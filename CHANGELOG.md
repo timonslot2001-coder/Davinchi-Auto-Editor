@@ -16,6 +16,8 @@ entry; the full list is in `git log`. Hard-to-reverse choices also get a record 
   and the QC flags anything above 25 Mbps.
 - `TRENDS_REPORT.md`: re-checked which claims trace back to Instagram itself.
 - Documents with a *Review by* date get a warning from `doc_check` once that date has passed.
+- Own videos stay at 25 fps on purpose (decision [0011](docs/decisions/0011-stay-at-25-fps.md)): it matches the
+  A6700's 50p for smooth slow-mo and avoids flicker under 50 Hz lights.
 
 ## 2026-10-29 — Documentation, round 1 and 2
 - New: [docs/README.md](docs/README.md), a map that tells you which document answers which question.

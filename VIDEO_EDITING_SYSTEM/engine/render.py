@@ -77,7 +77,12 @@ def read_event(ev, edl: EDL, lut: Path | None, extra: int = 0) -> np.ndarray:
     if len(frames) < n:                                          # hold the last frame if the source runs short
         pad = np.repeat(frames[-1:], n - len(frames), axis=0) if len(frames) else np.zeros((n, H, W, 3), np.uint8)
         frames = np.concatenate([frames, pad])
-    return frames[:n].copy()
+    frames = frames[:n].copy()
+    b = ev.params.get("brighten")                                # per-shot lift for a dark shot: y = 1-(1-x)^b, no clipping
+    if b and b != 1:
+        lut = (255 * (1 - (1 - np.arange(256) / 255.0) ** b)).round().astype(np.uint8)
+        frames = lut[frames]
+    return frames
 
 
 # ---------------------------------------------------------------- devices

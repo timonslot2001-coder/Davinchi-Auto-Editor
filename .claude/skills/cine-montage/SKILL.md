@@ -58,6 +58,10 @@ paced, not beat-locked (snapped to a strong onset only within 2 frames).
   Timon still picked B (reference_film). On render, `--grade auto` took one DJI clip (no sidecar) for S-Log3: the
   pot shots came out oversaturated. Read the "grade" notes in qa.json after every render; when all footage is
   Rec.709, render with `--grade rec709` (same EDL, the approval stays valid).
+  2026-10-30: Timon spotted near-identical consecutive shots (same clip, same framing) on the sheet. Story order puts
+  two windows of one clip next to each other; merge such pairs into one longer shot before gate B. A run of shots
+  where something changes (knife cutting further) can stay. Without Grid Flow (food) seed 1 had only 3 accents:
+  compare a few seeds and pick one with ~5 spread accents and 0 warnings.
 - 2026-10-28: `engine plan` ignored `song:` in project.yaml and took the first file in `music/`. A re-plan of Smoke
   Sesh would have used the Shanghai track instead of Austria. Fixed; always state the song and its source at gate B.
 - 2026-10-28: style checks on the approved Smoke Sesh plan flagged the AI drone shot as the title shot. The planner now

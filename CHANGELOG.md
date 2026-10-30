@@ -4,6 +4,7 @@ What changed, in words you would notice in an edit or on the PC. Newest first. S
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
 ## 2026-10-30 — Grid Flow only once
+- New skill `juict-edit`: how a JUICT/client film is made (original intact, brand intro/outro, whole-beat cuts, photo snaps).
 - Cine montage: Grid Flow is used at most once per video (it was twice from 16 s), and not at all in cooking or
   clothing videos (`category: food` or `fashion` in project.yaml). Decision [0012](docs/decisions/0012-grid-flow-once-travel-only.md).
 

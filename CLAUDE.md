@@ -35,6 +35,7 @@ The editor must get better every time, without copying references 1:1.
 - **Client films** (see below): a small script per project that starts from the client's finished film.
 
 ## Client films (e.g. JUICT)
+Working instructions: `.claude/skills/juict-edit/SKILL.md`.
 Decision `docs/decisions/0010-client-films-stay-intact.md`. Client work is a separate track from Timon's own channels:
 its feedback never goes into `taste.yaml` or the montage style. Iterate with `edit_v<N>.py` in the project folder
 (`Videos/AutoEdit Projects/<name>/`), one version per round of feedback, never overwrite an export. The delivered

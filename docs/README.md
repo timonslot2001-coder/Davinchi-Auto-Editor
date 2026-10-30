@@ -53,6 +53,8 @@ Timon's own channels come first; client work runs on a separate track so it neve
 | [EDITING_DNA_PACKAGE/README_START_HERE.md](../EDITING_DNA_PACKAGE/README_START_HERE.md) | start of the style package (Stage 1) |
 | [EDITING_DNA_PACKAGE/CLAUDE_CODE_IMPLEMENTATION_PROMPT.md](../EDITING_DNA_PACKAGE/CLAUDE_CODE_IMPLEMENTATION_PROMPT.md) | the Stage 2 brief, kept as a record |
 | [.claude/skills/cine-montage/SKILL.md](../.claude/skills/cine-montage/SKILL.md) | Claude's working instructions for a cine montage |
+| [.claude/skills/juict-edit/SKILL.md](../.claude/skills/juict-edit/SKILL.md) | Claude's working instructions for a JUICT / client film |
+| [.claude/skills/juict-edit/SKILL.md](../.claude/skills/juict-edit/SKILL.md) | Claude's working instructions for a JUICT / client film |
 | [CLAUDE.md](../CLAUDE.md) | how Claude works in this repo (loaded every session) |
 
 ## Keeping the docs true

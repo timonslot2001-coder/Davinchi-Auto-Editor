@@ -1073,7 +1073,7 @@
      "white card series",
      "B&W contrast shot",
      "side labels",
-     "Grid Flow transition (Timon's own, max 1-2x)"
+     "Grid Flow transition (Timon's own, max 1x, not in cooking/clothing)"
     ],
     "optional": [
      "HUD labels",
@@ -1241,7 +1241,7 @@
    "id": "RULE_GRID_FLOW",
    "trigger": "a scene change in the body of the edit (after the title, before the wind-down)",
    "response": "T_GRID_FLOW: 4x4 grid, wipe left, per-tile +4-stop exposure flash, white grid lines; 12 frames (0.48 s)",
-   "timing": "1x per video (2x when the edit is >= 16 s); >= 1 s from any other accent; never on the title, card series or final shot",
+   "timing": "1x per video, never in cooking or clothing videos; >= 1 s from any other accent; never on the title, card series or final shot",
    "evidence": [
     "Timon-approved addition 2026-10-26 (gate C test gridflow_test.mp4, own RAM Grid Flow transition)"
    ],

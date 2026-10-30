@@ -56,7 +56,7 @@ autoedit projects                  # overview of all projects
 
 ## Cine montage
 A second editor that applies the approved Editing DNA (`EDITING_DNA_PACKAGE/`, profile P_CINE_MONTAGE): a fast cold
-open, one poster title, hard cuts with 1-frame white flashes and whips, a white card series, your Grid Flow 1–2×, and a
+open, one poster title, hard cuts with 1-frame white flashes and whips, a white card series, your Grid Flow once (not in cooking or clothing videos), and a
 slow, scenic ending.
 ```
 cd VIDEO_EDITING_SYSTEM

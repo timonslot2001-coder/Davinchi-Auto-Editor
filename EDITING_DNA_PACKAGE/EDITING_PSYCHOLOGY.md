@@ -61,7 +61,7 @@ burst of repeats feels like a loop, not energy.
 | RULE_DECELERATE | second half | longer shots, scenic ending | exhale; peak-end (mech) | loop edits | pacing curve rises | high |
 | RULE_ONE_ACCENT | always | one accent colour | poster consistency (obs) | — | one hue across title/cards | high |
 | RULE_NO_TEXT_OVERLOAD | always | no captions | images + music tell it (obs) | user adds speech | no text besides title (+ labels) | high |
-| RULE_GRID_FLOW | clean scene change in the body | 4×4 wipe left + exposure flash, 12 f | Timon's signature; scarce = recognisable (user, §7) | < 8 s edit; title, card, final shot; busy shots | 1× (2× if ≥ 16 s); ≥ 1 s from other accents | user-approved |
+| RULE_GRID_FLOW | clean scene change in the body | 4×4 wipe left + exposure flash, 12 f | Timon's signature; scarce = recognisable (user, §7) | < 8 s edit; title, card, final shot; busy shots; cooking/clothing videos | 1×; ≥ 1 s from other accents | user-approved |
 
 Conflict priority (from `style_dna.json`): NO_TEXT_OVERLOAD > ONE_ACCENT > TITLE > COLD_OPEN > DECELERATE > FLASH >
 CARD_SERIES > WHIP > BW > GRID_FLOW.
@@ -123,12 +123,14 @@ Decisions:
 ## 7. Grid Flow — why rare, and where (user, 2026-10-26)
 Not from the references: it is Timon's own transition (4×4 wipe left, per-tile exposure flash, white grid lines,
 12 frames).
-- **Why scarce.** A structured, geometric transition is much louder than a 1-frame flash. Used once or twice, it reads as
-  a signature. Used often, it reads as a template pack (mech: habituation).
+- **Why scarce.** A structured, geometric transition is much louder than a 1-frame flash. Used once, it reads as
+  a signature (a second one already felt pointless to Timon). Used often, it reads as a template pack (mech: habituation).
 - **Where.** A clean scene change in the body: after the title, before the wind-down. Steady shots on both sides, so the
   tiles are the only motion on screen and the grid reads.
 - **Not:** on the title, in or out of a card series, on the final shot, or within 1 s of another accent. Skip it when no
   clean change exists; a forced Grid Flow is worse than none.
+- **Which videos.** Travel-type montages. Not cooking or clothing videos (user, 2026-10-30): there the grid fights the
+  subject. The planner skips it for `category: food` / `fashion` in project.yaml.
 
 ## 8. Situations
 - **Reveal of a landmark or food result.** Put it after a flash and hold it longer than its neighbours (R08 final dish
@@ -164,6 +166,7 @@ Not from the references: it is Timon's own transition (4×4 wipe left, per-tile 
 | 2026-10-25 | Smoke Sesh | AI drone shots were picked too often | §4: AI = support, cap 2 |
 | 2026-10-26 | Smoke Sesh | "the video in the frame looks squashed" | §2/§9: card centre-crops; check proportions |
 | 2026-10-26 | — | "4x4 wipe left with exposure flash, max 1-2 per video" | RULE_GRID_FLOW, §7 |
+| 2026-10-30 | Beef Tartaar | "kook of kleding videos hoef je die grid overgangen niet … gebruik dat trucje maar 1x" | RULE_GRID_FLOW 1×, off for food/fashion (§7, decision 0012) |
 | 2026-10-28 | JUICT (client film, not a montage) | "de orginele bedrijfsfilm mag je intact houden … geen ondertitels" | none here: client films are out of this style's scope (decision 0010, `CLAUDE.md` → *Client films*). The photo snap he liked is a candidate device, not part of P_CINE_MONTAGE |
 
 ## 11. Confidence and what would raise it

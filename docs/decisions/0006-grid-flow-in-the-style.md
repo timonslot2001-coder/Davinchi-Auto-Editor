@@ -1,6 +1,6 @@
 # 0006 Grid Flow joins the style, 1–2 times per video
 
-- Status: accepted
+- Status: amended by [0012](0012-grid-flow-once-travel-only.md) (once, not in cooking/clothing)
 - Date: 2026-10-26
 - Source: Timon at gate C, "Neem de 4x4 wipe left met exposure flits op in de stijl, maximaal 1–2 keer per video"
 

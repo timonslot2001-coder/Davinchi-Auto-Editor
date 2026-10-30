@@ -73,14 +73,14 @@ def fix(edl: EDL) -> list[str]:
     # too many Grid Flows: keep the earliest ones
     gfs = [e for e in edl.events if e.transition_in == "T_GRID_FLOW"]
     for e in gfs[_grid_flow_max(edl):]:
-        _demote(e, "Grid Flow max 1-2 per video", log)
+        _demote(e, "Grid Flow max 1 per video", log)
     if log:
         edl.notes.extend(f"style fix: {x}" for x in log)
     return log
 
 
 def _grid_flow_max(edl: EDL) -> int:
-    return 0 if edl.duration < 8 else 2 if edl.duration >= 16 else 1
+    return 0 if edl.duration < 8 else 1                             # once per video (decision 0012)
 
 
 def check(edl: EDL) -> list[dict]:

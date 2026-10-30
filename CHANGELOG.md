@@ -3,6 +3,10 @@
 What changed, in words you would notice in an edit or on the PC. Newest first. Small fixes are folded into the day's
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
+## 2026-10-30 — Grid Flow only once
+- Cine montage: Grid Flow is used at most once per video (it was twice from 16 s), and not at all in cooking or
+  clothing videos (`category: food` or `fashion` in project.yaml). Decision [0012](docs/decisions/0012-grid-flow-once-travel-only.md).
+
 ## 2026-10-29 — Documentation, round 3 to 5
 - Client work is a separate track: `client_edits/` with the JUICT film as a standalone script that reproduces v12
   (no client files or personal names in git). The docs map now starts with *which editor for which goal*, own

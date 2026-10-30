@@ -62,10 +62,13 @@ def _snap(times: list[float], onsets: list[float], fps: float) -> list[float]:
     return out, keep
 
 
+NO_GRID_FLOW = {"food", "cooking", "fashion", "clothing"}     # project.yaml category: no Grid Flow (decision 0012)
+
+
 def plan(p: Profile, inv: dict, music: dict | None, title: str | None, length: float | None = None,
          accent: str | None = None, fps: float = 25.0, size=(1920, 1080), seed: int = 1, card: str = "auto",
          bw: str = "auto", title_variant: str | None = None, grid_flow: str = "auto",
-         pinned: dict | None = None, order: list | str | None = None) -> EDL:
+         pinned: dict | None = None, order: list | str | None = None, category: str | None = None) -> EDL:
     rng = random.Random(seed)
     segs = [s for c in inv["clips"] if c["kind"] == "video" for s in c["segments"] if "soft" not in s["tags"]]
     notes, questions = [], []
@@ -257,8 +260,11 @@ def plan(p: Profile, inv: dict, music: dict | None, title: str | None, length: f
                 e.transition_in = "T_FLASH"; e.rule.append("RULE_FLASH")
 
     # ---------------------------------------------------------------- Grid Flow, Timon's own transition (RULE_GRID_FLOW)
+    if grid_flow == "auto" and (category or "").lower() in NO_GRID_FLOW:
+        grid_flow = "off"
+        notes.append(f"Grid Flow off: category {category} (Timon: a travel trick, not for cooking/clothing)")
     if grid_flow != "off" and "RULE_GRID_FLOW" in p.rules and L >= 8:
-        n_gf = 2 if L >= 16 else 1
+        n_gf = 1                                                  # once per video (Timon 2026-10-30)
         frames = 12
         accents = [e.out_in for e in events if e.transition_in != "T_HARD"]
         gcand = []

@@ -39,15 +39,18 @@ def find_project(name: str) -> Path:
     raise SystemExit(f"project '{name}' not found (or ambiguous: {[h.name for h in hits]})")
 
 
-def story_order(proj: Path) -> list | str:
-    """`order:` from project.yaml (clip names in story order), else "time" (file time)."""
+def settings(proj: Path) -> dict:
     f = proj / "project.yaml"
     if f.exists():
         import yaml
-        order = (yaml.safe_load(f.read_text(encoding="utf-8")) or {}).get("order")
-        if order:
-            return [str(c) for c in order]
-    return "time"
+        return yaml.safe_load(f.read_text(encoding="utf-8")) or {}
+    return {}
+
+
+def story_order(proj: Path) -> list | str:
+    """`order:` from project.yaml (clip names in story order), else "time" (file time)."""
+    order = settings(proj).get("order")
+    return [str(c) for c in order] if order else "time"
 
 
 def edl_hash(path: Path) -> str:
@@ -113,7 +116,8 @@ def main(argv=None):
         edl = planner.plan(p, inv, mus, args.title, args.length, args.accent, args.fps, seed=args.seed,
                            card=args.card, bw=args.bw, title_variant=args.variant, grid_flow=args.grid_flow,
                            pinned={"title": args.title_shot, "final": args.final_shot},
-                           order=story_order(proj) if args.order == "story" else None)
+                           order=story_order(proj) if args.order == "story" else None,
+                           category=settings(proj).get("category"))
         fixed = style_checks.fix(edl)
         errs = edl.validate()
         if errs:

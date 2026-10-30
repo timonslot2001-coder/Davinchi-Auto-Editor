@@ -8,7 +8,7 @@
 - Permitted variations: whip blurs (motion shots only) · white card series (3-6 shots, ≤2×) · one B&W shot · side
   labels · title variant heavy_grotesque · accent orange/white.
 - Added 2026-10-26 by Timon (gate C, "Neem de 4x4 wipe left met exposure flits op in de stijl, maximaal 1–2 keer per
-  video"): **Grid Flow** transition — RULE_GRID_FLOW, 1× per video, 2× from 16 s. Not reference evidence.
+  video"): **Grid Flow** transition — RULE_GRID_FLOW, 1× per video, none in cooking/clothing videos. Not reference evidence.
 - Enforcement: every plan runs `engine/style_checks.py` against these rules before Timon sees it.
 - Secondary styles: none. P_VERTICAL_VLOG and P_TALKING_CAPTIONS are not extracted; do not borrow from them.
 - Evidence: `../EDITING_DNA_PACKAGE/style_dna.json` (rules[], evidence ids), `visual_report.html`.

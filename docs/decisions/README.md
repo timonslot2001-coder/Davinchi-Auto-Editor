@@ -17,5 +17,6 @@ new record replaces it, and the old one gets `Status: superseded by NNNN`.
 | [0009](0009-docs-are-checked.md) | Documents are checked by a script | 2026-10-28 |
 | [0010](0010-client-films-stay-intact.md) | A client's finished film stays as delivered | 2026-10-28 |
 | [0011](0011-stay-at-25-fps.md) | Own videos stay at 25 fps | 2026-10-29 |
+| [0012](0012-grid-flow-once-travel-only.md) | Grid Flow once per video, not in cooking or clothing videos | 2026-10-30 |
 
 Smaller taste feedback stays in `taste.yaml` (AutoEdit) and `EDITING_PSYCHOLOGY.md` §10 (cine montage).

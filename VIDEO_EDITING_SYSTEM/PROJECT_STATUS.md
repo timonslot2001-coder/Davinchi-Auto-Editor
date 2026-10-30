@@ -16,7 +16,7 @@
   - 2026-10-26: re-rendered as `exports/cine_montage_20261026_1316.mp4` after Timon saw the white card squashed (now
     centre-cropped). Same approved EDL. **This is the current final.** Phone copies: `SMOKE_SESH_phone_v2.mp4`,
     `SMOKE_SESH_easter_egg(_phone).mp4` (1-frame hidden photo at frame 221, on Timon's request).
-- RULE_GRID_FLOW (Timon's Grid Flow, approved 2026-10-26): `engine/gridflow.py` + planner placement (1×, 2× from 16 s).
+- RULE_GRID_FLOW (Timon's Grid Flow, approved 2026-10-26): `engine/gridflow.py` + planner placement (1×; off for food/fashion, decision 0012).
   Test render on real Smoke Sesh shots (`tests/gridflow_test.py`). The Smoke Sesh export predates it.
 - Style checks (2026-10-28): `engine/style_checks.py` runs on every plan, auto-removes rule-breaking accents and shows
   ok/warn/fail on the storyboard; `tests/style_checks_test.py` PASS. A re-plan of a Smoke Sesh copy: 17 ok, 0 warn,

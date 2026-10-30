@@ -1,7 +1,8 @@
 """Grid Flow transition: the frame is split into an n x n grid and each tile switches from shot A to shot B at its own
 moment (ordered by a direction pattern), with a short per-tile exposure flash and thin grid lines that fade in and out.
 Re-implemented from the behaviour of Timon's RAM Grid Flow Resolve transition (controls and defaults match); the
-.drfx itself is third-party and not shipped. Approved by Timon 2026-10-26 as RULE_GRID_FLOW: 4x4 wipe left + exposure flash, max 1-2x per video."""
+.drfx itself is third-party and not shipped. Approved by Timon 2026-10-26 as RULE_GRID_FLOW: 4x4 wipe left + exposure flash; once per video, not
+in cooking or clothing videos (decision 0012)."""
 from __future__ import annotations
 
 import numpy as np

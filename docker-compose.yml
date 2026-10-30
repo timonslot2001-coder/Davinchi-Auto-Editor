@@ -1,0 +1,15 @@
+# docker compose up -d --build   →  http://localhost:5060
+# Needs the Windows worker running (start-studio-docker.bat starts it); the token comes from .env (made by the worker).
+services:
+  studio:
+    build: .
+    image: autoedit-studio
+    container_name: autoedit-studio
+    ports:
+      - "127.0.0.1:5060:5060"        # only this PC; change to "5060:5060" to open it on your phone in the same wifi
+    environment:
+      AEV_WORKER_URL: http://host.docker.internal:5061
+      AEV_WORKER_TOKEN: ${AEV_WORKER_TOKEN:?start the worker once first (start-studio-docker.bat) so .env has the token}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped

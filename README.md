@@ -22,7 +22,9 @@ environment; see [setup/README.md](setup/README.md).
 1. Open **DaVinci Resolve Studio** (Preferences → System → General → *External scripting using: Local*, already set).
 2. Double-click **`autoedit.bat`** to open the dashboard in your browser.
    - Or in a terminal: `autoedit project "smoke"` (a project by name) or `autoedit run "C:\Users\Timon\Videos\Shoot"`.
-3. Or just tell Claude: *"start project smoke"* or *"maak een cine montage van smoke"*.
+3. Or use the website **AutoEdit Studio**: `start-studio.bat`, or `start-studio-docker.bat` for Docker Desktop
+   ([webapp/README.md](webapp/README.md)).
+4. Or just tell Claude: *"start project smoke"* or *"maak een cine montage van smoke"*.
 
 ## Edit a shoot
 ```

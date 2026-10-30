@@ -1,0 +1,4 @@
+# The image only needs the web app; never send footage, data or secrets to the Docker build.
+*
+!webapp/
+webapp/**/__pycache__

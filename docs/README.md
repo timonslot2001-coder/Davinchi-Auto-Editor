@@ -18,6 +18,7 @@ Timon's own channels come first; client work runs on a separate track so it neve
 ## I want to get something done (how-to)
 | question | open |
 |---|---|
+| Do everything from a website (also in Docker Desktop) | [webapp/README.md](../webapp/README.md) |
 | Edit a shoot into a TikTok/Reel or 16:9 video | [README.md](../README.md) → *Edit a shoot* |
 | Make a cine montage in the approved style | [VIDEO_EDITING_SYSTEM/README_START_HERE.md](../VIDEO_EDITING_SYSTEM/README_START_HERE.md) |
 | Re-edit a client's finished film (intro/outro, remove a shot, photo snaps) | [client_edits/README.md](../client_edits/README.md), [CLAUDE.md](../CLAUDE.md) → *Client films* |

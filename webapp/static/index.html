@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AutoEdit Studio</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23E70002'/><path d='M11 9l12 7-12 7z' fill='white'/></svg>">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="shell">
+  <aside class="side">
+    <a class="brand" href="#/"><span class="logo"></span><span>AutoEdit <b>Studio</b></span></a>
+    <nav>
+      <a href="#/" data-nav="home"><i>▦</i><span>Projecten</span></a>
+      <a href="#/queue" data-nav="queue"><i>⇪</i><span>Wachtrij</span></a>
+      <a href="#/music" data-nav="music"><i>♫</i><span>Muziek</span></a>
+      <a href="#/tools" data-nav="tools"><i>✦</i><span>Inzichten &amp; tools</span></a>
+      <a href="#/jobs" data-nav="jobs"><i>≡</i><span>Taken</span><em id="jobBadge" hidden></em></a>
+    </nav>
+    <div class="side-status" id="sideStatus"></div>
+  </aside>
+  <main id="main"><div class="loading">Laden…</div></main>
+</div>
+<div id="drawer" class="drawer" hidden>
+  <header><span id="drawerTitle"></span><span class="spacer"></span>
+    <button class="ghost sm" id="drawerCancel">Stop</button><button class="ghost sm" id="drawerClose">✕</button></header>
+  <pre id="drawerLog"></pre>
+</div>
+<div id="toasts"></div>
+<dialog id="dlg"><form method="dialog"><h3 id="dlgTitle"></h3><div id="dlgBody"></div>
+  <menu><button value="cancel" class="ghost">Annuleren</button><button value="ok" id="dlgOk">OK</button></menu></form></dialog>
+<script src="/static/app.js"></script>
+</body>
+</html>

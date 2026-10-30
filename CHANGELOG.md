@@ -3,6 +3,14 @@
 What changed, in words you would notice in an edit or on the PC. Newest first. Small fixes are folded into the day's
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
+## 2026-10-30 — AutoEdit Studio (website, Docker)
+- New website for all functions: projects, cine montage (plan, numbered shots with comment boxes, approve, render,
+  QA), AutoEdit builds in Resolve, AI shots (price first for paid models), posting queue, music, insights and tools,
+  with a live log per job. Works on a phone too. `start-studio.bat` runs it on this PC; `start-studio-docker.bat` runs
+  the website in Docker Desktop and the work on Windows through a worker, because Resolve, the GPU and the footage
+  are there. See [webapp/README.md](webapp/README.md).
+- Cine montage render: `brighten` per shot for a dark shot (used on the Beef Tartaar ending).
+
 ## 2026-10-30 — Grid Flow only once
 - New skill `juict-edit`: how a JUICT/client film is made (original intact, brand intro/outro, whole-beat cuts, photo snaps).
 - Cine montage: Grid Flow is used at most once per video (it was twice from 16 s), and not at all in cooking or

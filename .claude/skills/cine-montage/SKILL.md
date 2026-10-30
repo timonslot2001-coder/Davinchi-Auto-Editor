@@ -62,6 +62,11 @@ paced, not beat-locked (snapped to a strong onset only within 2 frames).
   two windows of one clip next to each other; merge such pairs into one longer shot before gate B. A run of shots
   where something changes (knife cutting further) can stay. Without Grid Flow (food) seed 1 had only 3 accents:
   compare a few seeds and pick one with ~5 spread accents and 0 warnings.
+  Timon's comments on v2 (numbered shot sheet worked well for feedback): the B&W shot of plain potatoes looked ugly -
+  use the moment where something happens (butter falling in) instead; a static plate → the tongs placing the tartare;
+  the end shots were ~20% darker than the rest → `params.brighten` (1.35) in the EDL; a card shot followed by the same
+  shot full frame reads as a cheap zoom → keep them as one full-frame shot. Before gate B, check that no card shot is
+  followed by its own clip.
 - 2026-10-28: `engine plan` ignored `song:` in project.yaml and took the first file in `music/`. A re-plan of Smoke
   Sesh would have used the Shanghai track instead of Austria. Fixed; always state the song and its source at gate B.
 - 2026-10-28: style checks on the approved Smoke Sesh plan flagged the AI drone shot as the title shot. The planner now

@@ -1,15 +1,18 @@
 # docker compose up -d --build   →  http://localhost:5060
-# Needs the Windows worker running (start-studio-docker.bat starts it); the token comes from .env (made by the worker).
+# The website runs here; the editing runs on the Windows PC with Resolve through its worker.
+#   Same PC:      start-studio-docker.bat (starts the worker and this container).
+#   Other PC (laptop): on the Resolve PC run start-worker-for-laptop.bat, put the address + token it shows in this
+#                 folder's .env (see .env.example), then: docker compose up -d --build
 services:
   studio:
     build: .
     image: autoedit-studio
     container_name: autoedit-studio
     ports:
-      - "127.0.0.1:5060:5060"        # only this PC; change to "5060:5060" to open it on your phone in the same wifi
+      - "${STUDIO_BIND:-127.0.0.1}:5060:5060"   # STUDIO_BIND=0.0.0.0 in .env to open it on your phone in the same wifi
     environment:
-      AEV_WORKER_URL: http://host.docker.internal:5061
-      AEV_WORKER_TOKEN: ${AEV_WORKER_TOKEN:?start the worker once first (start-studio-docker.bat) so .env has the token}
+      AEV_WORKER_URL: ${AEV_WORKER_URL:-http://host.docker.internal:5061}
+      AEV_WORKER_TOKEN: ${AEV_WORKER_TOKEN:?put the worker token in .env (start-worker-for-laptop.bat on the Resolve PC shows it)}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: unless-stopped

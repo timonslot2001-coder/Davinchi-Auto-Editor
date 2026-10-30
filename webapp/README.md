@@ -9,7 +9,24 @@ always do the same thing.
 | how | what runs where | open |
 |---|---|---|
 | `start-studio.bat` | everything on this PC | http://127.0.0.1:5060 |
-| `start-studio-docker.bat` | the website in Docker Desktop, the work on Windows through the worker | http://localhost:5060 |
+| `start-studio-docker.bat` | the website in Docker Desktop on the Resolve PC, the work through the worker | http://localhost:5060 |
+| `start-worker-for-laptop.bat` + `docker compose up -d --build` | the website in Docker on your laptop, the work on the Resolve PC | http://localhost:5060 on the laptop |
+
+### Docker on another computer (laptop)
+The website runs in Docker on the laptop; the editing still happens on the PC with Resolve and the footage.
+1. **On the Resolve PC:** double-click `start-worker-for-laptop.bat`. It shows two lines (`AEV_WORKER_URL=...` and
+   `AEV_WORKER_TOKEN=...`) and starts the worker. If Windows asks about the firewall, allow Python on *private*
+   networks only. Keep the window open.
+2. **On the laptop:** clone the repo, copy `.env.example` to `.env` and paste those two lines in (only the
+   `AEV_WORKER_*` and `STUDIO_BIND` lines matter there).
+3. **On the laptop**, in the repo folder:
+   ```
+   docker compose up -d --build
+   ```
+   Open http://localhost:5060. The sidebar shows "Docker → Windows-worker" in green when it reaches the PC.
+
+Both computers must be on the same network. If the laptop can not reach the worker: check that the PC window is
+still open, that the address is the PC's 192.168.x.x address, and that the firewall allows Python on private networks.
 
 Why the work stays on Windows: DaVinci Resolve (driven through its scripting API), the GPU for local AI (ComfyUI), the
 footage on I: and Edge for the title graphics are all on the Windows host. A Linux container can not drive Resolve.
@@ -28,6 +45,8 @@ the commands and serves the files.
   music, output, `data/`, and project `clips` links). It writes only `project.yaml`, `comments.json` and uploaded songs.
 - Every worker request needs `AEV_WORKER_TOKEN`. The worker makes it once and stores it in `.env` (never committed);
   `docker compose` reads it from there. The container gets only this token, no other secrets.
+- `start-worker-for-laptop.bat` opens the worker to your home network (needed for the laptop); every request still
+  needs the token. Close its window when you are done. The normal worker listens on 127.0.0.1 only.
 - The website listens on 127.0.0.1 only. To use it on your phone in the same wifi: start it with `--bind 0.0.0.0`
   (or set the compose port to `"5060:5060"`). There is no login, so only do that on your home network.
 

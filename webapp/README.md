@@ -42,7 +42,7 @@ the commands and serves the files.
 
 ## Safety
 - The worker only runs the commands in `host.ALLOWED` and only serves files inside the AutoEdit folders (projects,
-  music, output, `data/`, and project `clips` links). It writes only `project.yaml`, `comments.json` and uploaded songs.
+  music, output, `data/`, and project `clips` links). It writes only `<project>/project.yaml`, `<project>/cine_montage/comments.json` and uploaded songs.
 - Every worker request needs `AEV_WORKER_TOKEN`. The worker makes it once and stores it in `.env` (never committed);
   `docker compose` reads it from there. The container gets only this token, no other secrets.
 - `start-worker-for-laptop.bat` opens the worker to your home network (needed for the laptop); every request still

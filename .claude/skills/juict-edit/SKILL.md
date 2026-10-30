@@ -24,8 +24,8 @@ Python: `C:\Users\Timon\.aev\Scripts\python.exe`. Reference build: `client_edits
 `photos/photo_N.jpg` (for snaps). Ask Timon which shots to remove and where the snaps go if he has not said.
 
 ## Steps
-1. Copy `client_edits/juict_aftermovie/edit.py` to the project folder as `edit_v1.py`; point `PROJECT` and the cut list at
-   the new film. One `edit_v<N>.py` per round of feedback; never overwrite an export.
+1. Copy `client_edits/juict_aftermovie/edit.py` to the project folder as `edit_v<N>.py` (N = 1 to start); point
+   `PROJECT` and the cut list at the new film. One version per round of feedback; never overwrite an export.
 2. Start from the original. Change only what Timon names: brand intro instead of the opening card, outro instead of the
    end card, shots to remove, photo snaps. No subtitles, name cards or interview changes unless he asks.
 3. Remove footage in **whole beats** (beat grid from librosa) and cut picture and sound on the same frame; ~30 ms

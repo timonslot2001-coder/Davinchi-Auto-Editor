@@ -77,5 +77,13 @@ finally:
     offload._sha1 = real_sha1
 assert not (tmp / "out.jpg").exists() and not (tmp / "out.jpg.part").exists()
 
+# names that would leave the library or projects folder are refused
+for bad_name in ("..", ".", "a/b", "..\\x", ""):
+    try:
+        offload.offload(cfg, bad_name, "koken", cards=[card])
+        raise AssertionError(f"accepted {bad_name!r}")
+    except SystemExit:
+        pass
+
 shutil.rmtree(tmp)                           # junctions are removed as links, their targets are inside tmp anyway
 print("offload test ok")

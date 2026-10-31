@@ -169,6 +169,9 @@ def offload(cfg, name: str, kind: str = "inbox", since: str | None = None, cards
     """Copy everything new from the camera card(s) into <library>/<kind>/<date> <name>/1 Ruw/."""
     if kind not in KINDS:
         raise SystemExit(f"--soort must be one of: {', '.join(KINDS)}")
+    name = name.strip()
+    if not name or name[0] == "." or name[-1] == "." or any(c in name for c in '\\/:*?"<>|'):
+        raise SystemExit(f"'{name}' can not be a folder name (no \\ / : * ? \" < > |, no leading or trailing dot)")
     lib = library(cfg)
     if not lib.exists():
         raise SystemExit(f"Library {lib} not found. Is the SSD connected? (config.yaml → paths.library_folder)")

@@ -50,6 +50,11 @@ the commands and serves the files.
 - The website listens on 127.0.0.1 only. To use it on your phone in the same wifi: start it with `--bind 0.0.0.0`
   (or set the compose port to `"5060:5060"`). There is no login, so only do that on your home network.
 
+## Offload
+*SD-kaart offloaden* on the Projecten page runs `autoedit offload "<name>" --soort <soort>`: photos and videos from
+the camera card go to the SSD (`<Soort>\<date> <name>\1 Ruw`), checked, card untouched. The card and the SSD must be
+in the Resolve PC, because the worker does the copying. See the main [README](../README.md#offload-a-card-to-your-ssd).
+
 ## Shot comments
 On the cine montage tab every shot has a number and a comment box. *Opmerkingen opslaan* writes
 `<project>/cine_montage/comments.json` (`{"12": "eruit", ...}`); tell Claude to "verwerk de opmerkingen".

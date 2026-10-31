@@ -3,6 +3,13 @@
 What changed, in words you would notice in an edit or on the PC. Newest first. Small fixes are folded into the day's
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
+## 2026-10-31 — Offload to your SSD
+- New `autoedit offload "<shoot>" --soort koken` (and *SD-kaart offloaden* on the website): copies photos and videos
+  from the Sony and DJI card to Timon's SSD in one folder per shoot, `<Soort>\<date> <shoot>\1 Ruw | 2 Bewerkt |
+  3 Klaar om te posten`. Every file is checked, the card is never touched, and the project reads its clips from there.
+- The SSD is sorted that way now: Koken, Kleding, Smoken, Reizen, Klanten and `_Inbox` (Kas is waiting there to be
+  sorted). Beef Tartaar and Mongolie 2025 point to their new folders.
+
 ## 2026-10-30 — AutoEdit Studio (website, Docker)
 - New website for all functions: projects, cine montage (plan, numbered shots with comment boxes, approve, render,
   QA), AutoEdit builds in Resolve, AI shots (price first for paid models), posting queue, music, insights and tools,

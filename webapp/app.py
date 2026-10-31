@@ -120,6 +120,21 @@ def create(host=None) -> Flask:
         args = ["autoedit", "new", name] + (["--title", _text(b["title"], 80)] if b.get("title") else [])
         return job(args, f"Nieuw project: {name}", name)
 
+    @app.post("/api/offload")
+    def offload():
+        b = request.get_json() or {}
+        name = _text(b.get("name"), 80)
+        if not name or not re.fullmatch(r"[\w .,'&()\-]+", name):
+            raise ValueError("use letters, digits, spaces and - _ . , ' & ( ) in the name")
+        kind = b.get("soort") or "inbox"
+        if kind not in {"koken", "kleding", "smoken", "reizen", "klanten", "inbox"}:
+            raise ValueError("soort: koken, kleding, smoken, reizen, klanten or inbox")
+        since = _text(b.get("since"), 10)
+        if since and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", since):
+            raise ValueError("date as YYYY-MM-DD")
+        args = ["autoedit", "offload", name, "--soort", kind] + (["--since", since] if since else [])
+        return job(args, f"Offload: {name}", None if kind == "inbox" else name)
+
     @app.get("/api/projects/<name>")
     def project(name):
         return proj(name)

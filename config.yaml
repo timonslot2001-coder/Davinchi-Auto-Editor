@@ -5,6 +5,9 @@
 paths:
   # One folder per shoot: clips/ music/ exports/ project.yaml  (autoedit new "<name>")
   projects_folder: "C:/Users/Timon/Videos/AutoEdit Projects"
+  # Your photo/video library (Timon's SSD): <Koken|Kleding|Smoken|Reizen|Klanten|_Inbox>/<date> <shoot>/1 Ruw, 2 Bewerkt,
+  # 3 Klaar om te posten. `autoedit offload "<shoot>" --soort koken` fills it from the camera card.
+  library_folder: "I:/"
   # Drop folder: drop clips into a subfolder here and a rough cut is built automatically
   drop_folder: "C:/Users/Timon/Videos/AutoEdit Drop"
   output_folder: "C:/Users/Timon/Videos/AutoEdit Exports"

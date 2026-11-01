@@ -194,7 +194,15 @@ def mark(thread_id: str) -> None:
     HANDLED.parent.mkdir(parents=True, exist_ok=True)
     tmp = HANDLED.with_name(HANDLED.name + f".{os.getpid()}.tmp")
     tmp.write_text(json.dumps(ids[-KEEP:]), encoding="utf-8")
-    os.replace(tmp, HANDLED)                                     # never a half-written list
+    for attempt in range(20):                                    # never a half-written list
+        try:
+            os.replace(tmp, HANDLED)
+            return
+        except PermissionError:                                  # Windows: a scanner briefly holds the target open
+            if attempt == 19:
+                tmp.unlink(missing_ok=True)
+                raise HandledListError("afgehandeld-lijst is bezet: probeer het zo opnieuw") from None
+            time.sleep(0.05 * (attempt + 1))
 
 
 # ---------------------------------------------------------------- state for the Artifact db

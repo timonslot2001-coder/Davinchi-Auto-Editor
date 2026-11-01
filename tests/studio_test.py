@@ -245,8 +245,10 @@ assert studio.local_files("Zomer Shoot", "render") == {}
 (proj / "exports").mkdir()
 for stamp in ("20261101_1000", "20261101_1200"):
     (proj / "exports" / f"cine_montage_{stamp}.mp4").write_bytes(b"x")
-assert studio.local_files("Zomer Shoot", "plan") == {"sheet": str(work / "storyboard" / "storyboard_sheet.jpg")}
-assert studio.local_files("Zomer Shoot", "preview")["video"] == str(work / "preview.mp4")
+same = lambda a, b: Path(a).resolve() == Path(b).resolve()   # noqa: E731  (Windows short vs long temp names)
+lf = studio.local_files("Zomer Shoot", "plan")
+assert list(lf) == ["sheet"] and same(lf["sheet"], work / "storyboard" / "storyboard_sheet.jpg"), lf
+assert same(studio.local_files("Zomer Shoot", "preview")["video"], work / "preview.mp4")
 assert studio.local_files("Zomer Shoot", "render")["video"].endswith("cine_montage_20261101_1200.mp4")
 assert studio.local_files("Zomer Shoot", "qa") == {}
 print("studio test OK")

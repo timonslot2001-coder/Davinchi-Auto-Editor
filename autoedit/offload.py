@@ -20,6 +20,7 @@ import json
 import os
 import shutil
 import string
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -104,10 +105,14 @@ def copy_checked(src: Path, dst: Path) -> None:
     """Copy via a .part file, hashing the card while reading; compare with a hash of the copy, then rename."""
     part = dst.with_name(dst.name + ".part")
     h = hashlib.sha1()
-    with open(src, "rb") as a, open(part, "wb") as b:
-        while chunk := a.read(CHUNK):
-            h.update(chunk)
-            b.write(chunk)
+    try:
+        with open(src, "rb") as a, open(part, "wb") as b:
+            while chunk := a.read(CHUNK):
+                h.update(chunk)
+                b.write(chunk)
+    except OSError:
+        part.unlink(missing_ok=True)
+        raise
     if part.stat().st_size != src.stat().st_size or _sha1(part) != h.hexdigest():
         part.unlink()
         raise OSError(f"copy of {src.name} does not match the card; nothing kept, try again")
@@ -222,7 +227,17 @@ def offload(cfg, name: str, kind: str = "inbox", since: str | None = None, cards
         con.print(f"  {i}/{len(todo)}  {f.name} → {shoot.name[:10] + '/' if per_day else ''}{sub}/{dst.name}  "
                   f"({f.stat().st_size / 1e6:.0f} MB, "
                   f"{100 * done_bytes / max(total, 1):.0f}%)")
-        copy_checked(f, dst)
+        for attempt in range(1, 4):                       # a USB drive can hiccup for a moment
+            try:
+                copy_checked(f, dst)
+                break
+            except OSError as e:
+                ledger_path.write_text(json.dumps(ledger, indent=1), encoding="utf-8")
+                if attempt == 3:
+                    raise SystemExit(f"{f.name} failed 3 times ({e}). Check the card and the SSD, then run the same "
+                                     "offload again: what is already copied is skipped.")
+                con.print(f"[yellow]  {f.name}: {e}; trying again in {5 * attempt} s[/]")
+                time.sleep(5 * attempt)
         ledger[_key(f)] = str(dst)
         copied += 1
         done_bytes += f.stat().st_size

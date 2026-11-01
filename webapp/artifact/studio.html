@@ -142,6 +142,7 @@ a.btn:hover { background: var(--accent2); }
 .banner b { font-weight: 600; }
 #offline { margin-bottom: 16px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
 #offline .dot { align-self: center; }
+#demo { margin-bottom: 16px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; border-color: rgba(231,0,2,.4); }
 .empty { color: var(--muted); padding: 30px 16px; text-align: center; border: 1px dashed var(--line); border-radius: var(--r); }
 .why { font-size: 12px; color: var(--muted); }
 .why.warn { color: var(--warn); } .why.fail { color: var(--fail); }
@@ -237,6 +238,7 @@ video { width: 100%; border-radius: 10px; background: #000; display: block; }
   </aside>
   <main>
     <div id="offline" class="banner warn" hidden></div>
+    <div id="demo" class="banner" hidden></div>
     <div id="view"><div class="loading">Laden…</div></div>
   </main>
 </div>
@@ -384,7 +386,7 @@ function toast(msg, kind = "") {
 // ------------------------------------------------------------------ state
 const S = {
   db: null, comments: null, user: null,
-  projects: new Map(), projectsReady: false, jobs: [], pc: null,
+  projects: new Map(), projectsReady: false, jobs: [], pc: null, demo: false, real: { projects: new Map(), jobs: [] },
   dbNote: "", canSend: "onbekend", owner: null,
 };
 const drafts = new Map();               // per project id: grade draft, note, still index, split
@@ -413,7 +415,12 @@ function project(id) {
 }
 const projectList = () => [...S.projects.keys()].map(project).filter((p) => p && p.name)
   .sort((a, b) => (toDate(b.updated_at)?.getTime() || 0) - (toDate(a.updated_at)?.getTime() || 0) || a.name.localeCompare(b.name));
-const online = () => S.comments && S.canSend === "available" && S.owner !== false;
+const online = () => S.demo || (S.comments && S.canSend === "available" && S.owner !== false);
+function applyData() {
+  S.projects = S.demo ? DEMO.projects : S.real.projects;
+  S.jobs = (S.demo ? DEMO.jobs : S.real.jobs).slice()
+    .sort((a, b) => (toDate(b.started_at)?.getTime() || 0) - (toDate(a.started_at)?.getTime() || 0));
+}
 function offlineReason() {
   if (!S.comments) return "Opdrachten sturen werkt niet in deze weergave.";
   if (S.owner === false || S.canSend === "writers_only") return "Alleen de eigenaar kan opdrachten naar de PC sturen.";
@@ -459,13 +466,12 @@ async function start() {
   const fresh = (snap) => { if (!snap.metadata || !snap.metadata.fromCache) { loaded = true; clearTimeout(timer); S.dbNote = ""; } };
   const fail = (e) => { loaded = true; clearTimeout(timer); S.dbNote = "Gegevens niet te lezen (" + esc(e && e.code || "fout") + ")."; S.projectsReady = true; refresh(); };
   db.collection("projects").onSnapshot((snap) => {
-    S.projects = new Map(snap.docs.filter((d) => d.exists !== false).map((d) => [d.id, d.data() || {}]));
-    S.projectsReady = true; fresh(snap); refresh();
+    S.real.projects = new Map(snap.docs.filter((d) => d.exists !== false).map((d) => [d.id, d.data() || {}]));
+    S.projectsReady = true; fresh(snap); applyData(); refresh();
   }, fail);
   db.collection("jobs").onSnapshot((snap) => {
-    S.jobs = snap.docs.map((d) => ({ id: d.id, ...(d.data() || {}) }))
-      .sort((a, b) => (toDate(b.started_at)?.getTime() || 0) - (toDate(a.started_at)?.getTime() || 0));
-    refresh();
+    S.real.jobs = snap.docs.map((d) => ({ id: d.id, ...(d.data() || {}) }));
+    applyData(); refresh();
   }, () => {});
   db.doc("studio/pc").onSnapshot((snap) => { S.pc = snap.exists ? snap.data() || null : null; refresh(); }, () => {});
 }
@@ -491,6 +497,7 @@ async function send(btn, action, p, extra) {
   if (!online()) { toast(offlineReason(), "err"); return false; }
   const r = requestText(action, p.name, extra);
   if (r.error) { toast(r.error, "err"); return false; }
+  if (S.demo) { demoRun(action, p, extra); toast(ACT_NL[action] + ": demo, er gaat niets naar je PC.", "ok"); return true; }
   btn.disabled = true; btn.dataset.sending = "1";
   try {
     const anchor = await S.comments.anchorFor(btn);
@@ -511,6 +518,13 @@ function renderShell() {
   const off = $("#offline");
   const seen = S.pc && S.pc.seen_at ? ago(S.pc.seen_at) : "";
   off.hidden = online() || S.canSend === "onbekend";
+  const dm = $("#demo");
+  dm.hidden = !S.demo;
+  if (S.demo && !dm.childElementCount) {
+    dm.innerHTML = `<span class="tag red">Demo</span><span>Voorbeelddata: knoppen werken, maar er gaat niets naar je PC.</span>` +
+      `<span class="spacer"></span><button class="ghost sm" id="demoOff">Demo sluiten</button>`;
+    $("#demoOff").onclick = () => setDemo(false);
+  }
   if (!off.hidden) {
     const detail = !S.comments ? "Opdrachten sturen werkt niet in deze weergave."
       : S.owner === false || S.canSend === "writers_only" ? "Alleen de eigenaar kan opdrachten naar de PC sturen."
@@ -520,8 +534,9 @@ function renderShell() {
   }
   const busy = S.jobs.filter((j) => j.status === "bezig").length;
   const badge = $("#jobBadge"); badge.hidden = !busy; badge.textContent = busy;
-  const pcOn = S.canSend === "available";
-  $("#sideStatus").innerHTML = `<div title="${pcOn ? "PC-sessie luistert" : "PC-sessie niet bereikbaar"}"><span class="dot ${pcOn ? "on" : "off"}"></span><span class="short">PC</span><span class="full">${pcOn ? "PC-sessie luistert" : "PC-sessie niet bereikbaar"}</span></div>` +
+  const pcOn = S.canSend === "available" || S.demo;
+  const pcLabel = S.demo ? "Demo-modus" : pcOn ? "PC-sessie luistert" : "PC-sessie niet bereikbaar";
+  $("#sideStatus").innerHTML = `<div title="${pcLabel}"><span class="dot ${pcOn ? "on" : "off"}"></span><span class="short">${S.demo ? "Demo" : "PC"}</span><span class="full">${pcLabel}</span></div>` +
     (seen ? `<div class="full">laatst gezien ${esc(seen)}</div>` : "") +
     (S.pc && S.pc.host ? `<div class="full">${esc(S.pc.host)}</div>` : "") +
     (busy ? `<div title="${busy} ${busy === 1 ? "taak" : "taken"} bezig"><span class="dot busy"></span><span class="short">${busy}</span><span class="full">${busy} ${busy === 1 ? "taak" : "taken"} bezig</span></div>` : "");
@@ -546,6 +561,155 @@ function jobsStrip(el, projectName) {
   el.querySelectorAll("[data-job]").forEach((b) => (b.onclick = () => {
     openJob = openJob === b.dataset.job ? null : b.dataset.job; jobsStrip(el, projectName);
   }));
+}
+
+// ------------------------------------------------------------------ demo: sample projects, only in this browser
+// Lets Timon try the whole flow without the PC. Nothing is sent or written; the LUTs only approximate the real looks.
+const DEMO = { projects: new Map(), jobs: [], built: false, sheet: "" };
+const hex12 = () => Array.from({ length: 12 }, () => "0123456789abcdef"[Math.floor(Math.random() * 16)]).join("");
+function demoCube(fn) {
+  const n = 17, rows = ["LUT_3D_SIZE " + n], data = new Float32Array(n * n * n * 3);
+  let i = 0;
+  for (let b = 0; b < n; b++) for (let g = 0; g < n; g++) for (let r = 0; r < n; r++) {
+    const o = fn(r / (n - 1), g / (n - 1), b / (n - 1)).map(StudioMath.clamp01);
+    rows.push(o.map((v) => v.toFixed(4)).join(" ")); data.set(o, i); i += 3;
+  }
+  const url = URL.createObjectURL(new Blob([rows.join("\n")], { type: "text/plain" }));
+  (window.__lutCache = window.__lutCache || new Map()).set(url, Promise.resolve({ n, data }));
+  return url;
+}
+const luma = (r, g, b) => 0.2126 * r + 0.7152 * g + 0.0722 * b;
+function demoLook(q) {
+  return (r, g, b) => {
+    const l = luma(r, g, b);
+    let c = [r, g, b].map((v) => l + (v - l) * q.sat).map((v) => 0.5 + (v - 0.5) * q.con).map((v) => q.lift + v * (q.gain - q.lift));
+    c[0] += q.warm * (0.4 + 0.6 * l); c[2] -= q.warm * (0.4 + 0.6 * l);
+    c[2] += q.cool * (0.3 + 0.6 * (1 - l)); c[0] -= q.cool * 0.3;
+    return c;
+  };
+}
+const DEMO_LOOKS = {
+  reference_film: { sat: 0.95, con: 1.08, lift: 0.03, gain: 0.98, warm: 0.04, cool: 0.02 },
+  clean_warm: { sat: 1.08, con: 1.02, lift: 0.01, gain: 1.02, warm: 0.06, cool: 0 },
+  moody: { sat: 0.7, con: 1.15, lift: 0.02, gain: 0.88, warm: 0, cool: 0.05 },
+  daylight: { sat: 1.15, con: 1, lift: 0, gain: 1.05, warm: 0.03, cool: 0 },
+  blue_hour: { sat: 0.9, con: 1, lift: 0.03, gain: 0.95, warm: -0.02, cool: 0.09 },
+  vintage: { sat: 0.78, con: 0.9, lift: 0.08, gain: 0.94, warm: 0.07, cool: 0 },
+};
+function demoStill(kind) {
+  const c = document.createElement("canvas"); c.width = 960; c.height = 540;
+  const x = c.getContext("2d"), W = 960, H = 540;
+  const grad = (y0, y1, a, b) => { const g = x.createLinearGradient(0, y0, 0, y1); g.addColorStop(0, a); g.addColorStop(1, b); return g; };
+  const circle = (cx, cy, r, col) => { x.fillStyle = col; x.beginPath(); x.arc(cx, cy, r, 0, 7); x.fill(); };
+  const ell = (cx, cy, rx, ry, col) => { x.fillStyle = col; x.beginPath(); x.ellipse(cx, cy, rx, ry, 0, 0, 7); x.fill(); };
+  if (kind === "gerecht") {
+    x.fillStyle = grad(0, H, "#6b4a32", "#3a2618"); x.fillRect(0, 0, W, H);
+    ell(480, 290, 300, 190, "#e9e6e0"); ell(480, 290, 230, 140, "#f4f2ee");
+    ell(470, 285, 120, 80, "#8e2a22"); ell(470, 270, 70, 40, "#b8432f");
+    circle(520, 250, 22, "#e8b23c");
+    for (let i = 0; i < 14; i++) circle(380 + i * 14, 340 + (i % 3) * 8, 6, "#3f7d2e");
+    ell(150, 120, 60, 60, "#c9c2b5");
+  } else if (kind === "lucht") {
+    x.fillStyle = grad(0, H * 0.7, "#4f87c9", "#f3c58a"); x.fillRect(0, 0, W, H);
+    circle(700, 330, 70, "#ffe2a6");
+    x.fillStyle = "#2c3b2f"; x.beginPath(); x.moveTo(0, 400);
+    for (let i = 0; i <= 12; i++) x.lineTo(i * 80, 380 - Math.sin(i * 1.3) * 40 - (i % 4) * 10);
+    x.lineTo(W, H); x.lineTo(0, H); x.fill();
+    x.fillStyle = "#1b241d"; x.fillRect(0, 470, W, 70);
+  } else if (kind === "huid") {
+    x.fillStyle = grad(0, H, "#5d7a7c", "#2e3d40"); x.fillRect(0, 0, W, H);
+    ell(480, 560, 230, 170, "#3b3f4a");
+    ell(480, 260, 120, 150, "#d9a07c"); ell(480, 150, 135, 80, "#2a1d16");
+    circle(435, 255, 10, "#2a1d16"); circle(525, 255, 10, "#2a1d16");
+    ell(480, 335, 34, 12, "#b5604f");
+  } else {
+    x.fillStyle = grad(0, H, "#1d2233", "#0d0f16"); x.fillRect(0, 0, W, H);
+    for (let i = 0; i < 9; i++) { circle(80 + i * 110, 180 + (i % 2) * 40, 26, "#ffb75e"); circle(80 + i * 110, 180 + (i % 2) * 40, 60, "rgba(255,170,80,.18)"); }
+    x.fillStyle = "#24283a"; x.fillRect(0, 400, W, 140);
+    ell(480, 470, 220, 18, "rgba(255,170,80,.35)");
+  }
+  const img = x.getImageData(0, 0, W, H), d = img.data;          // flatten to look like ungraded S-Log3
+  for (let i = 0; i < d.length; i += 4) {
+    const l = luma(d[i], d[i + 1], d[i + 2]);
+    for (let k = 0; k < 3; k++) d[i + k] = 0.28 * 255 + (l + (d[i + k] - l) * 0.6) * 0.42;
+  }
+  x.putImageData(img, 0, 0);
+  return c.toDataURL("image/jpeg", 0.86);
+}
+function demoSheet(stills) {
+  const c = document.createElement("canvas"); c.width = 1280; c.height = 760;
+  const x = c.getContext("2d");
+  x.fillStyle = "#111318"; x.fillRect(0, 0, 1280, 760);
+  x.fillStyle = "#e9eaee"; x.font = "600 26px Inter, Segoe UI, sans-serif"; x.fillText("STORYBOARD · demo", 32, 48);
+  const imgs = stills.map((u) => { const im = new Image(); im.src = u; return im; });
+  return Promise.all(imgs.map((im) => im.decode().catch(() => {}))).then(() => {
+    for (let i = 0; i < 12; i++) {
+      const cx = 32 + (i % 4) * 307, cy = 76 + Math.floor(i / 4) * 224;
+      x.filter = "contrast(1.5) saturate(1.5)"; x.drawImage(imgs[i % imgs.length], cx, cy, 291, 164); x.filter = "none";
+      x.fillStyle = "#e70002"; x.fillRect(cx, cy, 34, 22);
+      x.fillStyle = "#fff"; x.font = "700 13px Inter, Segoe UI, sans-serif"; x.fillText(String(i + 1).padStart(2, "0"), cx + 8, cy + 16);
+      x.fillStyle = "#8b90a0"; x.font = "12px Inter, Segoe UI, sans-serif";
+      x.fillText((i * 2.6).toFixed(1).replace(".", ",") + " s · " + ["cut", "flash", "whip", "cut"][i % 4], cx, cy + 184);
+    }
+    return c.toDataURL("image/jpeg", 0.85);
+  });
+}
+async function buildDemo() {
+  const now = Date.now();
+  const st = { gerecht: demoStill("gerecht"), lucht: demoStill("lucht"), huid: demoStill("huid"), avond: demoStill("avond") };
+  const s = (k, label) => ({ url: st[k], is_log: true, label });
+  const conv = demoCube((r, g, b) => {
+    const l = luma(r, g, b);
+    return [r, g, b].map((v) => l + (v - l) * 1.6).map((v) => { const t = StudioMath.clamp01((v - 0.25) / 0.45); return t * t * (3 - 2 * t) * 0.96 + 0.02; });
+  });
+  const looks = {};
+  for (const k in DEMO_LOOKS) looks[k] = demoCube(demoLook(DEMO_LOOKS[k]));
+  const luts = { conv, looks };
+  DEMO.sheet = await demoSheet(Object.values(st));
+  const P = (id, d) => DEMO.projects.set(id, { luts, render: null, ...d });
+  P("beef-tartaar-v2", { name: "Beef Tartaar v2", updated_at: now - 6e5, stills: [s("gerecht", "gerecht"), s("huid", "huid"), s("avond", "avond")],
+    plan: { edl_sha1: hex12(), shots: 24, duration: 31.4, title: "BEEF TARTAAR", sheet_url: DEMO.sheet },
+    approval: { status: "approved", by: "Timon", at: now - 3e6, note: "ja, render zo", current: true, grade_current: false },
+    grade: { look: "moody", strength: 0.8, exposure: -1.75, key: hex12() } });
+  P("smoke-sesh", { name: "Smoke Sesh", updated_at: now - 8.64e7, stills: [s("avond", "avond"), s("huid", "huid")],
+    plan: { edl_sha1: hex12(), shots: 18, duration: 22, title: "SMOKE SESH", sheet_url: DEMO.sheet },
+    approval: { status: "approved", by: "Timon", at: now - 9e7, note: "top, zo houden", current: true, grade_current: true },
+    grade: { look: "reference_film", strength: 1, exposure: -1.75, key: hex12() },
+    render: { at: now - 8e7, review_url: DEMO.sheet, preview_url: null } });
+  P("parijs-weekend", { name: "Parijs weekend", updated_at: now - 3e8, stills: [s("lucht", "lucht"), s("avond", "avond"), s("huid", "huid")],
+    plan: null, approval: null, grade: { look: "daylight", strength: 0.9, exposure: -1.5, key: hex12() } });
+  P("kas", { name: "Kas", updated_at: now - 5e8, stills: [s("lucht", "lucht"), s("gerecht", "gerecht")], plan: null, approval: null, grade: {} });
+  DEMO.jobs = [
+    { id: "d1", project: "Beef Tartaar v2", action: "grade", status: "klaar", message: "Grade opgeslagen: Moody 80 %", started_at: now - 7e5, finished_at: now - 6.9e5 },
+    { id: "d2", project: "Smoke Sesh", action: "render", status: "fout", message: "Renderen: mislukt\nResolve was niet open. Open DaVinci Resolve en probeer opnieuw.", started_at: now - 9e6, finished_at: now - 8.9e6 },
+  ];
+  DEMO.built = true;
+}
+async function setDemo(on) {
+  if (on && !DEMO.built) { toast("Voorbeelddata maken…"); await buildDemo(); }
+  S.demo = on; applyData();
+  if (location.hash && location.hash !== "#/") location.hash = "#/"; else render();
+}
+function demoRun(action, p, extra) {
+  const raw = DEMO.projects.get(p.id), now = Date.now();
+  const job = { id: "d" + now, project: p.name, action, status: "bezig", message: "Demo: draait…", started_at: now };
+  DEMO.jobs.push(job); applyData(); refresh();
+  setTimeout(() => {
+    if (action === "grade") {
+      raw.grade = { look: extra.look, strength: extra.strength, exposure: extra.exposure, key: hex12() };
+      if (raw.approval) raw.approval.grade_current = false;
+    } else if (action === "plan") {
+      raw.plan = { edl_sha1: hex12(), shots: 14 + Math.floor(Math.random() * 12), duration: 18 + Math.random() * 14, title: p.name.toUpperCase(), sheet_url: DEMO.sheet };
+      if (raw.approval) raw.approval.current = false;
+    } else if (action === "goedkeuren") {
+      raw.approval = { status: "approved", by: "Timon", at: Date.now(), note: extra.note, current: true, grade_current: true };
+    } else if (action === "render") {
+      raw.render = { at: Date.now(), review_url: DEMO.sheet, preview_url: null };
+    }
+    raw.updated_at = Date.now();
+    Object.assign(job, { status: "klaar", finished_at: Date.now(), message: "Demo: " + ACT_NL[action] + " klaar." + (action === "preview" ? " (In de demo is er geen echte video.)" : "") });
+    applyData(); refresh();
+  }, 1600);
 }
 
 // ------------------------------------------------------------------ router
@@ -578,7 +742,10 @@ function homeView() {
         : (S.dbNote ? `<div class="banner warn" style="margin-bottom:16px">${S.dbNote}</div>` : "") +
           (list.length ? `<div class="grid projects">${list.map(pcard).join("")}</div>`
             : `<div class="empty"><div class="setup"><b>Nog geen projecten.</b> De Studio-sessie op je PC zet hier elk cine-montage-project neer.
-                ${online() ? "" : SETUP}</div></div>`);
+                ${online() ? "" : SETUP}
+                <div class="row" style="margin-top:14px"><button class="dark" id="demoOn">Bekijk met voorbeelddata</button></div></div></div>`);
+      const on = $("#demoOn");
+      if (on) on.onclick = () => setDemo(true);
     },
   };
 }

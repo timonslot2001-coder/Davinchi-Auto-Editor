@@ -12,6 +12,9 @@ entry; the full list is in `git log`. Hard-to-reverse choices also get a record 
   preview works. A grade change after approval needs a new approval.
 - New look: a dark grading-suite screen with glowing accents, viewfinder corners on the grade preview and a read-out
   of look, strength, exposure and LUT. Colours: ice blue and silver (IJs).
+- *Te doen* on Projecten lists what waits on you per project. On a computer the sidebar shows every project with its
+  next step and the latest jobs on the PC. Plan shows shots, length and seconds per shot; Renderen shows a checklist of
+  what must be approved first; Taken is a compact log you can open per job.
 - *Bekijk met voorbeelddata* fills the Studio with sample projects so you can try every step without the PC; nothing
   is sent or saved.
 

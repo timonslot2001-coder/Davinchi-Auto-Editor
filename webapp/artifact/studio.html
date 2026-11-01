@@ -266,12 +266,13 @@ pre.out { background: rgb(0 0 0 / .4); border: 1px solid var(--line); border-rad
 .chip.on, .chip.on:hover:not(:disabled) { border-color: var(--a1); background: rgb(var(--a1-rgb) / .08);
   box-shadow: 0 0 0 1px rgb(var(--a1-rgb) / .6), 0 0 22px -8px rgb(var(--a1-rgb) / .9); }
 /* each swatch runs shadows → highlights of that look */
-.chip[data-look="reference_film"] .sw { background: linear-gradient(135deg, #241c1f, #8d6c55 55%, #f1d6b0); }
-.chip[data-look="clean_warm"] .sw { background: linear-gradient(135deg, #2b211b, #c08e62 55%, #fff0d8); }
-.chip[data-look="moody"] .sw { background: linear-gradient(135deg, #0c1416, #3d4d50 55%, #a7b2ae); }
-.chip[data-look="daylight"] .sw { background: linear-gradient(135deg, #1b2532, #7ea8cc 55%, #fff3d2); }
-.chip[data-look="blue_hour"] .sw { background: linear-gradient(135deg, #0a1230, #3a5ca0 55%, #bcd3ff); }
-.chip[data-look="vintage"] .sw { background: linear-gradient(135deg, #3b2f27, #a28b6c 55%, #eedfbf); }
+.sw.look-reference_film { background: linear-gradient(135deg, #241c1f, #8d6c55 55%, #f1d6b0); }
+.sw.look-clean_warm { background: linear-gradient(135deg, #2b211b, #c08e62 55%, #fff0d8); }
+.sw.look-moody { background: linear-gradient(135deg, #0c1416, #3d4d50 55%, #a7b2ae); }
+.sw.look-daylight { background: linear-gradient(135deg, #1b2532, #7ea8cc 55%, #fff3d2); }
+.sw.look-blue_hour { background: linear-gradient(135deg, #0a1230, #3a5ca0 55%, #bcd3ff); }
+.sw.look-vintage { background: linear-gradient(135deg, #3b2f27, #a28b6c 55%, #eedfbf); }
+.pcard .img img.log { filter: contrast(1.3) saturate(1.35) brightness(.9); }
 .slider { display: grid; gap: 6px; }
 .slider .top { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--muted); }
 .slider .top b { color: var(--a1); font: 600 12px var(--mono); font-variant-numeric: tabular-nums; }
@@ -291,6 +292,63 @@ video { width: 100%; max-width: 100%; border-radius: 10px; background: #000; dis
 .toast.err::before { background: var(--fail); box-shadow: 0 0 10px var(--fail); }
 .toast.ok::before { background: var(--ok); box-shadow: 0 0 10px var(--ok); }
 
+/* sidebar: icons, the projects and live activity (desktop) */
+.side { overflow-y: auto; scrollbar-width: none; }
+nav a i { display: grid; place-items: center; }
+nav a i svg { width: 16px; height: 16px; display: block; fill: none; stroke: currentColor; stroke-width: 1.5;
+  stroke-linecap: round; stroke-linejoin: round; }
+.side-sec { display: flex; flex-direction: column; gap: 1px; }
+.side-sec:empty { display: none; }
+.side-h { font: 500 10px/1.3 var(--mono); text-transform: uppercase; letter-spacing: .16em; color: var(--dim); padding: 0 11px 7px; }
+.side-p, .side-j { display: flex; align-items: center; gap: 9px; padding: 6px 11px; border-radius: 8px; color: var(--muted);
+  font-size: 13px; min-width: 0; }
+.side-p:hover, .side-j:hover { background: var(--panel2); color: var(--text); }
+.side-p.on { color: var(--text); background: rgb(var(--a1-rgb) / .07); }
+.side-p .nm, .side-j .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.side-p .st, .side-j .t { font: 10.5px var(--mono); color: var(--dim); flex: none; }
+.side-status { padding: 10px 11px; border: 1px solid var(--line); border-radius: var(--r-sm); background: rgb(0 0 0 / .22); }
+.led { width: 7px; height: 7px; border-radius: 50%; flex: none; background: var(--dim); }
+.led.next { background: var(--a1); box-shadow: 0 0 8px rgb(var(--a1-rgb) / .9); }
+.led.klaar { background: var(--ok); box-shadow: 0 0 8px rgb(var(--ok-rgb) / .8); }
+.led.bezig { background: var(--warn); box-shadow: 0 0 8px rgb(var(--warn-rgb) / .9); animation: blink 1.4s ease-in-out infinite; }
+.led.fout { background: var(--fail); box-shadow: 0 0 8px rgb(var(--fail-rgb) / .8); }
+@media (min-width: 901px) { main .jobs, main .jobmsg { display: none !important; } }
+
+/* home: what waits on Timon, before the project grid */
+.todo { margin-bottom: 26px; }
+.todo-row { display: grid; grid-template-columns: auto minmax(0, 200px) minmax(0, 1fr) auto; align-items: center; gap: 4px 12px;
+  padding: 11px 2px; }
+.todo-row + .todo-row { border-top: 1px solid var(--line); }
+.todo-row .nm { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.todo-row .what { color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.todo-row .go { font: 500 10.5px var(--mono); color: var(--a1); text-transform: uppercase; letter-spacing: .1em; white-space: nowrap; }
+.todo-row:hover .nm { color: var(--a1); }
+
+/* plan facts, render gates, the jobs log */
+.specs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line);
+  border-radius: var(--r-sm); overflow: hidden; }
+.specs > div { background: var(--panel-solid); padding: 10px 12px; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.specs span { font: 10px/1.3 var(--mono); text-transform: uppercase; letter-spacing: .14em; color: var(--muted); }
+.specs b { font: 600 19px/1.2 var(--display); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.gates { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+.gates li { display: flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--muted); }
+.gates li i { width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; flex: none; font: 600 11px var(--mono);
+  font-style: normal; border: 1px solid var(--line2); color: var(--dim); }
+.gates li.ok { color: var(--text); }
+.gates li.ok i { border-color: rgb(var(--ok-rgb) / .6); color: var(--ok); background: rgb(var(--ok-rgb) / .1); }
+.gates li.wait i { border-color: rgb(var(--warn-rgb) / .55); color: var(--warn); background: rgb(var(--warn-rgb) / .07); }
+.jlist { padding-block: 4px; }
+.jrow + .jrow { border-top: 1px solid var(--line); }
+.jrow summary { display: flex; align-items: center; gap: 10px; padding: 12px 0; cursor: pointer; list-style: none; min-width: 0; }
+.jrow summary::-webkit-details-marker { display: none; }
+.jrow summary b { font-weight: 600; white-space: nowrap; }
+.jrow summary .p { color: var(--muted); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.jrow summary .t { margin-left: auto; font: 11px var(--mono); color: var(--dim); white-space: nowrap; }
+.jrow pre.out { margin: 0 0 12px; }
+.mini-sheet { width: 100%; max-width: 100%; display: block; border-radius: 8px; border: 1px solid var(--line); }
+.sw { box-shadow: inset 0 0 0 1px rgb(255 255 255 / .14); }
+.kv .sw { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; margin-right: 7px; }
+
 @media (max-width: 900px) {
   .shell { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
   .side { position: sticky; top: env(safe-area-inset-top, 0px); height: auto; flex-direction: row; align-items: center; z-index: 10;
@@ -308,6 +366,11 @@ video { width: 100%; max-width: 100%; border-radius: 10px; background: #000; dis
 @media (max-width: 480px) { nav a span { display: none; } .card { padding: 14px; }
   .steps a:not(.on) span { display: none; } .steps a { gap: 6px; padding-right: 4px; } .steps a + a { padding-left: 4px; }
   .steps a + a::before { width: 10px; margin-right: 0; } }
+@media (max-width: 900px) { .side-sec { display: none; } .side-status { padding: 0; border: 0; background: none; } }
+@media (max-width: 600px) {
+  .todo-row { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .todo-row .go { grid-column: 3; grid-row: 1; } .todo-row .what { grid-column: 2 / 4; grid-row: 2; white-space: normal; }
+  .specs b { font-size: 16px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -319,9 +382,11 @@ video { width: 100%; max-width: 100%; border-radius: 10px; background: #000; dis
   <aside class="side">
     <a class="brand" href="#/"><span class="logo"></span><span>AutoEdit <b>Studio</b></span></a>
     <nav>
-      <a href="#/" data-nav="home"><i>▦</i><span>Projecten</span></a>
-      <a href="#/taken" data-nav="taken"><i>≡</i><span>Taken</span><em id="jobBadge" hidden></em></a>
+      <a href="#/" data-nav="home"><i><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2" width="5" height="5" rx="1.2"/><rect x="9" y="2" width="5" height="5" rx="1.2"/><rect x="2" y="9" width="5" height="5" rx="1.2"/><rect x="9" y="9" width="5" height="5" rx="1.2"/></svg></i><span>Projecten</span></a>
+      <a href="#/taken" data-nav="taken"><i><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 8.5h3l2-5 3 9 2-4h3"/></svg></i><span>Taken</span><em id="jobBadge" hidden></em></a>
     </nav>
+    <div class="side-sec" id="sideProjects"></div>
+    <div class="side-sec" id="sideActivity"></div>
     <div class="side-status" id="sideStatus"><div><span class="dot"></span><span class="full">PC: onbekend</span></div></div>
   </aside>
   <main>
@@ -628,6 +693,34 @@ function renderShell() {
     (seen ? `<div class="full">laatst gezien ${esc(seen)}</div>` : "") +
     (S.pc && S.pc.host ? `<div class="full">${esc(S.pc.host)}</div>` : "") +
     (busy ? `<div title="${busy} ${busy === 1 ? "taak" : "taken"} bezig"><span class="dot busy"></span><span class="short">${busy}</span><span class="full">${busy} ${busy === 1 ? "taak" : "taken"} bezig</span></div>` : "");
+  renderSide();
+}
+function short(v) {
+  const d = toDate(v);
+  if (!d) return "";
+  const s = Math.round((Date.now() - d.getTime()) / 1000);
+  if (s < 60) return "nu";
+  if (s < 3600) return Math.round(s / 60) + " min";
+  if (s < 86400) return Math.round(s / 3600) + " u";
+  return d.toLocaleDateString("nl-NL", { day: "numeric", month: "short" });
+}
+// Desktop sidebar: every project with what it waits for, and the last jobs on the PC.
+function renderSide() {
+  let cur = "";
+  if (location.hash.startsWith("#/p/")) { try { cur = decodeURIComponent(location.hash.split("/")[2] || ""); } catch (e) { cur = ""; } }
+  const list = projectList();
+  $("#sideProjects").innerHTML = list.length ? `<div class="side-h">Projecten</div>` + list.slice(0, 8).map((p) => {
+    const f = flow(p), busy = S.jobs.some((j) => j.status === "bezig" && j.project === p.name);
+    const led = busy ? "bezig" : f.next.ok ? "klaar" : "next";
+    const what = busy ? "bezig" : f.next.ok ? "klaar" : TABS.find(([k]) => k === f.next.tab)[1].toLowerCase();
+    return `<a class="side-p${p.id === cur ? " on" : ""}" href="#/p/${enc(p.id)}/${f.next.tab}"><span class="led ${led}"></span>` +
+      `<span class="nm">${esc(p.name)}</span><span class="st">${esc(what)}</span></a>`;
+  }).join("") : "";
+  $("#sideActivity").innerHTML = S.jobs.length ? `<div class="side-h">Activiteit</div>` + S.jobs.slice(0, 5).map((j) => {
+    const st = JOB_NL[j.status] ? j.status : "bezig";
+    return `<a class="side-j" href="#/taken" title="${esc(j.message || "")}"><span class="led ${st}"></span>` +
+      `<span class="nm">${esc(ACT_NL[j.action] || j.action || "taak")} · ${esc(j.project || "")}</span><span class="t">${esc(short(j.finished_at || j.started_at))}</span></a>`;
+  }).join("") : "";
 }
 let openJob = null;
 function jobsStrip(el, projectName) {
@@ -684,42 +777,76 @@ const DEMO_LOOKS = {
   blue_hour: { sat: 0.9, con: 1, lift: 0.03, gain: 0.95, warm: -0.02, cool: 0.09 },
   vintage: { sat: 0.78, con: 0.9, lift: 0.08, gain: 0.94, warm: 0.07, cool: 0 },
 };
+// Cinematic sample frames, drawn once: shallow depth of field, bokeh, backlight, a lens vignette and grain,
+// then flattened to look like Timon's ungraded S-Log3 so the grade preview has real work to do.
 function demoStill(kind) {
   const c = document.createElement("canvas"); c.width = 960; c.height = 540;
-  const x = c.getContext("2d"), W = 960, H = 540;
-  const grad = (y0, y1, a, b) => { const g = x.createLinearGradient(0, y0, 0, y1); g.addColorStop(0, a); g.addColorStop(1, b); return g; };
-  const circle = (cx, cy, r, col) => { x.fillStyle = col; x.beginPath(); x.arc(cx, cy, r, 0, 7); x.fill(); };
-  const ell = (cx, cy, rx, ry, col) => { x.fillStyle = col; x.beginPath(); x.ellipse(cx, cy, rx, ry, 0, 0, 7); x.fill(); };
+  const x = c.getContext("2d"), W = 960, H = 540, TAU = Math.PI * 2;
+  let seed = { gerecht: 7, lucht: 11, tegenlicht: 23, nacht: 42 }[kind] || 1;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const lin = (x0, y0, x1, y1, stops) => { const g = x.createLinearGradient(x0, y0, x1, y1); stops.forEach(([o, col]) => g.addColorStop(o, col)); return g; };
+  const rad = (cx, cy, r, stops) => { const g = x.createRadialGradient(cx, cy, 0, cx, cy, r); stops.forEach(([o, col]) => g.addColorStop(o, col)); return g; };
+  const ell = (cx, cy, rx, ry, fill) => { x.fillStyle = fill; x.beginPath(); x.ellipse(cx, cy, rx, ry, 0, 0, TAU); x.fill(); };
+  const soft = (px, fn) => { x.save(); x.filter = `blur(${px}px)`; fn(); x.restore(); };
   if (kind === "gerecht") {
-    x.fillStyle = grad(0, H, "#6b4a32", "#3a2618"); x.fillRect(0, 0, W, H);
-    ell(480, 290, 300, 190, "#e9e6e0"); ell(480, 290, 230, 140, "#f4f2ee");
-    ell(470, 285, 120, 80, "#8e2a22"); ell(470, 270, 70, 40, "#b8432f");
-    circle(520, 250, 22, "#e8b23c");
-    for (let i = 0; i < 14; i++) circle(380 + i * 14, 340 + (i % 3) * 8, 6, "#3f7d2e");
-    ell(150, 120, 60, 60, "#c9c2b5");
+    x.fillStyle = rad(300, 90, 900, [[0, "#6d5038"], [0.45, "#33251b"], [1, "#0e0a08"]]); x.fillRect(0, 0, W, H);
+    x.globalAlpha = 0.07;
+    for (let i = 0; i < 40; i++) { x.fillStyle = i % 2 ? "#000" : "#c79a6b"; x.fillRect(0, i * 14 + Math.sin(i) * 4, W, 2 + rnd() * 3); }
+    x.globalAlpha = 1;
+    soft(16, () => { for (let i = 0; i < 6; i++) { const r = 16 + rnd() * 26; ell(760 + rnd() * 180, 60 + rnd() * 120, r, r, "rgba(255,196,128,.45)"); } });
+    soft(22, () => ell(510, 330, 300, 140, "rgba(0,0,0,.7)"));
+    ell(480, 290, 290, 158, lin(0, 140, 0, 450, [[0, "#f6f2ec"], [1, "#b9b1a5"]]));
+    ell(480, 292, 222, 116, lin(0, 180, 0, 410, [[0, "#ebe6de"], [1, "#d3ccc1"]]));
+    soft(6, () => ell(478, 300, 118, 70, "rgba(60,20,12,.55)"));
+    ell(470, 284, 112, 66, rad(450, 260, 130, [[0, "#d0574a"], [0.55, "#9b2e25"], [1, "#5c1611"]]));
+    for (let i = 0; i < 900; i++) {
+      const a = rnd() * TAU, r = Math.sqrt(rnd());
+      x.fillStyle = rnd() < 0.5 ? "rgba(255,190,170,.28)" : "rgba(50,8,6,.35)";
+      x.fillRect(470 + Math.cos(a) * r * 104, 284 + Math.sin(a) * r * 60, 2, 2);
+    }
+    ell(498, 262, 27, 25, rad(490, 252, 32, [[0, "#ffe9a8"], [0.55, "#f3b02a"], [1, "#b8700e"]]));
+    ell(490, 254, 7, 5, "rgba(255,255,255,.75)");
+    for (let i = 0; i < 26; i++) {
+      const a = rnd() * TAU;
+      ell(470 + Math.cos(a) * (60 + rnd() * 50), 284 + Math.sin(a) * (34 + rnd() * 30), 4 + rnd() * 3, 2 + rnd() * 2, rnd() < 0.5 ? "#3f7f2c" : "#5fa043");
+    }
   } else if (kind === "lucht") {
-    x.fillStyle = grad(0, H * 0.7, "#4f87c9", "#f3c58a"); x.fillRect(0, 0, W, H);
-    circle(700, 330, 70, "#ffe2a6");
-    x.fillStyle = "#2c3b2f"; x.beginPath(); x.moveTo(0, 400);
-    for (let i = 0; i <= 12; i++) x.lineTo(i * 80, 380 - Math.sin(i * 1.3) * 40 - (i % 4) * 10);
-    x.lineTo(W, H); x.lineTo(0, H); x.fill();
-    x.fillStyle = "#1b241d"; x.fillRect(0, 470, W, 70);
-  } else if (kind === "huid") {
-    x.fillStyle = grad(0, H, "#5d7a7c", "#2e3d40"); x.fillRect(0, 0, W, H);
-    ell(480, 560, 230, 170, "#3b3f4a");
-    ell(480, 260, 120, 150, "#d9a07c"); ell(480, 150, 135, 80, "#2a1d16");
-    circle(435, 255, 10, "#2a1d16"); circle(525, 255, 10, "#2a1d16");
-    ell(480, 335, 34, 12, "#b5604f");
+    x.fillStyle = lin(0, 0, 0, H, [[0, "#1c2f55"], [0.38, "#a2587a"], [0.6, "#f08a5d"], [0.72, "#ffc98b"], [1, "#ffd9a8"]]); x.fillRect(0, 0, W, H);
+    x.fillStyle = rad(640, 330, 260, [[0, "rgba(255,244,214,1)"], [0.12, "rgba(255,226,170,.95)"], [0.4, "rgba(255,170,110,.35)"], [1, "rgba(255,150,100,0)"]]);
+    x.fillRect(0, 0, W, H);
+    soft(10, () => { for (let i = 0; i < 7; i++) ell(rnd() * W, 60 + rnd() * 170, 90 + rnd() * 160, 10 + rnd() * 16, `rgba(${200 + rnd() * 55 | 0},${130 + rnd() * 60 | 0},${140 + rnd() * 40 | 0},.45)`); });
+    const ridge = (base, amp, freq, phase, col, blur) => soft(blur, () => {
+      x.fillStyle = col; x.beginPath(); x.moveTo(0, H);
+      for (let px = 0; px <= W; px += 8) x.lineTo(px, base - Math.sin(px * freq + phase) * amp - Math.sin(px * freq * 2.7 + phase * 2) * amp * 0.35);
+      x.lineTo(W, H); x.closePath(); x.fill();
+    });
+    ridge(360, 34, 0.006, 1.2, "rgba(150,95,120,.85)", 2);
+    ridge(395, 42, 0.008, 3.1, "rgba(95,62,88,.92)", 1);
+    ridge(430, 38, 0.011, 0.4, "#3a2a3e", 0.5);
+    ridge(470, 30, 0.014, 2.2, "#1d1622", 0);
+  } else if (kind === "tegenlicht") {
+    x.fillStyle = lin(0, 0, W, 0, [[0, "#1a1c22"], [0.55, "#6b6f78"], [1, "#e9e3d6"]]); x.fillRect(0, 0, W, H);
+    x.fillStyle = rad(860, 200, 520, [[0, "rgba(255,240,215,.95)"], [0.35, "rgba(255,226,190,.35)"], [1, "rgba(255,220,180,0)"]]); x.fillRect(0, 0, W, H);
+    soft(18, () => { for (let i = 0; i < 9; i++) { const r = 18 + rnd() * 34; ell(600 + rnd() * 340, 40 + rnd() * 460, r, r, `rgba(255,${210 + rnd() * 40 | 0},${170 + rnd() * 50 | 0},.35)`); } });
+    const sil = () => {
+      x.beginPath(); x.ellipse(430, 215, 78, 96, -0.08, 0, TAU);
+      x.moveTo(250, H); x.bezierCurveTo(255, 400, 330, 330, 420, 318); x.bezierCurveTo(520, 318, 600, 380, 620, H); x.closePath();
+    };
+    soft(10, () => { x.fillStyle = "rgba(255,214,160,.85)"; sil(); x.fill(); });       // rim light around the figure
+    x.save(); x.translate(-5, 2); x.fillStyle = "#121318"; sil(); x.fill(); x.restore();
   } else {
-    x.fillStyle = grad(0, H, "#1d2233", "#0d0f16"); x.fillRect(0, 0, W, H);
-    for (let i = 0; i < 9; i++) { circle(80 + i * 110, 180 + (i % 2) * 40, 26, "#ffb75e"); circle(80 + i * 110, 180 + (i % 2) * 40, 60, "rgba(255,170,80,.18)"); }
-    x.fillStyle = "#24283a"; x.fillRect(0, 400, W, 140);
-    ell(480, 470, 220, 18, "rgba(255,170,80,.35)");
+    x.fillStyle = lin(0, 0, 0, H, [[0, "#070b18"], [0.55, "#121a33"], [1, "#05070d"]]); x.fillRect(0, 0, W, H);
+    const cols = ["255,176,90", "255,120,80", "120,200,255", "255,220,150", "220,90,140"];
+    soft(14, () => { for (let i = 0; i < 46; i++) { const r = 10 + rnd() * 34; ell(rnd() * W, 60 + rnd() * 300, r, r, `rgba(${cols[i % cols.length]},${(0.25 + rnd() * 0.45).toFixed(2)})`); } });
+    soft(3, () => { for (let i = 0; i < 18; i++) { const r = 3 + rnd() * 6; ell(rnd() * W, 80 + rnd() * 260, r, r, `rgba(${cols[i % cols.length]},.9)`); } });
+    x.fillStyle = lin(0, 380, 0, H, [[0, "#0d1120"], [1, "#05060a"]]); x.fillRect(0, 380, W, H - 380);
+    soft(6, () => { for (let i = 0; i < 26; i++) { x.fillStyle = `rgba(${cols[i % cols.length]},.28)`; x.fillRect(rnd() * W, 390, 4 + rnd() * 10, 80 + rnd() * 70); } });
   }
-  const img = x.getImageData(0, 0, W, H), d = img.data;          // flat and bright, like Timon's ungraded S-Log3
+  x.fillStyle = rad(W / 2, H / 2, 640, [[0.55, "rgba(0,0,0,0)"], [1, "rgba(0,0,0,.6)"]]); x.fillRect(0, 0, W, H);
+  const img = x.getImageData(0, 0, W, H), d = img.data;          // flat and bright, like Timon's ungraded S-Log3, plus grain
   for (let i = 0; i < d.length; i += 4) {
-    const l = luma(d[i], d[i + 1], d[i + 2]);
-    for (let k = 0; k < 3; k++) d[i + k] = 0.4 * 255 + (l + (d[i + k] - l) * 0.6) * 0.38;
+    const l = luma(d[i], d[i + 1], d[i + 2]), n = (rnd() - 0.5) * 7;
+    for (let k = 0; k < 3; k++) d[i + k] = 0.4 * 255 + (l + (d[i + k] - l) * 0.6) * 0.38 + n;
   }
   x.putImageData(img, 0, 0);
   return c.toDataURL("image/jpeg", 0.86);
@@ -745,7 +872,7 @@ function demoSheet(stills) {
 }
 async function buildDemo() {
   const now = Date.now();
-  const st = { gerecht: demoStill("gerecht"), lucht: demoStill("lucht"), huid: demoStill("huid"), avond: demoStill("avond") };
+  const st = { gerecht: demoStill("gerecht"), lucht: demoStill("lucht"), tegenlicht: demoStill("tegenlicht"), nacht: demoStill("nacht") };
   const s = (k, label) => ({ url: st[k], is_log: true, label });
   const conv = demoCube((r, g, b) => {
     const l = luma(r, g, b);
@@ -756,16 +883,16 @@ async function buildDemo() {
   const luts = { conv, looks };
   DEMO.sheet = await demoSheet(Object.values(st));
   const P = (id, d) => DEMO.projects.set(id, { luts, render: null, ...d });
-  P("beef-tartaar-v2", { name: "Beef Tartaar v2", updated_at: now - 6e5, stills: [s("gerecht", "gerecht"), s("huid", "huid"), s("avond", "avond")],
+  P("beef-tartaar-v2", { name: "Beef Tartaar v2", updated_at: now - 6e5, stills: [s("gerecht", "gerecht"), s("tegenlicht", "tegenlicht"), s("nacht", "nacht")],
     plan: { edl_sha1: hex12(), shots: 24, duration: 31.4, title: "BEEF TARTAAR", sheet_url: DEMO.sheet },
     approval: { status: "approved", by: "Timon", at: now - 3e6, note: "ja, render zo", current: true, grade_current: false },
     grade: { look: "moody", strength: 0.8, exposure: -1.75, key: hex12() } });
-  P("smoke-sesh", { name: "Smoke Sesh", updated_at: now - 8.64e7, stills: [s("avond", "avond"), s("huid", "huid")],
+  P("smoke-sesh", { name: "Smoke Sesh", updated_at: now - 8.64e7, stills: [s("nacht", "nacht"), s("tegenlicht", "tegenlicht")],
     plan: { edl_sha1: hex12(), shots: 18, duration: 22, title: "SMOKE SESH", sheet_url: DEMO.sheet },
     approval: { status: "approved", by: "Timon", at: now - 9e7, note: "top, zo houden", current: true, grade_current: true },
     grade: { look: "reference_film", strength: 1, exposure: -1.75, key: hex12() },
     render: { at: now - 8e7, review_url: DEMO.sheet, preview_url: null } });
-  P("parijs-weekend", { name: "Parijs weekend", updated_at: now - 3e8, stills: [s("lucht", "lucht"), s("avond", "avond"), s("huid", "huid")],
+  P("parijs-weekend", { name: "Parijs weekend", updated_at: now - 3e8, stills: [s("lucht", "lucht"), s("nacht", "nacht"), s("tegenlicht", "tegenlicht")],
     plan: null, approval: null, grade: { look: "daylight", strength: 0.9, exposure: -1.5, key: hex12() } });
   P("kas", { name: "Kas", updated_at: now - 5e8, stills: [s("lucht", "lucht"), s("gerecht", "gerecht")], plan: null, approval: null, grade: {} });
   DEMO.jobs = [
@@ -827,9 +954,14 @@ function homeView() {
     update() {
       jobsStrip($("#jobs"), null);
       const list = projectList();
+      const todo = list.map((p) => [p, flow(p)]).filter(([, f]) => !f.next.ok);
+      const todoHtml = `<div class="card todo"><h2>Te doen</h2>${todo.length ? todo.map(([p, f]) =>
+        `<a class="todo-row" href="#/p/${enc(p.id)}/${f.next.tab}"><span class="led next"></span><span class="nm">${esc(p.name)}</span>` +
+        `<span class="what">${esc(f.next.text)}</span><span class="go">${esc(TABS.find(([k]) => k === f.next.tab)[1])} →</span></a>`).join("")
+        : '<div class="muted">Niets wacht op jou: alle projecten zijn gerenderd.</div>'}</div>`;
       $("#list").innerHTML = !S.projectsReady ? '<div class="loading">Projecten laden…</div>'
         : (S.dbNote ? `<div class="banner warn" style="margin-bottom:16px">${S.dbNote}</div>` : "") +
-          (list.length ? `<div class="grid projects">${list.map(pcard).join("")}</div>`
+          (list.length ? todoHtml + `<h2>Alle projecten</h2><div class="grid projects">${list.map(pcard).join("")}</div>`
             : `<div class="empty"><div class="setup"><b>Nog geen projecten.</b> De Studio-sessie op je PC zet hier elk cine-montage-project neer.
                 ${online() ? "" : SETUP}
                 <div class="row" style="margin-top:14px"><button class="dark" id="demoOn">Bekijk met voorbeelddata</button></div></div></div>`);
@@ -840,10 +972,10 @@ function homeView() {
 }
 function pcard(p) {
   const f = flow(p);
-  const thumb = p.stills[0] ? p.stills[0].url : (p.render && safeUrl(p.render.review_url)) || "";
+  const st0 = p.stills[0], thumb = st0 ? st0.url : (p.render && safeUrl(p.render.review_url)) || "";
   const g = p.grade || {};
   return `<a class="pcard" href="#/p/${enc(p.id)}/${f.next.tab}">
-    <div class="img">${thumb ? `<img src="${esc(thumb)}" alt="" loading="lazy">` : "▶"}</div>
+    <div class="img">${thumb ? `<img src="${esc(thumb)}" alt=""${st0 && st0.is_log ? ' class="log"' : ""} loading="lazy">` : "▶"}</div>
     <div class="body"><div class="name">${esc(p.name)}</div>
       <div class="row" style="gap:6px">${p.plan ? `<span class="tag">${+p.plan.shots || 0} shots</span>` : '<span class="tag">geen plan</span>'}
         ${g.look ? `<span class="tag">${esc(lookName(g.look))}</span>` : ""}
@@ -857,15 +989,19 @@ function pcard(p) {
 function jobsView() {
   const v = $("#view");
   v.innerHTML = `<div class="head"><div><div class="crumb"><a href="#/">AutoEdit Studio</a></div><h1>Taken</h1></div></div><div id="jl"></div>`;
+  const open = new Set();                        // rows Timon opened stay open across live updates
+  const clock = (t) => { const d = toDate(t); return d ? d.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" }) : ""; };
   return {
     update() {
-      $("#jl").innerHTML = S.jobs.length ? `<div class="jobs-list">${S.jobs.slice(0, 50).map((j) => {
+      $("#jl").innerHTML = S.jobs.length ? `<div class="card jlist">${S.jobs.slice(0, 50).map((j) => {
         const st = JOB_NL[j.status] ? j.status : "bezig";
-        return `<div class="card"><div class="row"><span class="tag ${st === "klaar" ? "ok" : st === "fout" ? "fail" : "warn"}">${esc(JOB_NL[st])}</span>
-          <b>${esc(ACT_NL[j.action] || j.action || "taak")}</b><span class="muted">${esc(j.project || "")}</span><span class="spacer"></span>
-          <span class="muted small">${esc(when(j.started_at))}${j.finished_at ? " → " + esc(when(j.finished_at)) : ""}</span></div>
-          ${j.message ? `<pre class="out">${esc(j.message)}</pre>` : ""}</div>`;
-      }).join("")}</div>` : '<div class="empty">Nog geen taken.</div>';
+        return `<details class="jrow" data-id="${esc(j.id)}"${open.has(j.id) ? " open" : ""}><summary><span class="led ${st}"></span>` +
+          `<b>${esc(ACT_NL[j.action] || j.action || "taak")}</b><span class="p">${esc(j.project || "")}</span>` +
+          `<span class="tag ${st === "klaar" ? "ok" : st === "fout" ? "fail" : "warn"}">${esc(JOB_NL[st])}</span>` +
+          `<span class="t">${esc(when(j.started_at))}${j.finished_at ? " → " + esc(clock(j.finished_at)) : ""}</span></summary>` +
+          `<pre class="out">${esc(j.message || "Nog geen bericht van de PC.")}</pre></details>`;
+      }).join("")}</div>` : '<div class="empty">Nog geen taken. Elke knop die je indrukt, verschijnt hier met de uitkomst van je PC.</div>';
+      $("#jl").querySelectorAll(".jrow").forEach((d) => (d.ontoggle = () => (d.open ? open.add(d.dataset.id) : open.delete(d.dataset.id))));
     },
   };
 }
@@ -941,7 +1077,7 @@ function gradeTab(el, id) {
     </div>
     <div class="card stack">
       <h2 style="margin:0">Kleurlook</h2>
-      <div class="chips" id="chips">${StudioMath.LOOKS.map((l) => `<button class="chip" data-look="${l}" aria-pressed="false"><i class="sw" aria-hidden="true"></i><span>${esc(LOOK_NL[l][0])}<small>${esc(LOOK_NL[l][1])}</small></span></button>`).join("")}</div>
+      <div class="chips" id="chips">${StudioMath.LOOKS.map((l) => `<button class="chip" data-look="${l}" aria-pressed="false"><i class="sw look-${l}" aria-hidden="true"></i><span>${esc(LOOK_NL[l][0])}<small>${esc(LOOK_NL[l][1])}</small></span></button>`).join("")}</div>
       <label class="slider"><span class="top"><span>Sterkte</span><b id="sv"></b></span>
         <input type="range" id="sr" min="0" max="100" step="1"></label>
       <label class="slider"><span class="top"><span>Belichting (alleen S-Log3-beelden)</span><b id="ev"></b></span>
@@ -1217,8 +1353,8 @@ function planTab(el, id) {
       <div class="confirm" id="confirm" hidden><span>Je huidige goedkeuring vervalt met een nieuw plan. Toch een nieuw plan maken?</span>
         <div class="row"><button data-pc id="planYes">Ja, nieuw plan</button><button class="ghost" id="planNo">Annuleren</button></div></div>
       <div class="why" id="pwhy"></div></div></div>
-    <div class="card" id="pvid" style="margin-top:16px" hidden><h2>Voorbeeldvideo</h2><video controls preload="metadata" playsinline></video></div>
-    <div class="card review" id="sheet" style="margin-top:16px" hidden><h2>Storyboard</h2><img alt="Storyboard van het plan"></div>`;
+    <div class="card review" id="sheet" style="margin-top:16px" hidden><h2>Storyboard</h2><img alt="Storyboard van het plan"></div>
+    <div class="card" id="pvid" style="margin-top:16px" hidden><h2>Voorbeeldvideo</h2><video controls preload="metadata" playsinline></video></div>`;
   let P = null;
   const D = () => draft(id, project(id));
   const showConfirm = (on) => { D().confirmPlan = on; $("#confirm", el).hidden = !on; $("#planBtn", el).hidden = on; };
@@ -1230,8 +1366,10 @@ function planTab(el, id) {
     update(p) {
       P = p;
       const pl = p.plan;
-      $("#pinfo", el).innerHTML = pl ? `<dl class="kv"><dt>Titel</dt><dd>${esc(pl.title || "—")}</dd>
-          <dt>Shots</dt><dd>${+pl.shots || 0}</dd><dt>Duur</dt><dd>${(+pl.duration || 0).toFixed(1).replace(".", ",")} s</dd>
+      const sh = pl ? +pl.shots || 0 : 0, du = pl ? +pl.duration || 0 : 0, f1 = (v) => v.toFixed(1).replace(".", ",");
+      $("#pinfo", el).innerHTML = pl ? `<div class="specs"><div><span>Shots</span><b>${sh}</b></div>` +
+          `<div><span>Duur</span><b>${f1(du)} s</b></div><div><span>Per shot</span><b>${sh ? f1(du / sh) + " s" : "—"}</b></div></div>
+          <dl class="kv" style="margin-top:14px"><dt>Titel</dt><dd>${esc(pl.title || "—")}</dd>
           <dt>Plan-code</dt><dd class="mono">${esc(pl.edl_sha1 || "—")}</dd></dl>`
         : '<div class="muted">Nog geen plan. Plan maken kiest de shots en maakt een storyboard op je PC.</div>';
       const sheet = pl && safeUrl(pl.sheet_url);
@@ -1290,8 +1428,10 @@ function approveTab(el, id) {
       $("#astate", el).className = "banner " + st.cls;
       $("#astate", el).innerHTML = esc(st.text) + (a && a.status === "approved" && (a.by || a.at) ? `<br><span class="muted small">door ${esc(a.by || "?")}${a.at ? " · " + esc(when(a.at)) : ""}</span>` : "");
       const tryOther = g.look != null && (g.look !== d.look || Math.abs(+g.strength - d.strength) > 0.004 || Math.abs(+g.exposure - d.exposure) > 0.004);
-      $("#ainfo", el).innerHTML = `<dl class="kv"><dt>Plan</dt><dd>${p.plan ? `<span class="mono">${esc(p.plan.edl_sha1 || "—")}</span> · ${+p.plan.shots || 0} shots` : "nog geen plan"}</dd>
-        <dt>Grade</dt><dd>${g.look != null ? `${esc(lookName(g.look))} · ${esc(pct(g.strength))} · ${esc(stops(g.exposure))}` : "onbekend"}</dd></dl>` +
+      const sheet = p.plan && safeUrl(p.plan.sheet_url);
+      $("#ainfo", el).innerHTML = (sheet ? `<img class="mini-sheet" src="${esc(sheet)}" alt="Storyboard van het plan" style="margin-bottom:14px">` : "") +
+        `<dl class="kv"><dt>Plan</dt><dd>${p.plan ? `<span class="mono">${esc(p.plan.edl_sha1 || "—")}</span> · ${+p.plan.shots || 0} shots` : "nog geen plan"}</dd>
+        <dt>Grade</dt><dd>${g.look != null ? `<i class="sw look-${esc(g.look)}" aria-hidden="true"></i>${esc(lookName(g.look))} · ${esc(pct(g.strength))} · ${esc(stops(g.exposure))}` : "onbekend"}</dd></dl>` +
         (tryOther ? `<div class="why warn" style="margin-top:8px">Je hebt bij Grade een andere grade geprobeerd maar niet gekozen. Je keurt de opgeslagen grade goed.</div>` : "");
       state();
     },
@@ -1301,7 +1441,7 @@ function approveTab(el, id) {
 // ---------------------------------------------------------- tab: renderen
 function renderTab(el, id) {
   el.innerHTML = `<div class="grid cols-2">
-    <div class="card stack"><h2 style="margin:0">Renderen</h2><div class="banner" id="rstate"></div>
+    <div class="card stack"><h2 style="margin:0">Renderen</h2><ul class="gates" id="gates" aria-label="Wat er klaar moet zijn"></ul>
       <div class="row"><button data-pc id="renderBtn">Renderen</button><button class="dark" data-pc id="qaBtn">QA</button></div>
       <div class="why" id="rwhy"></div></div>
     <div class="card"><h2>Laatste render</h2><div id="rinfo"></div></div></div>`;
@@ -1311,17 +1451,23 @@ function renderTab(el, id) {
   return {
     update(p) {
       P = p;
-      const a = p.approval, st = approvalState(p);
+      const a = p.approval, g = p.grade || {}, approved = !!(a && a.status === "approved");
       const ready = !!(a && a.current && a.grade_current);
-      $("#rstate", el).className = "banner " + st.cls;
-      $("#rstate", el).textContent = st.text;
+      const gates = [
+        [approved && !!a.current, p.plan ? "Plan goedgekeurd" : "Plan gemaakt en goedgekeurd"],
+        [approved && !!a.grade_current, "Grade goedgekeurd" + (g.look != null ? ` (${lookName(g.look)}, ${pct(g.strength)})` : "")],
+        [online(), S.demo ? "PC bereikbaar (demo)" : "Studio-sessie op je PC bereikbaar"],
+      ];
+      $("#gates", el).innerHTML = gates.map(([ok, t]) => `<li class="${ok ? "ok" : "wait"}"><i>${ok ? "✓" : "!"}</i>${esc(t)}</li>`).join("");
       $("#renderBtn", el).dataset.block = ready ? "" : "1";
       $("#qaBtn", el).dataset.block = p.render ? "" : "1";
       $("#rwhy", el).textContent = !online() ? offlineReason()
         : !ready ? (a && a.current && !a.grade_current ? "grade gewijzigd: opnieuw goedkeuren" : "Renderen kan pas na je goedkeuring van dit plan en deze grade.")
         : "Rendert de volledige montage met de goedgekeurde grade. QA controleert daarna geluid en beeld.";
       $("#rwhy", el).className = "why" + (!online() || !ready ? " warn" : "");
-      $("#rinfo", el).innerHTML = p.render ? `<dl class="kv"><dt>Gerenderd</dt><dd>${esc(when(p.render.at) || "—")}</dd></dl>
+      const rv = p.render && safeUrl(p.render.review_url);
+      $("#rinfo", el).innerHTML = p.render ? (rv ? `<img class="mini-sheet" src="${esc(rv)}" alt="Reviewbeeld van de laatste render" style="margin-bottom:12px">` : "") +
+        `<dl class="kv"><dt>Gerenderd</dt><dd>${esc(when(p.render.at) || "—")}</dd></dl>
         <p class="muted small" style="margin-bottom:0">Bekijk hem bij <a href="#/p/${enc(id)}/resultaat" style="color:var(--blue)">Resultaat</a>.</p>` : '<div class="muted">Nog niet gerenderd.</div>';
       pcButtons(el);
     },

@@ -10,6 +10,10 @@ entry; the full list is in `git log`. Hard-to-reverse choices also get a record 
 - Each project shows its steps (Grade → Plan → Goedkeuren → Renderen → Resultaat) with what to do next.
 - The buttons work while `start-studio-sessie.bat` runs on the PC; without it the page says so and only the grade
   preview works. A grade change after approval needs a new approval.
+- New look: a dark grading-suite screen with glowing accents, viewfinder corners on the grade preview and a read-out
+  of look, strength, exposure and LUT. Pick the colours under *Kleur* on Projecten: Neon, Amber or Tally.
+- *Bekijk met voorbeelddata* fills the Studio with sample projects so you can try every step without the PC; nothing
+  is sent or saved.
 
 ## 2026-10-31 — Offload to your SSD
 - New `autoedit offload "<shoot>" --soort koken` (and *SD-kaart offloaden* on the website): copies photos and videos

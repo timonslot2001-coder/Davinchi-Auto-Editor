@@ -3,6 +3,10 @@
 What changed, in words you would notice in an edit or on the PC. Newest first. Small fixes are folded into the day's
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
+## 2026-11-01 — Offload with a double-click
+- `offload.bat`: double-click, type the shoot name, pick the kind (1–6), and the card goes to the SSD. The same
+  thing as the *SD-kaart offloaden* button on the website.
+
 ## 2026-10-31 — Offload to your SSD
 - New `autoedit offload "<shoot>" --soort koken` (and *SD-kaart offloaden* on the website): copies photos and videos
   from the Sony and DJI card to Timon's SSD in one folder per shoot, `<Soort>\<date> <shoot>\1 Ruw | 2 Bewerkt |

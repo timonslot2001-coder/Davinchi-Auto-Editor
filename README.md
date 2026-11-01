@@ -27,6 +27,8 @@ environment; see [setup/README.md](setup/README.md).
 4. Or just tell Claude: *"start project smoke"* or *"maak een cine montage van smoke"*.
 
 ## Offload a card to your SSD
+Easiest: double-click **`offload.bat`**, type the shoot name and pick the kind (1 Koken … 6 Weet ik nog niet).
+Or from a terminal:
 ```
 autoedit offload "Beef Tartaar" --soort koken    # Sony + DJI card → I:\Koken\2025-10-06 Beef Tartaar\1 Ruw\Video + Foto
 ```

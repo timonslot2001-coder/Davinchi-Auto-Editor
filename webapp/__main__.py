@@ -2,7 +2,8 @@
 python -m webapp worker          the Windows worker for the Docker container (port 5061, token from .env)
 python -m webapp laptop-info     address + token for a Docker container on another computer
 python -m webapp --bind 0.0.0.0  also reachable from other devices on your network (phone)
-python -m webapp studio --thread <id> "<text>"   one request from the claude.ai Artifact (see studio.py), JSON out
+python -m webapp studio --thread <id> --text-file data/studio_inbox/<id>.txt
+                                 one request from the claude.ai Artifact (see studio.py), JSON out
 python -m webapp studio-state "<name>"           the project's state document for the Artifact db, JSON out"""
 from __future__ import annotations
 

@@ -1,5 +1,6 @@
 """Studio requests from the claude.ai Artifact. A button press there arrives as a comment in a Claude session on this
-PC; the session runs `python -m webapp studio --thread <id> "<text>"`. The text has one fixed format:
+PC; the session writes the comment text to data/studio_inbox/<thread>.txt (no shell) and runs
+`python -m webapp studio --thread <id> --text-file data/studio_inbox/<thread>.txt`. The text has one fixed format:
 
     [studio] actie=<plan|grade|goedkeuren|preview|render|qa|stills> project="<name>"
              [look=.. strength=.. exposure=..] [plan=<edl_sha1> grade=<grade key> notitie="<own words>"]
@@ -26,6 +27,10 @@ from .host import check_args
 from .validate import LOOKS, _name, _num, _text, grade_args
 
 HANDLED = query.REPO / "data" / "studio_handled.json"
+INBOX = query.REPO / "data" / "studio_inbox"                   # --text-file must be in here
+ASSETS = query.REPO / "data" / "studio_assets"                 # per project slug: stills, LUTs, 720p videos
+MAX_UPLOAD = 20 * 1024 * 1024                                  # Artifact asset limit the session keeps to
+THREAD = re.compile(r"[A-Za-z0-9_-]{1,100}")
 KEEP = 500
 ACTIONS = ("plan", "grade", "goedkeuren", "preview", "render", "qa", "stills")
 # keys allowed per action, besides actie and project (both required)
@@ -203,6 +208,9 @@ def mark(thread_id: str) -> None:
                 tmp.unlink(missing_ok=True)
                 raise HandledListError("afgehandeld-lijst is bezet: probeer het zo opnieuw") from None
             time.sleep(0.05 * (attempt + 1))
+        except OSError:
+            tmp.unlink(missing_ok=True)
+            raise HandledListError("afgehandeld-lijst niet te schrijven") from None
 
 
 # ---------------------------------------------------------------- state for the Artifact db
@@ -256,11 +264,37 @@ def _state_or_none(name):
         return None
 
 
+def _read_text_file(arg: str) -> str:
+    """The comment text from a file inside data/studio_inbox/ (UTF-8, one trailing newline stripped)."""
+    f = Path(arg)
+    if not f.is_absolute():
+        f = query.REPO / f
+    f = f.resolve()
+    if not f.is_relative_to(INBOX.resolve()) or not f.is_file():
+        raise ValueError("tekstbestand moet in data/studio_inbox/ staan")
+    try:
+        text = f.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        raise ValueError("tekstbestand niet te lezen") from None
+    return text[:-1] if text.endswith("\n") else text          # read_text already turned \r\n into \n
+
+
 def cli(argv=None, host=None, poll: float = 1.0) -> int:
     ap = argparse.ArgumentParser(prog="webapp studio")
     ap.add_argument("--thread", required=True)
-    ap.add_argument("text")
+    src = ap.add_mutually_exclusive_group(required=True)
+    src.add_argument("--text-file", help="file in data/studio_inbox/ with the comment text (the session's route)")
+    src.add_argument("text", nargs="?", help="the comment text itself (tests, by hand)")
     args = ap.parse_args(argv)
+    if not THREAD.fullmatch(args.thread):
+        _out({"ok": False, "message": "ongeldige thread-id"})
+        return 1
+    if args.text_file is not None:
+        try:
+            args.text = _read_text_file(args.text_file)
+        except ValueError as e:                                  # nothing marked: the session can fix it and retry
+            _out({"ok": False, "message": str(e)})
+            return 1
     try:
         if handled(args.thread):
             _out({"ok": False, "message": "al afgehandeld"})
@@ -296,6 +330,11 @@ def cli(argv=None, host=None, poll: float = 1.0) -> int:
     out = {"ok": ok, "action": act, "slug": slug(name), "message": msg, "state": _state_or_none(name)}
     if ok:
         files = local_files(name, act)
+        if "video" in files:                                     # the session uploads only the 720p copy
+            video, note = _video_720(name, act, Path(files.pop("video")))
+            if video:
+                files["video"] = video
+            out["message"] += f"\n{note}" if note else ""
         if files:
             out["local_files"] = files
     _out(out)
@@ -319,6 +358,31 @@ def local_files(name: str, act: str) -> dict:
     return files
 
 
+def transcode_720(src: Path, dst: Path) -> None:
+    """A small H.264 copy for the Artifact (imageio_ffmpeg like the engine's media.FF; PC only, imported here)."""
+    import subprocess
+
+    import imageio_ffmpeg
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-v", "error", "-i", str(src), "-vf", "scale=-2:720",
+                    "-c:v", "libx264", "-pix_fmt", "yuv420p", "-preset", "veryfast", "-crf", "28",
+                    "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart", str(dst)], check=True, capture_output=True, timeout=1800)
+
+
+def _video_720(name: str, act: str, src: Path) -> tuple[str | None, str]:
+    """data/studio_assets/<slug>/<preview|render>_720.mp4 if it fits the upload limit, else (None, why not)."""
+    dst = ASSETS / slug(name) / f"{act}_720.mp4"
+    try:
+        transcode_720(src, dst)
+    except Exception as e:
+        dst.unlink(missing_ok=True)
+        return None, f"geen voorbeeldvideo: {redact(str(e))[:200]}"
+    if not dst.exists() or dst.stat().st_size > MAX_UPLOAD:
+        dst.unlink(missing_ok=True)
+        return None, "geen voorbeeldvideo: 720p-versie te groot voor de Studio (max 20 MB)"
+    return str(dst), ""
+
+
 def projects() -> list[str]:
     """Projects with a cine montage folder: the ones the Studio shows."""
     root = Path(query.roots()["projects"])
@@ -335,7 +399,7 @@ def projects_cli(argv=None) -> int:
 
 
 def stills_dir(name: str) -> Path:
-    return query.REPO / "data" / "studio_assets" / slug(name)
+    return ASSETS / slug(name)
 
 
 def _stills(name: str) -> int:

@@ -81,7 +81,7 @@ On the cine montage tab every shot has a number and a comment box. *Opmerkingen 
 | `app.py` | website + JSON API; turns form fields into commands (validated, never raw text) |
 | `host.py` | `LocalHost` (run jobs, read files on this PC) and `RemoteHost` (the same through the worker) |
 | `validate.py` | the form-field checks and the render `--grade` rule, shared by `app.py` and `studio.py` |
-| `studio.py` | requests from the claude.ai Artifact: `python -m webapp studio --thread <id> "<text>"` checks the fixed `[studio] actie=...` text, runs one `engine` command and prints JSON; `python -m webapp studio-state "<name>"` prints the project's state for the Artifact; `python -m webapp studio-projects` lists the cine montage projects |
+| `studio.py` | requests from the claude.ai Artifact: `python -m webapp studio --thread <id> --text-file data/studio_inbox/<id>.txt` checks the fixed `[studio] actie=...` text (from a file, never on the command line), runs one `engine` command, makes the 720p video copy for the page and prints JSON; `python -m webapp studio-state "<name>"` prints the project's state for the Artifact; `python -m webapp studio-projects` lists the cine montage projects |
 | `worker.py` | the Windows worker for Docker (token, allowlist) |
 | `query.py` | what the pages show: projects, cine montage state, queue, music, status |
 | `static/` | the interface (HTML, CSS, JS; no build step) |

@@ -23,6 +23,8 @@ entry; the full list is in `git log`. Hard-to-reverse choices also get a record 
   what must be approved first; Taken is a compact log you can open per job.
 - *Bekijk met voorbeelddata* fills the Studio with sample projects so you can try every step without the PC; nothing
   is sent or saved.
+- The Studio's preview and render videos are a small 720p copy (max 20 MB) made on the PC; a new plan clears the old
+  render from the page.
 
 ## 2026-10-31 — Offload to your SSD
 - New `autoedit offload "<shoot>" --soort koken` (and *SD-kaart offloaden* on the website): copies photos and videos

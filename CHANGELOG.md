@@ -11,7 +11,7 @@ entry; the full list is in `git log`. Hard-to-reverse choices also get a record 
 - The buttons work while `start-studio-sessie.bat` runs on the PC; without it the page says so and only the grade
   preview works. A grade change after approval needs a new approval.
 - New look: a dark grading-suite screen with glowing accents, viewfinder corners on the grade preview and a read-out
-  of look, strength, exposure and LUT. Pick the colours under *Kleur* on Projecten: Neon, Amber or Tally.
+  of look, strength, exposure and LUT. Colours: ice blue and silver (IJs).
 - *Bekijk met voorbeelddata* fills the Studio with sample projects so you can try every step without the PC; nothing
   is sent or saved.
 

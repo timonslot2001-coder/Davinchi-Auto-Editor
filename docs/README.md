@@ -47,6 +47,7 @@ Timon's own channels come first; client work runs on a separate track so it neve
 | How the editor learns from your feedback | [README.md](../README.md) → *How it learns* |
 | Why something was decided the way it was | [decisions/](decisions/README.md) |
 | Design of the Studio as a working Artifact (draft) | [superpowers/specs/2026-11-01-studio-artifact-design.md](superpowers/specs/2026-11-01-studio-artifact-design.md) |
+| Build plan for the Studio Artifact | [superpowers/plans/2026-11-01-studio-artifact.md](superpowers/plans/2026-11-01-studio-artifact.md) |
 | What changed and when | [CHANGELOG.md](../CHANGELOG.md) |
 
 ## Start pages and records

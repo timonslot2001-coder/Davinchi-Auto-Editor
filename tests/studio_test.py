@@ -251,4 +251,108 @@ assert list(lf) == ["sheet"] and same(lf["sheet"], work / "storyboard" / "storyb
 assert same(studio.local_files("Zomer Shoot", "preview")["video"], work / "preview.mp4")
 assert studio.local_files("Zomer Shoot", "render")["video"].endswith("cine_montage_20261101_1200.mp4")
 assert studio.local_files("Zomer Shoot", "qa") == {}
+
+# ---- --text-file: the session writes the comment to data/studio_inbox/<thread>.txt (no shell) and passes only its path
+studio.INBOX = tmp / "data" / "studio_inbox"
+studio.INBOX.mkdir(parents=True, exist_ok=True)
+(work / "APPROVAL.json").unlink()
+(work / "grade.json").unlink()
+tricky = 'zeg "hoi" \'x\' \'@ $HOME $(whoami) `whoami` %PATH% & | ; met  spaties'
+quote = lambda v: '"' + v.replace("\\", "\\\\").replace('"', '\\"') + '"'   # noqa: E731  (studio.html quote())
+fb = studio.INBOX / "f-1.txt"
+fb.write_text(f'[studio] actie=goedkeuren project="Zomer Shoot" plan={sha} grade={G0} notitie={quote(tricky)}\n',
+              encoding="utf-8")
+assert studio.parse(fb.read_text(encoding="utf-8"))["notitie"] == tricky
+h = FakeHost()
+code, out = cli(["--thread", "f-1", "--text-file", str(fb)], h)
+assert code == 0 and out["ok"] and h.runs[-1][:2] == ["engine", "approve"], out
+assert h.runs[-1][h.runs[-1].index("--note") + 1] == tricky, h.runs[-1]
+fb2 = studio.INBOX / "f-2.txt"
+fb2.write_text(f'[studio] actie=goedkeuren project="Zomer Shoot" plan={sha} grade={G0} notitie="a\nb"', encoding="utf-8")
+code, out = cli(["--thread", "f-2", "--text-file", str(fb2)], h)
+assert code == 1 and out["ok"] is False and "regeleindes" in out["message"] and len(h.runs) == 1, out
+fb3 = studio.INBOX / "f-3.txt"
+fb3.write_bytes(b'[studio] actie=qa project="Zomer Shoot"\r\n')                # CRLF from Windows: one newline stripped
+code, out = cli(["--thread", "f-3", "--text-file", str(fb3)], h)
+assert code == 0 and h.runs[-1] == ["engine", "qa", P], out
+# text and --text-file together, or neither: refused (argparse exits 2), nothing run
+for bad in (["--thread", "f-4", "--text-file", str(fb3), '[studio] actie=qa project="Zomer Shoot"'], ["--thread", "f-4"]):
+    try:
+        import contextlib, io   # noqa: E401
+        with contextlib.redirect_stderr(io.StringIO()), contextlib.redirect_stdout(io.StringIO()):
+            studio.cli(bad, host=h, poll=0)
+        raise AssertionError(f"accepted {bad}")
+    except SystemExit as e:
+        assert e.code == 2
+assert len(h.runs) == 2 and not studio.handled("f-4")
+# the file must be inside data/studio_inbox/
+outside = tmp / "elders.txt"
+outside.write_text('[studio] actie=qa project="Zomer Shoot"', encoding="utf-8")
+for path in (str(outside), str(studio.INBOX / ".." / "elders.txt"), str(studio.INBOX / "nope.txt"), "elders.txt"):
+    code, out = cli(["--thread", "f-5", "--text-file", path], h)
+    assert code == 1 and out["ok"] is False and len(h.runs) == 2, (path, out)
+assert not studio.handled("f-5")                                     # refused before marking: the session can retry
+# thread ids: letters, digits, _ and - only, 1..100
+for bad in ("", "a b", "../x", "x;rm", "t\n1", "é", "x" * 101):
+    code, out = cli(["--thread", bad, '[studio] actie=qa project="Zomer Shoot"'], h)
+    assert code == 1 and out == {"ok": False, "message": "ongeldige thread-id"} and len(h.runs) == 2, (bad, out)
+assert not studio.handled("a b") and studio.handled("f-1")
+code, out = cli(["--thread", "A_z-9" * 20, '[studio] actie=qa project="Zomer Shoot"'], h)
+assert code == 0 and len(h.runs) == 3, out
+
+# ---- 720p copy after preview/render: listed only if it fits (<= 20 MiB); the original is never listed
+calls = []
+
+
+def fake_transcode(src, dst, size=1000):
+    calls.append((Path(src).name, Path(dst)))
+    Path(dst).parent.mkdir(parents=True, exist_ok=True)
+    Path(dst).write_bytes(b"v" * size)
+
+
+studio.transcode_720 = fake_transcode
+assets = tmp / "data" / "studio_assets"
+studio.ASSETS = assets
+code, out = cli(["--thread", "v-1", '[studio] actie=preview project="Zomer Shoot"'], h)
+d720 = assets / studio.slug("Zomer Shoot")
+assert code == 0 and calls[-1] == ("preview.mp4", d720 / "preview_720.mp4"), (out, calls)
+assert same(out["local_files"]["video"], d720 / "preview_720.mp4") and "sheet" in out["local_files"], out
+code, out = cli(["--thread", "v-2", '[studio] actie=render project="Zomer Shoot"'], h)
+assert calls[-1] == ("cine_montage_20261101_1200.mp4", d720 / "render_720.mp4"), calls
+assert same(out["local_files"]["video"], d720 / "render_720.mp4"), out
+studio.transcode_720 = lambda src, dst: fake_transcode(src, dst, 20 * 1024 * 1024 + 1)
+code, out = cli(["--thread", "v-3", '[studio] actie=render project="Zomer Shoot"'], h)
+assert code == 0 and "video" not in out["local_files"] and not (d720 / "render_720.mp4").exists(), out
+assert "te groot" in out["message"], out
+
+
+def broken_transcode(src, dst):
+    raise RuntimeError("ffmpeg weg")
+
+
+studio.transcode_720 = broken_transcode
+code, out = cli(["--thread", "v-4", '[studio] actie=preview project="Zomer Shoot"'], h)
+assert code == 0 and out["ok"] and "video" not in out["local_files"] and "geen voorbeeldvideo" in out["message"], out
+n = len(calls)
+code, out = cli(["--thread", "v-5", '[studio] actie=qa project="Zomer Shoot"'], h)
+assert len(calls) == n and "local_files" not in out, out                # qa: no video, no transcode
+
+# ---- mark(): any OSError from the replace leaves no temp file behind
+import os   # noqa: E402
+real_replace = os.replace
+
+
+def deny(a, b):
+    raise OSError(22, "invalid")
+
+
+os.replace = deny
+try:
+    studio.mark("m-1")
+    raise AssertionError("mark ignored OSError")
+except studio.HandledListError:
+    pass
+finally:
+    os.replace = real_replace
+assert not list(studio.HANDLED.parent.glob("*.tmp")), list(studio.HANDLED.parent.glob("*.tmp"))
 print("studio test OK")

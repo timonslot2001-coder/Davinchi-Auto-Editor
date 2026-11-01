@@ -10,6 +10,8 @@ entry; the full list is in `git log`. Hard-to-reverse choices also get a record 
 - Each project shows its steps (Grade → Plan → Goedkeuren → Renderen → Resultaat) with what to do next.
 - The buttons work while `start-studio-sessie.bat` runs on the PC; without it the page says so and only the grade
   preview works. A grade change after approval needs a new approval.
+- The Studio's preview and render videos are a small 720p copy (max 20 MB) made on the PC; a new plan clears the old
+  render from the page.
 
 ## 2026-10-31 — Offload to your SSD
 - New `autoedit offload "<shoot>" --soort koken` (and *SD-kaart offloaden* on the website): copies photos and videos

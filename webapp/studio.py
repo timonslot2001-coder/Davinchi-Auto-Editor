@@ -141,8 +141,8 @@ def _project(name: str) -> Path:
 
 def to_args(req: dict) -> list[str]:
     act = req["actie"]
-    if act == "stills":                                          # Task 5: stills/LUT export, not an engine command yet
-        raise NotYet("stills: nog niet beschikbaar")
+    if act == "stills":                                          # no engine job: cli() runs studio_assets.export itself
+        raise NotYet("stills: geen engine-opdracht")
     p = _project(req["project"])
     path = str(p)
     if act == "grade":
@@ -265,6 +265,8 @@ def cli(argv=None, host=None, poll: float = 1.0) -> int:
     try:
         req = parse(args.text)
         act, name = req["actie"], req["project"]
+        if act == "stills":
+            return _stills(name)
         a = to_args(req)
     except Exception as e:                                       # refused or broken: still one JSON line
         msg = str(e) if isinstance(e, (ValueError, NotYet, PermissionError)) else f"fout: {type(e).__name__}: {e}"
@@ -285,6 +287,30 @@ def cli(argv=None, host=None, poll: float = 1.0) -> int:
         (f"\n{log}" if log else "")
     _out({"ok": ok, "action": act, "slug": slug(name), "message": msg, "state": _state_or_none(name)})
     return 0 if ok else 1
+
+
+def stills_dir(name: str) -> Path:
+    return query.REPO / "data" / "studio_assets" / slug(name)
+
+
+def _stills(name: str) -> int:
+    """actie=stills: write stills + LUT stages into data/studio_assets/<slug>/ and report their repo-relative paths in
+    "assets" (the PC session uploads them; state() stays path-free)."""
+    try:
+        from . import studio_assets                              # numpy/cv2/engine: PC only, never in the web image
+        out_dir = stills_dir(name)
+        res = studio_assets.export(_project(name), out_dir)
+    except Exception as e:
+        msg = str(e) if isinstance(e, ValueError) else f"fout: {type(e).__name__}: {e}"
+        _out({"ok": False, "action": "stills", "slug": slug(name), "message": f"voorbeelden: mislukt\n{redact(msg)}",
+              "state": _state_or_none(name)})
+        return 1
+    rel = lambda f: (out_dir / f).relative_to(query.REPO).as_posix() if f else None   # noqa: E731
+    assets = {"stills": [{**s, "file": rel(s["file"])} for s in res["stills"]], "conv": rel(res["conv"]),
+              "looks": {k: rel(v) for k, v in res["looks"].items()}}
+    _out({"ok": True, "action": "stills", "slug": slug(name), "message": f"voorbeelden: klaar ({len(assets['stills'])} stills)",
+          "assets": assets, "state": _state_or_none(name)})
+    return 0
 
 
 def state_cli(argv=None) -> int:

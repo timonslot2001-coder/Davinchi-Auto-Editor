@@ -84,9 +84,9 @@ assert argv(f'[studio] actie=goedkeuren project="Zomer Shoot" plan={sha} grade={
 raises(argv, '[studio] actie=render project="Bestaat Niet"', contains="project")
 try:
     argv('[studio] actie=stills project="Zomer Shoot"')
-    raise AssertionError("stills should not map to engine yet")
+    raise AssertionError("stills is no engine job")
 except studio.NotYet as e:
-    assert "nog niet beschikbaar" in str(e)
+    assert "geen engine-opdracht" in str(e)
 # render sends the approved --grade mode (shared with the web app)
 (work / "APPROVAL.json").write_text(json.dumps({"status": "approved", "edl_sha1": sha, "grade_mode": "slog3"}))
 assert argv('[studio] actie=render project="Zomer Shoot"') == ["engine", "render", P, "--grade", "slog3"]
@@ -194,7 +194,17 @@ assert out == {"ok": False, "message": "al afgehandeld"} and len(h.runs) == 1, o
 code, out = cli(["--thread", "c-101", '[studio] actie=render project="Zomer Shoot" ; del *'], h)
 assert code == 1 and out["ok"] is False and len(h.runs) == 1 and studio.handled("c-101"), out
 code, out = cli(["--thread", "c-102", '[studio] actie=stills project="Zomer Shoot"'], h)
-assert out["ok"] is False and "nog niet beschikbaar" in out["message"] and len(h.runs) == 1, out
+assert out["ok"] is False and out["action"] == "stills" and "geen beeld" in out["message"] and len(h.runs) == 1, out
+# stills run studio_assets.export directly (no engine job); assets paths are repo-relative, state stays path-free
+from webapp import studio_assets   # noqa: E402
+studio_assets.export = lambda p, o: {"stills": [{"file": "still_0.png", "is_log": True, "label": "A.mp4 0:01.0"}],
+                                     "conv": "conv.cube", "looks": {"moody": "look_moody.cube"}}
+code, out = cli(["--thread", "c-102b", '[studio] actie=stills project="Zomer Shoot"'], h)
+d = f"data/studio_assets/{studio.slug('Zomer Shoot')}"
+assert code == 0 and out["ok"] and len(h.runs) == 1, out
+assert out["assets"] == {"stills": [{"file": f"{d}/still_0.png", "is_log": True, "label": "A.mp4 0:01.0"}],
+                         "conv": f"{d}/conv.cube", "looks": {"moody": f"{d}/look_moody.cube"}}, out["assets"]
+assert "assets" not in out["state"] and d not in json.dumps(out["state"])
 code, out = cli(["--thread", "c-103", '[studio] actie=render project="Zomer Shoot"'], FakeHost("failed"))
 assert code == 1 and out["ok"] is False and out["action"] == "render", out
 

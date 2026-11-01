@@ -1,14 +1,21 @@
 """python -m webapp                 the web app on this PC, everything local   → http://127.0.0.1:5060
 python -m webapp worker          the Windows worker for the Docker container (port 5061, token from .env)
 python -m webapp laptop-info     address + token for a Docker container on another computer
-python -m webapp --bind 0.0.0.0  also reachable from other devices on your network (phone)"""
+python -m webapp --bind 0.0.0.0  also reachable from other devices on your network (phone)
+python -m webapp studio --thread <id> "<text>"   one request from the claude.ai Artifact (see studio.py), JSON out
+python -m webapp studio-state "<name>"           the project's state document for the Artifact db, JSON out"""
 from __future__ import annotations
 
 import argparse
+import sys
 import webbrowser
 
 
 def main(argv=None):
+    argv = sys.argv[1:] if argv is None else argv
+    if argv and argv[0] in ("studio", "studio-state"):      # own arguments; no Flask needed
+        from . import studio
+        return (studio.cli if argv[0] == "studio" else studio.state_cli)(argv[1:])
     ap = argparse.ArgumentParser(prog="webapp")
     ap.add_argument("role", nargs="?", choices=["app", "worker", "laptop-info"], default="app")
     ap.add_argument("--port", type=int)
@@ -41,4 +48,4 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

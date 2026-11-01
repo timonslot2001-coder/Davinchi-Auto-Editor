@@ -274,7 +274,7 @@ def move(cfg, name: str, kind: str, sources: list[str], link: bool = True) -> di
     con.print(f"[green]{total} file(s) moved[/] → {target}")
     if relinked:
         con.print(f"  project(s) {', '.join(sorted(set(relinked)))} now read their clips from the new place")
-    if project:
+    if project and (project / "clips").resolve() == (target / "1 Ruw" / "Video").resolve():
         con.print(f"  AutoEdit project [bold]{project.name}[/] reads its clips from {target / '1 Ruw' / 'Video'}")
     return {"moved": total, "shoot": str(target), "project": str(project) if project else None,
             "relinked": sorted(set(relinked))}

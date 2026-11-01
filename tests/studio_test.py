@@ -271,6 +271,9 @@ day = ssd / "_Inbox" / "2026-10-09 SD-kaart"
 (day / "1 Ruw" / "Video").mkdir(parents=True)
 subprocess.run([library._ffmpeg(), "-v", "error", "-f", "lavfi", "-i", "testsrc=duration=2:size=320x180:rate=25",
                 "-pix_fmt", "yuv420p", str(day / "1 Ruw" / "Video" / "C0202.MP4")], check=True)
+fotos = ssd / "_Inbox" / "2026-10-08 SD-kaart" / "1 Ruw" / "Foto"          # photos only: not on the video SSD page
+fotos.mkdir(parents=True)
+(fotos / "DSC00001.JPG").write_bytes(b"jpg")
 lcfg = Config({"paths": {"library_folder": str(ssd), "projects_folder": str(tmp / "projects")}}, {})
 library.CACHE = tmp / "thumbs"
 studio.SSD_ASSETS = tmp / "data" / "studio_assets" / "ssd"
@@ -279,6 +282,7 @@ studio._lib = lambda: (library, lcfg)
 docs = studio.ssd_docs()
 assert docs["connected"] and [d["rel"] for d in docs["shoots"]] == ["_Inbox/2026-10-09 SD-kaart"], docs
 assert "sheet_url" not in docs["shoots"][0] and docs["shoots"][0]["id"] == studio.slug("_Inbox/2026-10-09 SD-kaart")
+assert "photos" not in docs["shoots"][0]
 code, out = cli(["--thread", "s-1", '[studio] actie=ssd-bekijk map="_Inbox/2026-10-09 SD-kaart"'], h)
 assert code == 0 and out["clips"][0]["name"] == "C0202.MP4" and (tmp / out["assets"]["sheet"]).exists(), out
 assert "photos" not in out["assets"]

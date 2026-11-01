@@ -4,11 +4,12 @@ What changed, in words you would notice in an edit or on the PC. Newest first. S
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
 ## 2026-11-01 — Sort the SSD on the website
-- New page **SSD** in the AutoEdit website: all shoot folders (_Inbox first) with a thumbnail of every clip and photo.
+- New page **SSD** in the AutoEdit website: the shoot folders with video (_Inbox first) with a thumbnail of every clip.
+  Folders with only photos are left out; photos get their own editor later.
   Click a clip to watch it; tick folders, type a name, pick the kind and press *Verplaatsen*. They become one shoot
   (`Reizen\2026-10-09 Ibiza`) with its AutoEdit project. Also from a terminal: `autoedit sort`.
 - The same **SSD** page is in the AutoEdit Studio in the Claude app (phone, laptop): *Beelden laden* shows an overview
-  of every clip and photo, *Preview maken* a short clip, and *Verplaatsen* names and moves the folders. It needs the
+  of every clip, *Preview maken* a short clip, and *Verplaatsen* names and moves the folders. It needs the
   Studio session running on the PC.
 
 ## 2026-11-01 — Pace from the music (test)

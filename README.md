@@ -45,8 +45,8 @@ it arrives sorted by day). Every shoot has `1 Ruw\Video`, `1 Ruw\Foto`,
 - On the website: *SD-kaart offloaden* on the Projecten page.
 
 ### Sort the SSD (name and move shoots)
-On the website, page **SSD**: every shoot folder (`_Inbox` first) with a thumbnail per clip and photo. Click a clip to
-play it (the original where the browser plays HEVC, else a 20 s preview). Tick folders, type a name, pick the kind and
+On the website, page **SSD**: every shoot folder with video (`_Inbox` first) with a thumbnail per clip; photos get
+their own editor later. Click a clip to play it (the original where the browser plays HEVC, else a 20 s preview). Tick folders, type a name, pick the kind and
 press *Verplaatsen*. Or from a terminal:
 ```
 autoedit sort "Ibiza" --soort reizen "_Inbox/2026-10-09 SD-kaart" "_Inbox/2026-10-10 SD-kaart"

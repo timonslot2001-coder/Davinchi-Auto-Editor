@@ -9,6 +9,21 @@ entry; the full list is in `git log`. Hard-to-reverse choices also get a record 
 - *Weet ik nog niet* (`_Inbox`) now makes one folder per recording day (`2026-10-09 SD-kaart`), so a card with
   months of shoots on it arrives sorted by day.
 
+## 2026-11-01 — AutoEdit Studio in the Claude app
+- The Studio is a working page in the Claude app (phone, laptop): pick a grade with an instant preview, make a plan,
+  watch the preview and storyboard, approve in your own words, render, and see the result. Six looks, shown by their
+  LUT names: `reference_film`, `clean_warm`, `moody` and the new `daylight`, `blue_hour` and `vintage`.
+- Each project shows its steps (Grade → Plan → Goedkeuren → Renderen → Resultaat) with what to do next.
+- The buttons work while `start-studio-sessie.bat` runs on the PC; without it the page says so and only the grade
+  preview works. A grade change after approval needs a new approval.
+- New look: a dark grading-suite screen with glowing accents, viewfinder corners on the grade preview and a read-out
+  of look, strength, exposure and LUT. Colours: ice blue and silver (IJs).
+- *Te doen* on Projecten lists what waits on you per project. On a computer the sidebar shows every project with its
+  next step and the latest jobs on the PC. Plan shows shots, length and seconds per shot; Renderen shows a checklist of
+  what must be approved first; Taken is a compact log you can open per job.
+- *Bekijk met voorbeelddata* fills the Studio with sample projects so you can try every step without the PC; nothing
+  is sent or saved.
+
 ## 2026-10-31 — Offload to your SSD
 - New `autoedit offload "<shoot>" --soort koken` (and *SD-kaart offloaden* on the website): copies photos and videos
   from the Sony and DJI card to Timon's SSD in one folder per shoot, `<Soort>\<date> <shoot>\1 Ruw | 2 Bewerkt |

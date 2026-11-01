@@ -46,6 +46,8 @@ Timon's own channels come first; client work runs on a separate track so it neve
 | Why the montage cuts the way it does | [EDITING_DNA_PACKAGE/EDITING_PSYCHOLOGY.md](../EDITING_DNA_PACKAGE/EDITING_PSYCHOLOGY.md) |
 | How the editor learns from your feedback | [README.md](../README.md) → *How it learns* |
 | Why something was decided the way it was | [decisions/](decisions/README.md) |
+| Design of the Studio as a working Artifact (draft) | [superpowers/specs/2026-11-01-studio-artifact-design.md](superpowers/specs/2026-11-01-studio-artifact-design.md) |
+| Build plan for the Studio Artifact | [superpowers/plans/2026-11-01-studio-artifact.md](superpowers/plans/2026-11-01-studio-artifact.md) |
 | What changed and when | [CHANGELOG.md](../CHANGELOG.md) |
 
 ## Start pages and records
@@ -55,6 +57,7 @@ Timon's own channels come first; client work runs on a separate track so it neve
 | [EDITING_DNA_PACKAGE/CLAUDE_CODE_IMPLEMENTATION_PROMPT.md](../EDITING_DNA_PACKAGE/CLAUDE_CODE_IMPLEMENTATION_PROMPT.md) | the Stage 2 brief, kept as a record |
 | [.claude/skills/cine-montage/SKILL.md](../.claude/skills/cine-montage/SKILL.md) | Claude's working instructions for a cine montage |
 | [.claude/skills/juict-edit/SKILL.md](../.claude/skills/juict-edit/SKILL.md) | Claude's working instructions for a JUICT / client film |
+| [.claude/skills/studio-session/SKILL.md](../.claude/skills/studio-session/SKILL.md) | Claude's working instructions for the Studio session that runs the Studio Artifact's buttons |
 | [CLAUDE.md](../CLAUDE.md) | how Claude works in this repo (loaded every session) |
 
 ## Keeping the docs true

@@ -29,6 +29,16 @@ LOOKS = {
     "moody": dict(contrast=1.15, pivot=0.42, lift=0.02, gain=0.94, sat=0.85,
                   shadows=(-0.01, 0.01, 0.03), highlights=(0.02, 0.0, -0.02),
                   teal_sky=0.4, orange_skin=0.2, hue_greens=-0.08, fade=0.02),
+    # our own parameter sets (tune by eye on footage)
+    "daylight": dict(contrast=1.06, pivot=0.45, lift=0.01, gain=1.0, sat=1.15,
+                     shadows=(0.0, 0.004, 0.008), highlights=(0.035, 0.012, -0.025),
+                     teal_sky=0.25, orange_skin=0.25, hue_greens=-0.02, fade=0.01),
+    "blue_hour": dict(contrast=1.0, pivot=0.45, lift=0.03, gain=0.97, sat=0.95,
+                      shadows=(-0.015, 0.0, 0.035), highlights=(-0.02, 0.0, 0.03),
+                      teal_sky=0.3, orange_skin=0.1, hue_greens=-0.05, fade=0.02),
+    "vintage": dict(contrast=0.92, pivot=0.45, lift=0.06, gain=0.96, sat=0.85,
+                    shadows=(0.01, 0.005, -0.005), highlights=(0.04, 0.015, -0.03),
+                    teal_sky=0.05, orange_skin=0.15, hue_greens=-0.03, fade=0.06),
     "none": None,
 }
 
@@ -120,6 +130,15 @@ def film_look(c: np.ndarray, p: dict, strength: float = 1.0) -> np.ndarray:
     # soft highlight roll-off
     o = np.where(o > 0.85, 0.85 + (1 - np.exp(-(o - 0.85) * 4)) * 0.15 / (1 - np.exp(-0.6)), o)
     return c + (o - c) * strength
+
+
+def look_lut(look: str, size: int = 33) -> np.ndarray:
+    """The film look alone (strength 1, Rec.709 in and out) as a LUT array, indexed [b][g][r] like identity()."""
+    grid = identity(size)
+    if not LOOKS.get(look):
+        return grid
+    out = film_look(grid.reshape(-1, 3), LOOKS[look], 1.0).reshape(grid.shape)
+    return np.clip(out, 0.0, 1.0)
 
 
 # ---------------------------------------------------------------- build

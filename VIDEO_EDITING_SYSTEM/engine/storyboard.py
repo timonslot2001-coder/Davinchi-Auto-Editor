@@ -13,7 +13,7 @@ from . import graphics
 from .render import bw, card, lut_for, over, read_event
 
 
-def build(edl: EDL, outdir: Path, grade_mode: str = "auto", checks: list | None = None) -> Path:
+def build(edl: EDL, outdir: Path, grade_mode: str = "auto", checks: list | None = None, grade=None) -> Path:
     outdir.mkdir(parents=True, exist_ok=True)
     fr_dir = outdir / "frames"
     fr_dir.mkdir(exist_ok=True)
@@ -26,7 +26,7 @@ def build(edl: EDL, outdir: Path, grade_mode: str = "auto", checks: list | None 
     cards = []
     for ev in edl.events:
         if ev.source not in luts:
-            luts[ev.source] = lut_for(grade_mode, ev.source, notes)
+            luts[ev.source] = lut_for(grade_mode, ev.source, notes, grade)
         frames = read_event(ev, small, luts[ev.source])
         f = frames[len(frames) // 2]
         if "D_BW" in ev.treatment:

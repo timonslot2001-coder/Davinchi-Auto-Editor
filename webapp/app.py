@@ -41,6 +41,14 @@ def _text(v, maxlen=200):
     return v
 
 
+def _name(v):
+    """Project/shoot name that is a plain folder name: no '..', no path characters, no leading/trailing dot or space."""
+    name = _text(v, 80)
+    if not name or not re.fullmatch(r"[\w .,'&()\-]+", name) or name[0] in ". " or name[-1] in ". ":
+        raise ValueError("use letters, digits, spaces and - _ . , ' & ( ) in the name (not starting/ending with a dot)")
+    return name
+
+
 def _shot(v):
     v = _text(v, 80)
     if v and not re.fullmatch(r"[\w.\-]+(:\d+(\.\d+)?)?", v):
@@ -114,11 +122,22 @@ def create(host=None) -> Flask:
     @app.post("/api/projects")
     def new_project():
         b = request.get_json()
-        name = _text(b.get("name"), 80)
-        if not name or not re.fullmatch(r"[\w .,'&()\-]+", name):
-            raise ValueError("use letters, digits, spaces and - _ . , ' & ( ) in the name")
+        name = _name(b.get("name"))
         args = ["autoedit", "new", name] + (["--title", _text(b["title"], 80)] if b.get("title") else [])
         return job(args, f"Nieuw project: {name}", name)
+
+    @app.post("/api/offload")
+    def offload():
+        b = request.get_json() or {}
+        name = _name(b.get("name"))
+        kind = b.get("soort") or "inbox"
+        if kind not in {"koken", "kleding", "smoken", "reizen", "klanten", "inbox"}:
+            raise ValueError("soort: koken, kleding, smoken, reizen, klanten or inbox")
+        since = _text(b.get("since"), 10)
+        if since and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", since):
+            raise ValueError("date as YYYY-MM-DD")
+        args = ["autoedit", "offload", name, "--soort", kind] + (["--since", since] if since else [])
+        return job(args, f"Offload: {name}", None if kind == "inbox" else name)
 
     @app.get("/api/projects/<name>")
     def project(name):

@@ -26,6 +26,21 @@ environment; see [setup/README.md](setup/README.md).
    ([webapp/README.md](webapp/README.md)).
 4. Or just tell Claude: *"start project smoke"* or *"maak een cine montage van smoke"*.
 
+## Offload a card to your SSD
+```
+autoedit offload "Beef Tartaar" --soort koken    # Sony + DJI card → I:\Koken\2025-10-06 Beef Tartaar\1 Ruw\Video + Foto
+```
+One folder per shoot on Timon's SSD (`paths.library_folder`), sorted by kind: `Koken`, `Kleding`, `Smoken`,
+`Reizen`, `Klanten`, `_Inbox` (default, sort it later). Every shoot has `1 Ruw\Video`, `1 Ruw\Foto`,
+`2 Bewerkt\Video`, `2 Bewerkt\Foto` and `3 Klaar om te posten`.
+- Copies videos (+ Sony XML), photos (RAW + JPG) and skips DJI `.LRF` proxies. Each copy is checked against the card
+  (SHA-1); nothing is ever deleted from the card.
+- Remembers what it offloaded (`I:\.autoedit-offload.json`), so a card with older shoots only copies what is new.
+  Offloading again with the same name adds to the same shoot folder.
+- Makes the AutoEdit project of the same name and points its `clips` at `1 Ruw\Video` (a junction), with the
+  category set (koken → food, kleding → fashion, reizen → travel, smoken → lifestyle). No second copy on C:.
+- On the website: *SD-kaart offloaden* on the Projecten page.
+
 ## Edit a shoot
 ```
 autoedit new "Smoke Sesh"          # makes Videos\AutoEdit Projects\Smoke Sesh\ with clips\ music\ exports\ project.yaml
@@ -129,6 +144,7 @@ Videos land in your TikTok inbox; paste the caption (it's in the dashboard) and 
 |---|---|
 | `autoedit run <folder>` | analyse → edit in Resolve → render → queue. Options: `--category`, `--aspect 9:16\|16:9`, `--music <file\|name\|none>`, `--bass <dB>`, `--title`, `--label`, `--location`, `--variants AB`, `--stabilize auto\|all\|none`, `--seed`, `--style`, `--no-render` |
 | `autoedit new <name>` | create a project folder with clips/, music/, exports/ and project.yaml |
+| `autoedit offload <name>` | camera card(s) → `<library>\<Soort>\<date> <name>\1 Ruw\` on the SSD, checked; links the project. `--soort koken\|kleding\|smoken\|reizen\|klanten\|inbox`, `--since YYYY-MM-DD`, `--no-project` |
 | `autoedit import <name>` | copy new clips from the camera SD card (`--since YYYY-MM-DD`) |
 | `autoedit project <name>` | edit a project by (partial) name; `--song`, `--title`, `--variants`, `--seed` |
 | `autoedit projects` | list projects with clips, song and exports |

@@ -88,7 +88,16 @@ async function home() {
   const list = await api("/api/projects");
   main.innerHTML = `
     <div class="head"><div><div class="crumb">AutoEdit Studio</div><h1>Projecten</h1></div><span class="spacer"></span>
-      <button id="newBtn">+ Nieuw project</button></div>
+      <button class="dark" id="offBtn">⇩ SD-kaart offloaden</button><button id="newBtn">+ Nieuw project</button></div>
+    <div class="card" id="offCard" hidden style="margin-bottom:18px"><h2>SD-kaart offloaden</h2>
+      <div class="form"><label>Naam van de shoot<input id="ofName" placeholder="bijv. Beef Tartaar"></label>
+      <label>Soort<select id="ofKind"><option value="koken">Koken</option><option value="kleding">Kleding</option>
+        <option value="smoken">Smoken</option><option value="reizen">Reizen</option><option value="klanten">Klanten</option>
+        <option value="inbox">Weet ik nog niet (_Inbox)</option></select></label>
+      <label>Vanaf datum (optioneel)<input id="ofSince" type="date"></label></div>
+      <div class="row" style="margin-top:12px"><button id="ofGo">Offloaden</button>
+      <span class="muted small">Kopieert foto's en video's van je Sony- en DJI-kaart naar Timon's SSD: &lt;Soort&gt;/&lt;datum naam&gt;/1 Ruw.
+        Elk bestand wordt gecontroleerd; de kaart blijft onaangeraakt.</span></div></div>
     <div class="card" id="newCard" hidden style="margin-bottom:18px"><h2>Nieuw project</h2>
       <div class="form"><label>Naam<input id="npName" placeholder="bijv. Porto 2026"></label>
       <label>Titel in de video<input id="npTitle" placeholder="standaard: de naam"></label></div>
@@ -96,6 +105,13 @@ async function home() {
       <span class="muted small">Maakt clips/, music/, exports/ en project.yaml in je AutoEdit Projects-map.</span></div></div>
     ${list.length ? `<div class="grid projects">${list.map(pcard).join("")}</div>` : '<div class="empty">Nog geen projecten.</div>'}`;
   $("#newBtn").onclick = () => ($("#newCard").hidden = !$("#newCard").hidden);
+  $("#offBtn").onclick = () => ($("#offCard").hidden = !$("#offCard").hidden);
+  $("#ofGo").onclick = () => {
+    const name = $("#ofName").value.trim(), soort = $("#ofKind").value;
+    if (!name) return toast("Geef de shoot een naam", "err");
+    startJob("/api/offload", { name, soort, since: $("#ofSince").value },
+      { onDone: (j) => j.status === "done" && soort !== "inbox" && (location.hash = "#/p/" + enc(name)) });
+  };
   $("#npGo").onclick = () => {
     const name = $("#npName").value.trim();
     if (!name) return toast("Geef het project een naam", "err");

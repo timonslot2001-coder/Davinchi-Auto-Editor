@@ -50,6 +50,12 @@ def main(argv=None):
     a = sub.add_parser("import", help="copy new clips from the camera SD card into a project")
     a.add_argument("name")
     a.add_argument("--since", help="only clips from this day on, YYYY-MM-DD")
+    a = sub.add_parser("offload", help="copy photos + videos from the camera card(s) to your SSD, one folder per shoot")
+    a.add_argument("name", help="name of the shoot, e.g. 'Beef Tartaar'")
+    a.add_argument("--soort", default="inbox", choices=["koken", "kleding", "smoken", "reizen", "klanten", "inbox"],
+                   help="kind of video → folder on the SSD (default: _Inbox, sort it later)")
+    a.add_argument("--since", help="only files from this day on, YYYY-MM-DD")
+    a.add_argument("--no-project", action="store_true", help="don't make/link the AutoEdit project")
     a = sub.add_parser("project", help="edit a project by name (partial name is fine)")
     a.add_argument("name")
     a.add_argument("--song", help="override the project's song")
@@ -184,6 +190,9 @@ def main(argv=None):
     elif args.cmd == "import":
         from . import projects
         projects.import_card(cfg, args.name, args.since)
+    elif args.cmd == "offload":
+        from . import offload
+        offload.offload(cfg, args.name, args.soort, args.since, link=not args.no_project)
     elif args.cmd == "project":
         from . import projects
         res = projects.run(cfg, args.name, song=args.song, title=args.title, variants=args.variants, seed=args.seed)

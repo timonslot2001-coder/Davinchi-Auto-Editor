@@ -5,8 +5,8 @@ entry; the full list is in `git log`. Hard-to-reverse choices also get a record 
 
 ## 2026-11-01 — AutoEdit Studio in the Claude app
 - The Studio is a working page in the Claude app (phone, laptop): pick a grade with an instant preview, make a plan,
-  watch the preview and storyboard, approve in your own words, render, and see the result. Six looks now: Film, Clean
-  warm, Moody and the new Daglicht, Blauw uur and Vintage.
+  watch the preview and storyboard, approve in your own words, render, and see the result. Six looks, shown by their
+  LUT names: `reference_film`, `clean_warm`, `moody` and the new `daylight`, `blue_hour` and `vintage`.
 - Each project shows its steps (Grade → Plan → Goedkeuren → Renderen → Resultaat) with what to do next.
 - The buttons work while `start-studio-sessie.bat` runs on the PC; without it the page says so and only the grade
   preview works. A grade change after approval needs a new approval.

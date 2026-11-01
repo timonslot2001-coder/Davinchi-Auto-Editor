@@ -46,6 +46,7 @@ Timon's own channels come first; client work runs on a separate track so it neve
 | Why the montage cuts the way it does | [EDITING_DNA_PACKAGE/EDITING_PSYCHOLOGY.md](../EDITING_DNA_PACKAGE/EDITING_PSYCHOLOGY.md) |
 | How the editor learns from your feedback | [README.md](../README.md) → *How it learns* |
 | Why something was decided the way it was | [decisions/](decisions/README.md) |
+| Design of the Studio as a working Artifact (draft) | [superpowers/specs/2026-11-01-studio-artifact-design.md](superpowers/specs/2026-11-01-studio-artifact-design.md) |
 | What changed and when | [CHANGELOG.md](../CHANGELOG.md) |
 
 ## Start pages and records

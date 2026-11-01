@@ -3,6 +3,11 @@
 What changed, in words you would notice in an edit or on the PC. Newest first. Small fixes are folded into the day's
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
+## 2026-11-01 — Pace from the music (test)
+- Cine montage: `engine plan --pacing music` lets the song set the pace instead of a fixed curve: cuts on the beat you
+  feel, long flowing shots in a breakdown, a cut and a white-card burst exactly on the drop. `--song-start` starts the
+  song where you want (e.g. where the TikTok sound starts). Default pacing is unchanged.
+
 ## 2026-11-01 — Offload with a double-click
 - `offload.bat`: double-click, type the shoot name, pick the kind (1–6), and the card goes to the SSD. The same
   thing as the *SD-kaart offloaden* button on the website.

@@ -12,7 +12,7 @@ from pathlib import Path
 from flask import Flask, Response, jsonify, request, send_file, send_from_directory
 
 STATIC = Path(__file__).with_name("static")
-LOOKS = {"reference_film", "clean_warm", "moody"}
+LOOKS = {"reference_film", "clean_warm", "moody", "daylight", "blue_hour", "vintage"}   # keep in step with engine grade
 GRADES = {"auto", "slog3", "rec709", "none"}
 
 
@@ -188,13 +188,26 @@ def create(host=None) -> Flask:
                 a += [flag, b[key]]
         return job(a, "Cine montage: plan maken", name)
 
-    def grade_args(b):
+    def grade_args(b, action):
+        """--grade is part of the approval (set at plan); the look lives in cine_montage/grade.json, so render never
+        gets --look. Only preview takes a non-persisting --look try-out."""
         a = []
         if b.get("grade") in GRADES:
             a += ["--grade", b["grade"]]
-        if b.get("look") in LOOKS - {"reference_film"}:
+        if action == "preview" and b.get("look") in LOOKS:
             a += ["--look", b["look"]]
         return a
+
+    @app.post("/api/projects/<name>/cine/grade")
+    def cine_grade(name):
+        b = request.get_json() or {}
+        if b.get("look") not in LOOKS:
+            raise ValueError(f"look: one of {sorted(LOOKS)}")
+        a = ["engine", "grade", proj(name)["path"], "--look", b["look"]]
+        for flag, val in (("--strength", _num(b.get("strength"), 0, 1)), ("--exposure", _num(b.get("exposure"), -3, 0.5))):
+            if val:
+                a += [flag, val]
+        return job(a, "Cine montage: kleurlook instellen", name)
 
     @app.post("/api/projects/<name>/cine/approve")
     def cine_approve(name):
@@ -208,7 +221,7 @@ def create(host=None) -> Flask:
         if action not in ("preview", "render", "qa", "check"):
             raise KeyError(action)
         b = request.get_json() or {}
-        a = ["engine", action, proj(name)["path"]] + (grade_args(b) if action in ("preview", "render") else [])
+        a = ["engine", action, proj(name)["path"]] + (grade_args(b, action) if action in ("preview", "render") else [])
         if action == "qa" and b.get("grade") in GRADES:
             a += ["--grade", b["grade"]]
         labels = {"preview": "Voorbeeld (halve grootte)", "render": "Renderen", "qa": "QA", "check": "Stijlchecks"}

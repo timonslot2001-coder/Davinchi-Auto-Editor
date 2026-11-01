@@ -147,6 +147,7 @@ function tabCine() {
   const c = P.cine, s = P.settings || {};
   const appr = c.approval;
   const approved = appr && appr.status === "approved" && appr.current;
+  const lookOptions = '<option value="reference_film">B · film-look</option><option value="clean_warm">C · clean warm (eten)</option><option value="moody">moody</option><option value="daylight">daylight</option><option value="blue_hour">blue hour</option><option value="vintage">vintage</option>';
   const cineExports = P.exports.filter((f) => /cine_montage_.*\.mp4$/.test(f.name));
   const counts = c.checks.reduce((a, x) => ((a[x.status] = (a[x.status] || 0) + 1), a), {});
   $("#tab").innerHTML = `
@@ -157,7 +158,7 @@ function tabCine() {
           <label class="full">Titel (één poster-titel)<input id="cTitle" value="${esc(c.title || (s.title || "").toUpperCase())}"></label>
           <label>Lengte (s)<input id="cLen" type="number" min="8" max="30" step="0.5" value="${c.duration || 18}"></label>
           <label>Seed<input id="cSeed" type="number" min="0" value="1"></label>
-          <label>Look<select id="cLook"><option value="reference_film">B · film-look</option><option value="clean_warm">C · clean warm (eten)</option><option value="moody">moody</option></select></label>
+          <label>Look<select id="cLook"><option value="reference_film">B · film-look</option><option value="clean_warm">C · clean warm (eten)</option><option value="moody">moody</option><option value="daylight">daylight</option><option value="blue_hour">blue hour</option><option value="vintage">vintage</option></select></label>
           <label>Kleur van de beelden<select id="cGrade"><option value="auto">automatisch</option><option value="rec709">Rec.709 (gewoon)</option><option value="slog3">S-Log3</option><option value="none">geen grade</option></select></label>
           <label>Volgorde<select id="cOrder"><option value="best">beste shots</option><option value="story" ${s.order || s.category === "food" ? "selected" : ""}>verhaal / kookvolgorde</option></select></label>
           <label>Grid Flow<select id="cGrid"><option value="auto">automatisch (1×, niet bij eten/kleding)</option><option value="off">uit</option></select></label>
@@ -183,8 +184,16 @@ function tabCine() {
           <button id="cRender" ${approved ? "" : "disabled"}>Renderen</button>
           <button class="ghost" id="cPreview">Voorbeeld (half)</button>
           <button class="ghost" id="cQa">QA</button></div>
-        <p class="muted small">Renderen gebruikt de look en kleur hierboven.</p>`}
+        <p class="muted small">Renderen gebruikt de opgeslagen kleurlook (grade.json).</p>`}
       </div>
+      ${c.has_plan ? `<div class="card"><h2>Kleurlook (grade)</h2>
+        <div class="form">
+          <label>Look<select id="gLook">${lookOptions}</select></label>
+          <label>Sterkte <span id="gSV">1</span><input id="gStr" type="range" min="0" max="1" step="0.05" value="1"></label>
+          <label>Belichting (stops) <span id="gEV">-1.75</span><input id="gExp" type="range" min="-3" max="0.5" step="0.25" value="-1.75"></label>
+        </div>
+        <div class="row" style="margin-top:10px"><button id="gSave">Look opslaan</button>
+          <span class="muted small">Schrijft cine_montage/grade.json. Renderen gebruikt die look.</span></div></div>` : ""}
       ${c.qa ? `<div class="card"><h2>Laatste QA</h2>${qaView(c.qa.qa)}</div>` : ""}
     </div>
     <div class="stack">
@@ -222,6 +231,10 @@ function tabCine() {
   $("#cRender").onclick = () => startJob(`/api/projects/${enc(P.name)}/cine/render`, grade(), { onDone: reload });
   $("#cPreview").onclick = () => startJob(`/api/projects/${enc(P.name)}/cine/preview`, grade(), { onDone: reload });
   $("#cQa").onclick = () => startJob(`/api/projects/${enc(P.name)}/cine/qa`, grade(), { onDone: reload });
+  $("#gStr").oninput = () => ($("#gSV").textContent = $("#gStr").value);
+  $("#gExp").oninput = () => ($("#gEV").textContent = $("#gExp").value);
+  $("#gSave").onclick = () => startJob(`/api/projects/${enc(P.name)}/cine/grade`, {
+    look: $("#gLook").value, strength: $("#gStr").value, exposure: $("#gExp").value }, { onDone: reload });
   $("#cSaveComments").onclick = () => guard(async () => {
     const comments = {};
     document.querySelectorAll(".shot textarea").forEach((t) => (comments[t.dataset.n] = t.value));

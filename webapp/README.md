@@ -35,7 +35,8 @@ the commands and serves the files.
 
 ## Approval gates (unchanged)
 - **Cine montage:** *Renderen* only works after *Goedkeuren* with your own words, on the current plan (gate B). A new
-  plan needs a new approval.
+  plan needs a new approval. *Look opslaan* (look, strength, exposure) runs `engine grade` and writes `cine_montage/grade.json`,
+  the one grade source; render takes no `--look`, and *Voorbeeld* may try a look without saving it.
 - **Paid AI shots:** first *Prijs vragen*, then a confirmation with the price. Local models (your GPU) are free. The AI
   budget in project.yaml can only go down from the website; raising it is done by hand.
 - **Posting:** nothing goes online unless you press *Goedkeuren* (posts at the planned time) or *Nu posten*.

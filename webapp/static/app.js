@@ -93,7 +93,7 @@ async function home() {
       <div class="form"><label>Naam van de shoot<input id="ofName" placeholder="bijv. Beef Tartaar"></label>
       <label>Soort<select id="ofKind"><option value="koken">Koken</option><option value="kleding">Kleding</option>
         <option value="smoken">Smoken</option><option value="reizen">Reizen</option><option value="klanten">Klanten</option>
-        <option value="inbox">Weet ik nog niet (_Inbox)</option></select></label>
+        <option value="inbox">Weet ik nog niet (_Inbox, per dag)</option></select></label>
       <label>Vanaf datum (optioneel)<input id="ofSince" type="date"></label></div>
       <div class="row" style="margin-top:12px"><button id="ofGo">Offloaden</button>
       <span class="muted small">Kopieert foto's en video's van je Sony- en DJI-kaart naar Timon's SSD: &lt;Soort&gt;/&lt;datum naam&gt;/1 Ruw.

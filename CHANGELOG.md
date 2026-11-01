@@ -3,6 +3,12 @@
 What changed, in words you would notice in an edit or on the PC. Newest first. Small fixes are folded into the day's
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
+## 2026-11-01 — Offload with a double-click
+- `offload.bat`: double-click, type the shoot name, pick the kind (1–6), and the card goes to the SSD. The same
+  thing as the *SD-kaart offloaden* button on the website.
+- *Weet ik nog niet* (`_Inbox`) now makes one folder per recording day (`2026-10-09 SD-kaart`), so a card with
+  months of shoots on it arrives sorted by day.
+
 ## 2026-11-01 — AutoEdit Studio in the Claude app
 - The Studio is a working page in the Claude app (phone, laptop): pick a grade with an instant preview, make a plan,
   watch the preview and storyboard, approve in your own words, render, and see the result. Six looks, shown by their

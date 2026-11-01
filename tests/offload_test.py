@@ -64,6 +64,16 @@ put("DCIM/100MSDCF/DSC00009.JPG", b"later" * 10, day + 5 * 86400)
 r = offload.offload(cfg, "Onbekend", "inbox", cards=[card])
 assert r["copied"] == 1 and r["project"] is None and (lib / "_Inbox" / "2026-10-11 Onbekend" / "1 Ruw" / "Foto").is_dir(), r
 
+# _Inbox splits an old card per recording day; the same day again goes into the same day folder
+put("DCIM/100MSDCF/DSC00011.JPG", b"day a" * 10, day + 7 * 86400)
+put("DCIM/100MSDCF/DSC00012.JPG", b"day b" * 10, day + 8 * 86400)
+r = offload.offload(cfg, "Onbekend", "inbox", cards=[card])
+assert r["copied"] == 2 and [Path(s).name for s in r["shoots"]] == ["2026-10-13 Onbekend", "2026-10-14 Onbekend"], r
+put("DCIM/100MSDCF/DSC00013.JPG", b"day b again" * 10, day + 8 * 86400 + 60)
+r = offload.offload(cfg, "Onbekend", "inbox", cards=[card])
+assert [Path(s).name for s in r["shoots"]] == ["2026-10-14 Onbekend"], r
+assert sorted(p.name for p in (lib / "_Inbox" / "2026-10-14 Onbekend" / "1 Ruw" / "Foto").iterdir()) == ["DSC00012.JPG", "DSC00013.JPG"]
+
 # a copy that does not match the card is thrown away
 bad = put("DCIM/100MSDCF/DSC00010.JPG", b"x" * 100)
 real_sha1 = offload._sha1

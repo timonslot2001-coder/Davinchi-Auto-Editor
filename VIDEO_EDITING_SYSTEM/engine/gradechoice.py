@@ -37,12 +37,15 @@ def load(work: Path) -> Grade:
     if not f.exists():
         return Grade()
     d = json.loads(f.read_text(encoding="utf-8"))
-    return Grade(str(d.get("look", Grade.look)), float(d.get("strength", Grade.strength)),
-                 float(d.get("exposure", Grade.exposure)))
+    g = Grade(str(d.get("look", Grade.look)), float(d.get("strength", Grade.strength)),
+              float(d.get("exposure", Grade.exposure)))
+    validate(g)                                                  # a hand-edited grade.json must not render silently
+    return g
 
 
 def save(work: Path, g: Grade) -> None:
     validate(g)
+    g = Grade(g.look, round(g.strength, 3), round(g.exposure, 3))   # stored = keyed = baked into the LUT
     (Path(work) / "grade.json").write_text(json.dumps(asdict(g), indent=1), encoding="utf-8")
 
 

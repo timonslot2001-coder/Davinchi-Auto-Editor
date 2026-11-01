@@ -164,6 +164,7 @@ Videos land in your TikTok inbox; paste the caption (it's in the dashboard) and 
 | `autoedit optimize` | smooth playback in Resolve: proxies, render cache, heavy nodes off (existing timelines too) |
 | `engine validate` | DNA approved, Edge + FFmpeg present, documents up to date (run in `VIDEO_EDITING_SYSTEM/`) |
 | `engine plan <project>` | cine montage plan + storyboard + style checks (`--title`, `--length`, `--accent`, `--song`, `--seed`) |
+| `engine grade <project> --look L` | project grade (`--strength 0..1`, `--exposure -3..0.5`); part of the approval: changing it makes `render` refuse until a new approve |
 | `engine check` / `preview` / `approve` / `render` / `qa` | style checks again / half-size preview / record approval / final render / technical QA |
 
 ## Settings

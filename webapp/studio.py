@@ -7,16 +7,21 @@ PC; the session writes the comment text to data/studio_inbox/<thread>.txt (no sh
 
 It comes from a comment, so nothing in it becomes command text: every key and value is checked here and mapped to
 exactly one allowed `engine ...` argv (host.ALLOWED + check_args). Each comment thread runs once (data/studio_handled.json).
+The CLI answers at once: refusals and `stills` print their final line, every engine action starts a detached worker
+(`python -m webapp studio-worker`, survives the session) and prints `status: "bezig"`; the worker runs one engine job at
+a time (data/studio.lock) and writes data/studio_results/<thread>.json, which `python -m webapp studio-result` prints.
 `state(name)` is the projects/<slug> document the session writes into the Artifact's db; it holds no local paths
 (asset URLs - stills, LUTs, render - are filled in by the session)."""
 from __future__ import annotations
 
 import argparse
+import contextlib
 import hashlib
 import json
 import os
 import re
 import shlex
+import subprocess
 import sys
 import time
 from datetime import datetime, timezone
@@ -24,9 +29,12 @@ from pathlib import Path
 
 from . import query
 from .host import check_args
-from .validate import LOOKS, _name, _num, _text, grade_args
+from .validate import LOOKS, _name, _num, _text, grade_args, mode_args
 
 HANDLED = query.REPO / "data" / "studio_handled.json"
+HANDLED_LOCK = query.REPO / "data" / "studio_handled.lock"     # around mark()'s read-modify-write
+LOCK = query.REPO / "data" / "studio.lock"                     # held by a worker around its engine job
+RESULTS = query.REPO / "data" / "studio_results"               # <thread>.job.json (what to run), <thread>.json (result)
 INBOX = query.REPO / "data" / "studio_inbox"                   # --text-file must be in here
 ASSETS = query.REPO / "data" / "studio_assets"                 # per project slug: stills, LUTs, 720p videos
 MAX_UPLOAD = 20 * 1024 * 1024                                  # Artifact asset limit the session keeps to
@@ -47,6 +55,10 @@ GRADE_CHANGED = "de grade is veranderd sinds je hem zag: bekijk de grade opnieuw
 
 class NotYet(Exception):
     """The action exists in the request format but has no command yet."""
+
+
+class Busy(Exception):
+    """file_lock(wait=False): someone else holds the lock."""
 
 
 class HandledListError(Exception):
@@ -170,7 +182,9 @@ def to_args(req: dict) -> list[str]:
              "--expect-sha1", req["plan"], "--expect-grade", req["grade"]]
     elif act == "render":
         a = ["engine", "render", path] + grade_args({}, "render", {"cine": query.cine(p)})
-    else:                                                        # plan, preview, qa: no options from the Artifact
+    elif act == "preview":                                       # the plan's --grade mode, like render
+        a = ["engine", "preview", path] + mode_args(query.cine(p))
+    else:                                                        # plan, qa: no options from the Artifact
         a = ["engine", act, path]
     check_args(a)
     return a
@@ -190,36 +204,108 @@ def _handled_list() -> list[str]:
     return ids
 
 
+@contextlib.contextmanager
+def file_lock(path: Path, wait: bool = True):
+    """An exclusive lock between processes on this PC (msvcrt on Windows, fcntl elsewhere). wait=False raises Busy."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    f = open(path, "a+b")
+    locked = False
+    try:
+        if os.name == "nt":
+            import msvcrt
+            while True:
+                f.seek(0)
+                try:
+                    msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
+                    break
+                except OSError:
+                    if not wait:
+                        raise Busy(path.name) from None
+                    time.sleep(0.5)
+        else:
+            import fcntl
+            try:
+                fcntl.flock(f.fileno(), fcntl.LOCK_EX | (0 if wait else fcntl.LOCK_NB))
+            except BlockingIOError:
+                raise Busy(path.name) from None
+        locked = True
+        yield
+    finally:
+        if locked:
+            if os.name == "nt":
+                import msvcrt
+                f.seek(0)
+                msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
+            else:
+                import fcntl
+                fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+        f.close()
+
+
+def _replace(tmp: Path, dst: Path, what: str) -> None:
+    """os.replace with retries: never a half-written file (Windows: a scanner briefly holds the target open)."""
+    for attempt in range(20):
+        try:
+            os.replace(tmp, dst)
+            return
+        except PermissionError:
+            if attempt == 19:
+                tmp.unlink(missing_ok=True)
+                raise HandledListError(f"{what} is bezet: probeer het zo opnieuw") from None
+            time.sleep(0.05 * (attempt + 1))
+        except OSError:
+            tmp.unlink(missing_ok=True)
+            raise HandledListError(f"{what} niet te schrijven") from None
+
+
 def handled(thread_id: str) -> bool:
     return thread_id in _handled_list()
 
 
-def mark(thread_id: str) -> None:
+def _mark(thread_id: str) -> None:
     ids = [t for t in _handled_list() if t != thread_id] + [thread_id]
     HANDLED.parent.mkdir(parents=True, exist_ok=True)
     tmp = HANDLED.with_name(HANDLED.name + f".{os.getpid()}.tmp")
     tmp.write_text(json.dumps(ids[-KEEP:]), encoding="utf-8")
-    for attempt in range(20):                                    # never a half-written list
-        try:
-            os.replace(tmp, HANDLED)
-            return
-        except PermissionError:                                  # Windows: a scanner briefly holds the target open
-            if attempt == 19:
-                tmp.unlink(missing_ok=True)
-                raise HandledListError("afgehandeld-lijst is bezet: probeer het zo opnieuw") from None
-            time.sleep(0.05 * (attempt + 1))
-        except OSError:
-            tmp.unlink(missing_ok=True)
-            raise HandledListError("afgehandeld-lijst niet te schrijven") from None
+    _replace(tmp, HANDLED, "afgehandeld-lijst")
+
+
+def mark(thread_id: str) -> None:
+    with file_lock(HANDLED_LOCK):
+        _mark(thread_id)
+
+
+def claim(thread_id: str) -> bool:
+    """Mark the thread as handled; False if it already was. One lock around check and write: two sessions (or two
+    quick calls) can never both run the same thread."""
+    with file_lock(HANDLED_LOCK):
+        if handled(thread_id):
+            return False
+        _mark(thread_id)
+        return True
 
 
 # ---------------------------------------------------------------- state for the Artifact db
+
+def _made_with(info: Path, made: Path) -> dict | None:
+    """{key, look} of the grade the engine made `made` with (its json next to it), or None if unknown."""
+    if not made.exists():
+        return None
+    try:
+        d = json.loads(info.read_text(encoding="utf-8"))
+        key, look = d["key"], d["look"]
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+    if not (isinstance(key, str) and re.fullmatch(r"[0-9a-f]{12}", key) and look in LOOKS):
+        return None
+    return {"key": key, "look": look}
+
 
 def state(name: str) -> dict:
     p = _project(name)
     work = p / "cine_montage"
     c = query.cine(p)
-    grade = _grade(work)
+    grade = {**_grade(work), "chosen": (work / "grade.json").exists()}
     plan = None
     if c["has_plan"]:
         plan = {"edl_sha1": _edl_sha1(work), "shots": len(c["shots"]), "duration": c.get("duration"),
@@ -231,7 +317,9 @@ def state(name: str) -> dict:
         approval = {"status": a.get("status"), "by": a.get("by"), "at": a.get("at"), "note": a.get("note"),
                     "current": bool(a.get("current")),
                     "grade_current": approved_key == grade["key"]}
-    return {"name": p.name, "plan": plan, "approval": approval, "grade": grade, "stills": [],
+    made_with = {"sheet": _made_with(work / "storyboard" / "made_with.json", work / "storyboard" / "storyboard_sheet.jpg"),
+                 "preview": _made_with(work / "preview_made_with.json", work / "preview.mp4")}
+    return {"name": p.name, "plan": plan, "approval": approval, "grade": grade, "made_with": made_with, "stills": [],
             "luts": {"conv": None, "looks": {}}, "render": None,
             "updated_at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
 
@@ -249,7 +337,10 @@ def _wait(host, jid: str, poll: float) -> dict:
 def redact(text: str) -> str:
     """Local paths in a log line -> their last part (the job message goes into the shared db, which has no paths)."""
     last = lambda m: re.split(r"[\\/]", m.group().rstrip("\\/"))[-1] or m.group()   # noqa: E731
-    text = re.sub(r"(?:(?<!\w)[A-Za-z]:[\\/]|\\\\)[^\s\"'<>|]*", last, text)           # C:\..., D:/..., \\server\...
+    # C:\..., \\server\..., D:/...: folders may hold spaces (a folder ends at the path's own separator); the last part
+    # (the file name) ends at a space
+    text = re.sub(r"(?:(?<!\w)[A-Za-z]:\\|\\\\)(?:[^\\/\r\n\"<>|:*?]+\\)*[^\s\\/\"'<>|]*", last, text)
+    text = re.sub(r"(?<!\w)[A-Za-z]:/(?:[^\\/\r\n\"<>|:*?]+/)*[^\s\\/\"'<>|]*", last, text)
     return re.sub(r"(?<![\w.:/~-])/(?!/)[^\s\"'<>|]+", last, text)                  # /home/..., /tmp/... (not URLs)
 
 
@@ -279,15 +370,34 @@ def _read_text_file(arg: str) -> str:
     return text[:-1] if text.endswith("\n") else text          # read_text already turned \r\n into \n
 
 
-def cli(argv=None, host=None, poll: float = 1.0) -> int:
+def _thread_ok(thread: str) -> bool:
+    if THREAD.fullmatch(thread):
+        return True
+    _out({"ok": False, "message": "ongeldige thread-id"})
+    return False
+
+
+def _write_json(path: Path, d: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(path.name + f".{os.getpid()}.tmp")
+    tmp.write_text(json.dumps(d, ensure_ascii=False), encoding="utf-8")
+    _replace(tmp, path, path.name)
+
+
+def _now() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+def cli(argv=None, spawn=None) -> int:
+    """Validate, mark handled, start the work detached and answer at once (one JSON line). `spawn(thread)` starts the
+    worker; tests pass their own."""
     ap = argparse.ArgumentParser(prog="webapp studio")
     ap.add_argument("--thread", required=True)
     src = ap.add_mutually_exclusive_group(required=True)
     src.add_argument("--text-file", help="file in data/studio_inbox/ with the comment text (the session's route)")
     src.add_argument("text", nargs="?", help="the comment text itself (tests, by hand)")
     args = ap.parse_args(argv)
-    if not THREAD.fullmatch(args.thread):
-        _out({"ok": False, "message": "ongeldige thread-id"})
+    if not _thread_ok(args.thread):
         return 1
     if args.text_file is not None:
         try:
@@ -296,33 +406,96 @@ def cli(argv=None, host=None, poll: float = 1.0) -> int:
             _out({"ok": False, "message": str(e)})
             return 1
     try:
-        if handled(args.thread):
+        if not claim(args.thread):                               # before running: a render never runs twice
             _out({"ok": False, "message": "al afgehandeld"})
             return 1
-        mark(args.thread)                                        # before running: a render never runs twice
-    except HandledListError as e:
-        _out({"ok": False, "message": str(e)})
+    except (HandledListError, OSError) as e:
+        _out({"ok": False, "message": str(e) if isinstance(e, HandledListError) else "afgehandeld-lijst niet te schrijven"})
         return 1
     act, name = None, None
     try:
         req = parse(args.text)
         act, name = req["actie"], req["project"]
-        if act == "stills":
+        if act == "stills":                                      # quick and no engine job: answered right here
             return _stills(name)
         a = to_args(req)
     except Exception as e:                                       # refused or broken: still one JSON line
         msg = str(e) if isinstance(e, (ValueError, NotYet, PermissionError)) else f"fout: {type(e).__name__}: {e}"
         _out({"ok": False, "action": act, "message": redact(msg), "state": _state_or_none(name) if name else None})
         return 1
+    head = {"action": act, "slug": slug(name)}
+    try:
+        _write_json(RESULTS / f"{args.thread}.job.json", {"thread": args.thread, "action": act, "project": name,
+                                                          "args": a, "started_at": _now()})
+        _write_json(RESULTS / f"{args.thread}.json", {"ok": True, **head, "status": "bezig", "message": "gestart",
+                                                      "started_at": _now()})
+        (spawn or _spawn_detached)(args.thread)
+    except Exception as e:
+        out = {"ok": False, **head, "status": "fout", "message": f"kon niet starten: {redact(str(e))}",
+               "state": _state_or_none(name)}
+        with contextlib.suppress(Exception):
+            _write_json(RESULTS / f"{args.thread}.json", out)
+        _out(out)
+        return 1
+    _out({"ok": True, **head, "status": "bezig", "message": "gestart"})
+    return 0
+
+
+def _spawn_detached(thread: str) -> None:
+    """`python -m webapp studio-worker --thread <id>` as its own process: it keeps running when the session's shell
+    call (or the whole session) ends."""
+    RESULTS.mkdir(parents=True, exist_ok=True)
+    cmd = [sys.executable, "-m", "webapp", "studio-worker", "--thread", thread]
+    env = {**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUNBUFFERED": "1"}
+    with open(RESULTS / f"{thread}.log", "ab") as log:
+        kw = dict(cwd=str(query.REPO), env=env, stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT,
+                  close_fds=True)
+        if os.name == "nt":
+            flags = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
+            try:                                                 # also leave the session's job object if allowed
+                subprocess.Popen(cmd, creationflags=flags | subprocess.CREATE_BREAKAWAY_FROM_JOB, **kw)
+            except OSError:
+                subprocess.Popen(cmd, creationflags=flags, **kw)
+        else:
+            subprocess.Popen(cmd, start_new_session=True, **kw)
+
+
+def work(thread: str, host=None, poll: float = 1.0) -> None:
+    """The detached worker: run the job file's engine argv (one job at a time on this PC), then write the final
+    result line (the same shape the CLI used to print) into data/studio_results/<thread>.json. Never raises."""
+    res_path = RESULTS / f"{thread}.json"
+    act, name = None, None
+    try:
+        job = json.loads((RESULTS / f"{thread}.job.json").read_text(encoding="utf-8"))
+        act, name, a = job["action"], job["project"], job["args"]
+        check_args(a)
+        head = {"action": act, "slug": slug(name)}
+        try:
+            with file_lock(LOCK, wait=False):
+                out = _run_job(host, a, act, name, poll)
+        except Busy:
+            _write_json(res_path, {"ok": True, **head, "status": "bezig", "started_at": job.get("started_at"),
+                                   "message": "wacht tot de vorige taak op de PC klaar is"})
+            with file_lock(LOCK):
+                out = _run_job(host, a, act, name, poll)
+    except Exception as e:                                       # never stuck on "bezig"
+        out = {"ok": False, "action": act, "slug": slug(name) if name else None,
+               "message": f"{LABELS.get(act, act or 'taak')}: mislukt\n{redact(f'{type(e).__name__}: {e}')}",
+               "state": _state_or_none(name) if name else None}
+    out["status"] = "klaar" if out["ok"] else "fout"
+    out["finished_at"] = _now()
+    _write_json(res_path, out)
+
+
+def _run_job(host, a: list[str], act: str, name: str, poll: float) -> dict:
     if host is None:
         from .host import LocalHost
         host = LocalHost()
     try:
         j = _wait(host, host.run(a, f"Studio: {LABELS.get(act, act)}", name)["id"], poll)
-    except Exception as e:                                       # still one JSON line for the session
-        _out({"ok": False, "action": act, "slug": slug(name), "message": f"kon niet starten: {redact(str(e))}",
-              "state": _state_or_none(name)})
-        return 1
+    except Exception as e:
+        return {"ok": False, "action": act, "slug": slug(name), "message": f"kon niet starten: {redact(str(e))}",
+                "state": _state_or_none(name)}
     ok = j["status"] == "done"
     log = redact("\n".join(j.get("log", [])[-8:]))
     msg = (f"{LABELS.get(act, act)}: klaar" if ok else f"{LABELS.get(act, act)}: mislukt ({j['status']})") + \
@@ -337,8 +510,35 @@ def cli(argv=None, host=None, poll: float = 1.0) -> int:
             out["message"] += f"\n{note}" if note else ""
         if files:
             out["local_files"] = files
-    _out(out)
-    return 0 if ok else 1
+    return out
+
+
+def worker_cli(argv=None) -> int:
+    ap = argparse.ArgumentParser(prog="webapp studio-worker")
+    ap.add_argument("--thread", required=True)
+    args = ap.parse_args(argv)
+    if not THREAD.fullmatch(args.thread):
+        return 1
+    work(args.thread)
+    return 0
+
+
+def result_cli(argv=None) -> int:
+    """The result of a started request: the final line, or {ok: true, status: "bezig"} while it runs."""
+    ap = argparse.ArgumentParser(prog="webapp studio-result")
+    ap.add_argument("--thread", required=True)
+    args = ap.parse_args(argv)
+    if not _thread_ok(args.thread):
+        return 1
+    try:
+        d = json.loads((RESULTS / f"{args.thread}.json").read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        _out({"ok": False, "message": "onbekende taak: niet gestart"})
+        return 1
+    except (OSError, ValueError):                                # being replaced right now: ask again
+        d = {"ok": True, "status": "bezig", "message": "even opnieuw vragen"}
+    _out(d)
+    return 0 if d.get("ok") else 1
 
 
 def local_files(name: str, act: str) -> dict:
@@ -393,8 +593,16 @@ def projects() -> list[str]:
 
 
 def projects_cli(argv=None) -> int:
+    """Every Studio project with its state document: [{name, slug, state}]. Folder names the validator refuses are
+    skipped, so no odd name ever reaches the session's commands or the db."""
     argparse.ArgumentParser(prog="webapp studio-projects").parse_args(argv)
-    _out([{"name": n, "slug": slug(n)} for n in projects()])
+    out = []
+    for n in projects():
+        try:
+            out.append({"name": n, "slug": slug(n), "state": state(_name(n))})
+        except Exception:
+            continue
+    _out(out)
     return 0
 
 

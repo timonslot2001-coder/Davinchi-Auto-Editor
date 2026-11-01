@@ -2,8 +2,10 @@
 usage: python tests/studio_test.py"""
 import hashlib
 import json
+import os
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
@@ -15,6 +17,8 @@ tmp = Path(tempfile.mkdtemp())
 query.roots = lambda: {"projects": str(tmp / "projects"), "music": str(tmp / "music"), "output": str(tmp / "out"),
                        "data": str(tmp / "data")}
 studio.HANDLED = tmp / "data" / "studio_handled.json"
+studio.RESULTS = tmp / "data" / "studio_results"
+studio.LOCK = tmp / "data" / "studio.lock"
 
 proj = tmp / "projects" / "Zomer Shoot"
 work = proj / "cine_montage"
@@ -127,13 +131,14 @@ assert s["name"] == "Zomer Shoot"
 assert s["plan"] == {"edl_sha1": sha, "shots": 3, "duration": 18.0, "title": "ZOMER"}, s["plan"]
 assert s["approval"] == {"status": "approved", "by": "Timon", "at": "2026-11-01T10:00:00", "note": "top",
                          "current": True, "grade_current": True}, s["approval"]
-assert s["grade"] == {"look": "reference_film", "strength": 1.0, "exposure": -1.75, "key": G0}
+assert s["grade"] == {"look": "reference_film", "strength": 1.0, "exposure": -1.75, "key": G0, "chosen": False}
+assert s["made_with"] == {"sheet": None, "preview": None}, s["made_with"]
 assert s["stills"] == [] and s["luts"] == {"conv": None, "looks": {}} and s["render"] is None and s["updated_at"]
 (work / "grade.json").write_text(json.dumps({"look": "moody", "strength": 0.8, "exposure": -1.5}))
 s = studio.state("Zomer Shoot")
 assert s["approval"]["grade_current"] is False and s["approval"]["current"] is True
 G1 = studio.grade_key("moody", 0.8, -1.5)
-assert s["grade"] == {"look": "moody", "strength": 0.8, "exposure": -1.5, "key": G1} and G1 != G0
+assert s["grade"] == {"look": "moody", "strength": 0.8, "exposure": -1.5, "key": G1, "chosen": True} and G1 != G0
 # the page sends what state() shows; a grade change after that is refused
 assert argv(f'[studio] actie=goedkeuren project="Zomer Shoot" plan={s["plan"]["edl_sha1"]} grade={s["grade"]["key"]} '
             'notitie=ja')[-4:] == ["--expect-sha1", sha, "--expect-grade", G1]
@@ -166,15 +171,32 @@ class FakeHost:
                 ["storyboard: C:\\Users\\Timon\\Videos\\Zomer\\sheet.jpg", "klaar met grade"]}
 
 
-def cli(args, host):
+def run(fn, *a, **kw):
+    """Call a CLI function; it must print exactly one JSON line. Returns (exit code, that line)."""
     import contextlib
     import io
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf):
-        code = studio.cli(args, host=host, poll=0)
+        code = fn(*a, **kw)
     lines = buf.getvalue().strip().splitlines()
     assert len(lines) == 1, lines
     return code, json.loads(lines[0])
+
+
+def cli(args, host):
+    """Start a request with the worker run inline (instead of detached), then read its result like the session does."""
+    def inline(thread):
+        import contextlib
+        import io
+        with contextlib.redirect_stdout(io.StringIO()) as quiet:
+            studio.work(thread, host=host, poll=0)
+        assert quiet.getvalue() == "", quiet.getvalue()                  # the worker writes a file, prints nothing
+    code, out = run(studio.cli, args, spawn=inline)
+    if out.get("status") != "bezig":
+        return code, out
+    assert code == 0 and out["ok"] is True and out["message"] == "gestart" and set(out) == \
+        {"ok", "action", "slug", "status", "message"}, out
+    return run(studio.result_cli, ["--thread", args[args.index("--thread") + 1]])
 
 
 h = FakeHost()
@@ -189,6 +211,14 @@ assert studio.redact(r"in \\nas\share\x.mp4") == "in x.mp4"
 assert studio.redact("sheet /home/timon/AutoEdit/p/sheet.jpg and /tmp/x.log") == "sheet sheet.jpg and x.log"
 assert studio.redact('lut="/Users/t/luts/a.cube"') == 'lut="a.cube"'
 assert studio.redact("zie https://claude.ai/x/y en 50/50, and/or") == "zie https://claude.ai/x/y en 50/50, and/or"
+# whole Windows paths with spaces in folder names: only the base name stays
+assert studio.redact(r"storyboard: C:\Users\Timon\Videos\AutoEdit Projects\Zomer Shoot\cine_montage\sheet.jpg klaar") == \
+    "storyboard: sheet.jpg klaar"
+assert studio.redact("export: D:/AutoEdit Projects/Beef Tartaar v2/exports/cine_montage_1.mp4") == "export: cine_montage_1.mp4"
+assert studio.redact(r"in \\nas\Mijn Video's\x.mp4 ok") == "in x.mp4 ok"
+assert studio.redact(r"map C:\AutoEdit Projects\Zomer Shoot") == "map Zomer Shoot"   # spaces in the last part stay
+for t in (r"C:\Users\Timon\AutoEdit Projects\a b\c.mp4", "D:/x y/z.cube"):
+    assert "Users" not in studio.redact(t) and "AutoEdit" not in studio.redact(t) and "x y" not in studio.redact(t), t
 code, out = cli(["--thread", "c-100", '[studio] actie=grade project="Zomer Shoot" look=daylight'], h)
 assert out == {"ok": False, "message": "al afgehandeld"} and len(h.runs) == 1, out
 code, out = cli(["--thread", "c-101", '[studio] actie=render project="Zomer Shoot" ; del *'], h)
@@ -280,7 +310,7 @@ for bad in (["--thread", "f-4", "--text-file", str(fb3), '[studio] actie=qa proj
     try:
         import contextlib, io   # noqa: E401
         with contextlib.redirect_stderr(io.StringIO()), contextlib.redirect_stdout(io.StringIO()):
-            studio.cli(bad, host=h, poll=0)
+            studio.cli(bad, spawn=lambda t: None)
         raise AssertionError(f"accepted {bad}")
     except SystemExit as e:
         assert e.code == 2
@@ -355,4 +385,134 @@ except studio.HandledListError:
 finally:
     os.replace = real_replace
 assert not list(studio.HANDLED.parent.glob("*.tmp")), list(studio.HANDLED.parent.glob("*.tmp"))
+# ---- detached start: validation answers at once; the work runs in a worker that writes data/studio_results/<id>.json
+started = []
+code, out = run(studio.cli, ["--thread", "d-1", '[studio] actie=render project="Zomer Shoot"'], spawn=started.append)
+assert code == 0 and out == {"ok": True, "action": "render", "slug": studio.slug("Zomer Shoot"), "status": "bezig",
+                             "message": "gestart"}, out
+assert started == ["d-1"] and studio.handled("d-1")
+code, res = run(studio.result_cli, ["--thread", "d-1"])
+assert code == 0 and res["ok"] is True and res["status"] == "bezig" and res["action"] == "render", res
+job = json.loads((studio.RESULTS / "d-1.job.json").read_text(encoding="utf-8"))
+assert job["args"] == ["engine", "render", P] and job["project"] == "Zomer Shoot", job
+h = FakeHost()
+studio.transcode_720 = fake_transcode
+with __import__("contextlib").redirect_stdout(__import__("io").StringIO()) as quiet:
+    studio.work("d-1", host=h, poll=0)
+assert quiet.getvalue() == "" and h.runs == [["engine", "render", P]]
+code, res = run(studio.result_cli, ["--thread", "d-1"])
+assert code == 0 and res["ok"] is True and res["status"] == "klaar" and res["action"] == "render", res
+assert res["state"]["name"] == "Zomer Shoot" and "video" in res["local_files"], res
+code, res = run(studio.result_cli, ["--thread", "nooit-gestart"])
+assert code == 1 and res["ok"] is False and "onbekend" in res["message"], res
+code, res = run(studio.result_cli, ["--thread", "../x"])
+assert code == 1 and res == {"ok": False, "message": "ongeldige thread-id"}, res
+code, res = run(studio.cli, ["--thread", "d-1", '[studio] actie=render project="Zomer Shoot"'], spawn=started.append)
+assert res == {"ok": False, "message": "al afgehandeld"} and started == ["d-1"], res
+# refusals and stills stay synchronous: no worker
+code, out = run(studio.cli, ["--thread", "d-2", '[studio] actie=render project="Bestaat Niet"'], spawn=started.append)
+assert code == 1 and out["ok"] is False and "status" not in out and started == ["d-1"], out
+code, out = run(studio.cli, ["--thread", "d-3", '[studio] actie=stills project="Zomer Shoot"'], spawn=started.append)
+assert out["action"] == "stills" and "status" not in out and started == ["d-1"], out   # its final line at once
+
+
+def nospawn(thread):
+    raise OSError("geen python")
+
+
+code, out = run(studio.cli, ["--thread", "d-4", '[studio] actie=qa project="Zomer Shoot"'], spawn=nospawn)
+assert code == 1 and out["ok"] is False and "kon niet starten" in out["message"], out
+code, res = run(studio.result_cli, ["--thread", "d-4"])
+assert res["ok"] is False and res["status"] == "fout", res                 # never stuck on "bezig"
+# a worker that crashes still writes a result
+studio.RESULTS.joinpath("d-5.job.json").write_text(json.dumps({"thread": "d-5", "action": "qa", "project": "Zomer Shoot",
+                                                               "args": ["engine", "del", "x"]}), encoding="utf-8")
+studio.work("d-5", host=FakeHost(), poll=0)
+code, res = run(studio.result_cli, ["--thread", "d-5"])
+assert code == 1 and res["ok"] is False and res["status"] == "fout", res
+
+# the default spawn starts `python -m webapp studio-worker --thread <id>` detached from the session
+import subprocess   # noqa: E402
+seen = {}
+
+
+class FakePopen:
+    def __init__(self, cmd, **kw):
+        seen.update(cmd=cmd, **kw)
+
+
+real_popen, subprocess.Popen = subprocess.Popen, FakePopen
+try:
+    studio._spawn_detached("d-6")
+finally:
+    subprocess.Popen = real_popen
+assert seen["cmd"][1:] == ["-m", "webapp", "studio-worker", "--thread", "d-6"], seen["cmd"]
+assert seen["stdin"] == subprocess.DEVNULL and Path(seen["cwd"]) == query.REPO
+if os.name == "nt":
+    assert seen["creationflags"] & 0x8 and seen["creationflags"] & 0x200, seen      # DETACHED | NEW_PROCESS_GROUP
+else:
+    assert seen["start_new_session"] is True, seen
+
+# ---- lock: one engine job at a time; a second worker waits (and says so) until the first is done
+import threading   # noqa: E402
+h = FakeHost()
+run(studio.cli, ["--thread", "l-1", '[studio] actie=qa project="Zomer Shoot"'], spawn=lambda t: None)
+with studio.file_lock(studio.LOCK):
+    try:
+        with studio.file_lock(studio.LOCK, wait=False):
+            raise AssertionError("lock taken twice")
+    except studio.Busy:
+        pass
+    w = threading.Thread(target=studio.work, args=("l-1",), kwargs={"host": h, "poll": 0})
+    w.start()
+    for _ in range(100):
+        if "wacht" in json.loads((studio.RESULTS / "l-1.json").read_text(encoding="utf-8"))["message"]:
+            break
+        time.sleep(0.02)
+    code, res = run(studio.result_cli, ["--thread", "l-1"])
+    assert res["status"] == "bezig" and "wacht" in res["message"] and h.runs == [], res
+w.join(10)
+assert not w.is_alive() and h.runs == [["engine", "qa", P]]
+assert run(studio.result_cli, ["--thread", "l-1"])[1]["status"] == "klaar"
+with studio.file_lock(studio.LOCK, wait=False):                           # released after the job
+    pass
+# mark(): its read-modify-write holds its own lock (not the engine lock, so a start never waits for a render)
+with studio.file_lock(studio.LOCK):
+    run(studio.cli, ["--thread", "l-2", '[studio] actie=qa project="Zomer Shoot"'], spawn=lambda t: None)
+assert studio.handled("l-2")
+got = []
+with studio.file_lock(studio.HANDLED_LOCK):
+    m = threading.Thread(target=lambda: got.append(studio.claim("l-3")))
+    m.start()
+    time.sleep(0.2)
+    assert got == [] and not studio.handled("l-3")                        # waits for the lock
+m.join(10)
+assert got == [True] and studio.handled("l-3") and studio.claim("l-3") is False
+
+# ---- preview uses the plan's --grade mode (pending or approved), like render
+(work / "APPROVAL.json").write_text(json.dumps({"status": "pending", "edl_sha1": sha, "grade_mode": "rec709"}))
+assert argv('[studio] actie=preview project="Zomer Shoot"') == ["engine", "preview", P, "--grade", "rec709"]
+(work / "APPROVAL.json").write_text(json.dumps({"status": "approved", "edl_sha1": sha, "grade_mode": "slog3"}))
+assert argv('[studio] actie=preview project="Zomer Shoot"') == ["engine", "preview", P, "--grade", "slog3"]
+(work / "APPROVAL.json").write_text(json.dumps({"status": "pending", "edl_sha1": sha, "grade_mode": "auto"}))
+assert argv('[studio] actie=preview project="Zomer Shoot"') == ["engine", "preview", P]
+(work / "APPROVAL.json").unlink()
+
+# ---- made_with: the grade the storyboard sheet / preview were made with (engine writes a small json next to them)
+(work / "storyboard" / "made_with.json").write_text(json.dumps({"key": G1, "look": "moody", "strength": 0.8,
+                                                                "exposure": -1.5, "grade_mode": "auto"}))
+(work / "preview_made_with.json").write_text(json.dumps({"key": G0, "look": "reference_film"}))
+s = studio.state("Zomer Shoot")
+assert s["made_with"] == {"sheet": {"key": G1, "look": "moody"}, "preview": {"key": G0, "look": "reference_film"}}, s
+(work / "preview.mp4").unlink()                                           # no preview -> no label
+(work / "preview_made_with.json").write_text("{kapot")
+assert studio.state("Zomer Shoot")["made_with"] == {"sheet": {"key": G1, "look": "moody"}, "preview": None}
+
+# ---- studio-projects: every project's state (with slug); names the validator refuses are skipped
+(tmp / "projects" / "Rare;Naam" / "cine_montage").mkdir(parents=True)
+(tmp / "projects" / " spatie" / "cine_montage").mkdir(parents=True)
+code, lst = run(studio.projects_cli, [])
+assert code == 0 and [x["name"] for x in lst] == ["Zomer Shoot"], lst
+assert lst[0]["slug"] == studio.slug("Zomer Shoot") and lst[0]["state"]["name"] == "Zomer Shoot", lst
+assert lst[0]["state"]["grade"]["chosen"] is False
 print("studio test OK")

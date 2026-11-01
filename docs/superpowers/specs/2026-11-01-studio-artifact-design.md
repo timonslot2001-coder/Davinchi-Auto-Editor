@@ -1,6 +1,6 @@
 # AutoEdit Studio as a working Artifact: design
 
-Date: 2026-11-01 · Status: draft for Timon's approval
+Date: 2026-11-01 · Status: draft for Timon's approval (builder check done)
 
 ## Why
 Timon wants to drive his editor from the Claude app (phone, laptop), not from `http://127.0.0.1:5060`. That link only
@@ -87,6 +87,11 @@ A throwaway page (`Studio Koppeltest`, https://claude.ai/artifact/NP3749UxfT6drF
 - **Browser preview = the same maths as the render:** Sony's conversion LUT plus our look, exposure applied on the
   S-Log3 values before the conversion, exactly as `grade.build_lut`. 
 - **`vintage` has no grain** (a 3D LUT can't carry grain): soft contrast and colour only.
+- **A grade change needs a new approval (Timon's decision).** "Grade wissel moet ook goedkeuring hebben, dat is
+  gewoon het mooiste." The approval covers the plan *and* its grade (look, strength, exposure): put the grade into
+  what `engine approve` records (e.g. into the hash the approval checks), so choosing another grade after approval
+  makes the approval stale and `engine render` refuses until Timon approves again. The Artifact shows this clearly
+  ("grade gewijzigd: opnieuw goedkeuren").
 - **Only the owner's requests run.** The Studio session acts only on comments attributed to the artifact's owner
   (Timon); anything from another editor gets a polite refusal in the thread.
 - **Branch/PR:** this session's branch `claude/artifact-brainstorm-ob2lld`, one PR to `main`; run `tools/doc_check.py`

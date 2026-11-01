@@ -200,6 +200,7 @@ a.btn:hover { filter: brightness(1.08); }
 .banner b { font-weight: 600; }
 #offline { margin-bottom: 16px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
 #offline .dot { align-self: center; }
+#conn { margin-bottom: 16px; }
 #demo { margin-bottom: 16px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; border-color: rgb(var(--a1-rgb) / .35);
   background: linear-gradient(90deg, rgb(var(--a1-rgb) / .1), transparent 60%), var(--panel); }
 .empty { color: var(--muted); padding: 34px 18px; text-align: center; border: 1px dashed var(--line2); border-radius: var(--r);
@@ -393,6 +394,7 @@ nav a i svg { width: 16px; height: 16px; display: block; fill: none; stroke: cur
   </aside>
   <main>
     <div id="offline" class="banner warn" hidden></div>
+    <div id="conn" class="banner warn" role="status" hidden></div>
     <div id="demo" class="banner" hidden></div>
     <div id="view"><div class="loading">Laden…</div></div>
   </main>
@@ -503,7 +505,16 @@ const LOOK_HINT = {
   daylight: "fris, natuurlijk", blue_hour: "koel, avond", vintage: "vaal, warm",
 };
 const ACT_NL = { plan: "Plan maken", grade: "Grade kiezen", goedkeuren: "Goedkeuren", preview: "Voorbeeld", render: "Renderen", qa: "QA", stills: "Stills verversen" };
-const JOB_NL = { bezig: "bezig", klaar: "klaar", fout: "fout" };
+const JOB_NL = { bezig: "bezig", klaar: "klaar", fout: "fout", vast: "vastgelopen? start opnieuw" };
+const STALE_MS = 3 * 3600 * 1000;       // a job still "bezig" after 3 h has most likely died on the PC
+// "bezig" | "klaar" | "fout" | "vast" (bezig for more than 3 h); the CSS class for "vast" is the one for "fout"
+function jobState(j) {
+  const st = j.status === "klaar" || j.status === "fout" ? j.status : "bezig";
+  const d = toDate(j.started_at);
+  return st === "bezig" && d && Date.now() - d.getTime() > STALE_MS ? "vast" : st;
+}
+const jobCls = (st) => (st === "vast" ? "fout" : st);
+const running = (j) => jobState(j) === "bezig";
 
 // ------------------------------------------------------------------ helpers
 function toDate(v) {
@@ -566,7 +577,7 @@ function project(id) {
     id, name: str(raw.name), plan, approval, grade,
     stills: (Array.isArray(raw.stills) ? raw.stills : []).map(obj).filter((s) => s && safeUrl(s.url)),
     luts: { conv: safeUrl(luts.conv) || null, looks: obj(luts.looks) || {} },
-    render: obj(raw.render), updated_at: raw.updated_at,
+    render: obj(raw.render), made_with: obj(raw.made_with) || {}, updated_at: raw.updated_at,
   };
 }
 const projectList = () => [...S.projects.keys()].map(project).filter((p) => p && p.name)
@@ -591,11 +602,20 @@ function approvalState(p) {
   if (!a.grade_current) return { ok: false, cls: "warn", text: "grade gewijzigd: opnieuw goedkeuren" };
   return { ok: true, cls: "ok", text: "Goedgekeurd" + (a.note ? ": “" + a.note + "”" : "") };
 }
+// grade.chosen is false while the project has no grade.json (the default look is shown, but nothing was picked yet)
+const gradeChosen = (p) => !!(p.grade && p.grade.look != null && p.grade.chosen !== false);
+// The storyboard / preview with the grade they were made with: {text, stale} or null when unknown.
+function madeWith(p, which) {
+  const m = obj(p.made_with[which]);
+  if (!m || typeof m.look !== "string") return null;
+  const stale = !!(p.grade && p.grade.key && m.key !== p.grade.key);
+  return { stale, text: "gemaakt met " + lookName(m.look) + (stale ? " · je grade is daarna veranderd (nu " + lookName(p.grade.look) + ")" : "") };
+}
 // The five tabs as one flow: which are done, and which one Timon should do next.
 const TABS = [["grade", "Grade"], ["plan", "Plan"], ["goedkeuren", "Goedkeuren"], ["renderen", "Renderen"], ["resultaat", "Resultaat"]];
 function flow(p) {
   const st = approvalState(p);
-  const done = { grade: p.grade && p.grade.look != null, plan: !!p.plan, goedkeuren: st.ok, renderen: st.ok && !!p.render, resultaat: st.ok && !!p.render };
+  const done = { grade: gradeChosen(p), plan: !!p.plan, goedkeuren: st.ok, renderen: st.ok && !!p.render, resultaat: st.ok && !!p.render };
   let next;
   if (!done.grade) next = { tab: "grade", text: "Kies een kleurlook voor dit project." };
   else if (!done.plan) next = { tab: "plan", text: "Maak een plan: de PC kiest de shots en maakt een storyboard." };
@@ -621,15 +641,26 @@ async function start() {
   const timer = setTimeout(() => { if (!loaded) { S.dbNote = "De gegevens zijn nog niet bereikbaar; wat je ziet kan verouderd zijn."; S.projectsReady = true; refresh(); } }, 10000);
   const fresh = (snap) => { if (!snap.metadata || !snap.metadata.fromCache) { loaded = true; clearTimeout(timer); S.dbNote = ""; } };
   const fail = (e) => { loaded = true; clearTimeout(timer); S.dbNote = "Gegevens niet te lezen (" + esc(e && e.code || "fout") + ")."; S.projectsReady = true; refresh(); };
-  db.collection("projects").onSnapshot((snap) => {
+  listen("projects", db.collection("projects"), (snap) => {
     S.real.projects = new Map(snap.docs.filter((d) => d.exists !== false).map((d) => [d.id, d.data() || {}]));
     S.projectsReady = true; fresh(snap); applyData(); refresh();
   }, fail);
-  db.collection("jobs").onSnapshot((snap) => {
+  listen("jobs", db.collection("jobs"), (snap) => {
     S.real.jobs = snap.docs.map((d) => ({ id: d.id, ...(d.data() || {}) }));
     applyData(); refresh();
-  }, () => {});
-  db.doc("studio/pc").onSnapshot((snap) => { S.pc = snap.exists ? snap.data() || null : null; refresh(); }, () => {});
+  });
+  listen("pc", db.doc("studio/pc"), (snap) => { S.pc = snap.exists ? snap.data() || null : null; refresh(); });
+}
+// A listener that ends with an error is subscribed again once, after 5 s; meanwhile the page says the connection is lost.
+const lost = new Map();                 // listener name -> "retry" (waiting to subscribe again) | "dead" (retry failed too)
+function listen(name, ref, onNext, onFail) {
+  let retried = false;
+  const sub = () => ref.onSnapshot((snap) => { if (lost.delete(name)) refresh(); onNext(snap); }, (e) => {
+    if (onFail) onFail(e);
+    lost.set(name, retried ? "dead" : "retry"); refresh();
+    if (!retried) { retried = true; setTimeout(sub, 5000); }
+  });
+  sub();
 }
 async function checkSend() {
   let v = "off";
@@ -671,6 +702,10 @@ async function send(btn, action, p, extra) {
 
 // ------------------------------------------------------------------ shell: offline banner, side status, jobs
 function renderShell() {
+  const conn = $("#conn"), dead = [...lost.values()].includes("dead");
+  conn.hidden = !lost.size || S.demo;
+  conn.textContent = !lost.size ? "" : dead ? "Verbinding kwijt: wat je ziet kan verouderd zijn. Herlaad de pagina."
+    : "Verbinding kwijt: opnieuw verbinden…";
   const off = $("#offline");
   const seen = S.pc && S.pc.seen_at ? ago(S.pc.seen_at) : "";
   off.hidden = online() || S.canSend === "onbekend";
@@ -688,7 +723,7 @@ function renderShell() {
     off.innerHTML = `<span class="dot off"></span><b>Studio-sessie op je PC is niet bereikbaar</b>` +
       `<span class="muted">${seen ? "Laatst gezien " + esc(seen) + ". " : ""}${esc(detail)} Het grade-voorbeeld werkt wel.</span>`;
   }
-  const busy = S.jobs.filter((j) => j.status === "bezig").length;
+  const busy = S.jobs.filter(running).length;
   const badge = $("#jobBadge"); badge.hidden = !busy; badge.textContent = busy;
   const pcOn = S.canSend === "available" || S.demo;
   const pcLabel = S.demo ? "Demo-modus" : pcOn ? "PC-sessie luistert" : "PC-sessie niet bereikbaar";
@@ -713,15 +748,15 @@ function renderSide() {
   if (location.hash.startsWith("#/p/")) { try { cur = decodeURIComponent(location.hash.split("/")[2] || ""); } catch (e) { cur = ""; } }
   const list = projectList();
   $("#sideProjects").innerHTML = list.length ? `<div class="side-h">Projecten</div>` + list.slice(0, 8).map((p) => {
-    const f = flow(p), busy = S.jobs.some((j) => j.status === "bezig" && j.project === p.name);
+    const f = flow(p), busy = S.jobs.some((j) => running(j) && j.project === p.name);
     const led = busy ? "bezig" : f.next.ok ? "klaar" : "next";
     const what = busy ? "bezig" : f.next.ok ? "klaar" : TABS.find(([k]) => k === f.next.tab)[1].toLowerCase();
     return `<a class="side-p${p.id === cur ? " on" : ""}" href="#/p/${enc(p.id)}/${f.next.tab}"><span class="led ${led}"></span>` +
       `<span class="nm">${esc(p.name)}</span><span class="st">${esc(what)}</span></a>`;
   }).join("") : "";
   $("#sideActivity").innerHTML = S.jobs.length ? `<div class="side-h">Activiteit</div>` + S.jobs.slice(0, 5).map((j) => {
-    const st = JOB_NL[j.status] ? j.status : "bezig";
-    return `<a class="side-j" href="#/taken" title="${esc(j.message || "")}"><span class="led ${st}"></span>` +
+    const st = jobState(j);
+    return `<a class="side-j" href="#/taken" title="${esc(st === "vast" ? JOB_NL.vast : j.message || "")}"><span class="led ${jobCls(st)}"></span>` +
       `<span class="nm">${esc(ACT_NL[j.action] || j.action || "taak")} · ${esc(j.project || "")}</span><span class="t">${esc(short(j.finished_at || j.started_at))}</span></a>`;
   }).join("") : "";
 }
@@ -730,9 +765,9 @@ function jobsStrip(el, projectName) {
   if (!el) return;
   const list = S.jobs.filter((j) => !projectName || j.project === projectName).slice(0, 10);
   el.innerHTML = list.map((j) => {
-    const st = JOB_NL[j.status] ? j.status : "bezig";
-    return `<button class="job ${st}" data-job="${esc(j.id)}" aria-expanded="${openJob === j.id}" title="${esc(j.message || "")}">` +
-      `<span class="dot ${st === "klaar" ? "on" : st === "fout" ? "off" : "busy"}"></span>` +
+    const st = jobState(j);
+    return `<button class="job ${jobCls(st)}" data-job="${esc(j.id)}" aria-expanded="${openJob === j.id}" title="${esc(j.message || "")}">` +
+      `<span class="dot ${st === "klaar" ? "on" : st === "bezig" ? "busy" : "off"}"></span>` +
       `<span>${esc(ACT_NL[j.action] || j.action || "taak")}${projectName ? "" : " · " + esc(j.project || "")} · ${esc(JOB_NL[st])}` +
       ` · ${esc(ago(j.finished_at || j.started_at))}</span></button>`;
   }).join("");
@@ -997,10 +1032,10 @@ function jobsView() {
   return {
     update() {
       $("#jl").innerHTML = S.jobs.length ? `<div class="card jlist">${S.jobs.slice(0, 50).map((j) => {
-        const st = JOB_NL[j.status] ? j.status : "bezig";
-        return `<details class="jrow" data-id="${esc(j.id)}"${open.has(j.id) ? " open" : ""}><summary><span class="led ${st}"></span>` +
+        const st = jobState(j);
+        return `<details class="jrow" data-id="${esc(j.id)}"${open.has(j.id) ? " open" : ""}><summary><span class="led ${jobCls(st)}"></span>` +
           `<b>${esc(ACT_NL[j.action] || j.action || "taak")}</b><span class="p">${esc(j.project || "")}</span>` +
-          `<span class="tag ${st === "klaar" ? "ok" : st === "fout" ? "fail" : "warn"}">${esc(JOB_NL[st])}</span>` +
+          `<span class="tag ${st === "klaar" ? "ok" : st === "bezig" ? "warn" : "fail"}">${esc(JOB_NL[st])}</span>` +
           `<span class="t">${esc(when(j.started_at))}${j.finished_at ? " → " + esc(clock(j.finished_at)) : ""}</span></summary>` +
           `<pre class="out">${esc(j.message || "Nog geen bericht van de PC.")}</pre></details>`;
       }).join("")}</div>` : '<div class="empty">Nog geen taken. Elke knop die je indrukt, verschijnt hier met de uitkomst van je PC.</div>';
@@ -1138,12 +1173,12 @@ function gradeTab(el, id) {
   function savedLine() {
     if (!P) return;
     const g = P.grade || {};
-    const has = g.look != null;
+    const has = gradeChosen(P);
     $("#saved", el).className = "banner " + (has && !differs() ? "ok" : "");
     $("#saved", el).innerHTML = has
       ? `Opgeslagen: <b>${esc(lookName(g.look))}</b> · ${esc(pct(g.strength))} · ${esc(stops(g.exposure))}` +
         (differs() ? '<br><span class="muted">Je probeert nu een andere grade. Druk op Kies deze grade om hem op te slaan.</span>' : "")
-      : "Nog geen grade opgeslagen.";
+      : `Nog geen grade gekozen${g.look != null ? ` (nu de standaard: <b>${esc(lookName(g.look))}</b>)` : ""}. Druk op Kies deze grade.`;
     $("#choose", el).dataset.block = has && !differs() ? "1" : "";
     pcButtons(el);
   }
@@ -1356,8 +1391,8 @@ function planTab(el, id) {
       <div class="confirm" id="confirm" hidden><span>Je huidige goedkeuring vervalt met een nieuw plan. Toch een nieuw plan maken?</span>
         <div class="row"><button data-pc id="planYes">Ja, nieuw plan</button><button class="ghost" id="planNo">Annuleren</button></div></div>
       <div class="why" id="pwhy"></div></div></div>
-    <div class="card review" id="sheet" style="margin-top:16px" hidden><h2>Storyboard</h2><img alt="Storyboard van het plan"></div>
-    <div class="card" id="pvid" style="margin-top:16px" hidden><h2>Voorbeeldvideo</h2><video controls preload="metadata" playsinline></video></div>`;
+    <div class="card review" id="sheet" style="margin-top:16px" hidden><h2>Storyboard</h2><div class="why" id="sheetMw"></div><img alt="Storyboard van het plan"></div>
+    <div class="card" id="pvid" style="margin-top:16px" hidden><h2>Voorbeeldvideo</h2><div class="why" id="pvMw"></div><video controls preload="metadata" playsinline></video></div>`;
   let P = null;
   const D = () => draft(id, project(id));
   const showConfirm = (on) => { D().confirmPlan = on; $("#confirm", el).hidden = !on; $("#planBtn", el).hidden = on; };
@@ -1381,6 +1416,11 @@ function planTab(el, id) {
       const pv = pl && safeUrl(pl.preview_url);
       $("#pvid", el).hidden = !pv;
       if (pv && $("#pvid video", el).getAttribute("src") !== pv) $("#pvid video", el).src = pv;
+      for (const [which, sel] of [["sheet", "#sheetMw"], ["preview", "#pvMw"]]) {
+        const m = madeWith(p, which);
+        $(sel, el).textContent = m ? m.text : "";
+        $(sel, el).className = "why" + (m && m.stale ? " warn" : "");
+      }
       $("#prevBtn", el).dataset.block = pl ? "" : "1";
       showConfirm(D().confirmPlan);
       $("#pwhy", el).textContent = online() ? (pl ? "Voorbeeld rendert een snelle versie op halve grootte." : "Voorbeeld kan pas als er een plan is.") : offlineReason();
@@ -1456,18 +1496,20 @@ function renderTab(el, id) {
       P = p;
       const a = p.approval, g = p.grade || {}, approved = !!(a && a.status === "approved");
       const ready = !!(a && a.current && a.grade_current);
+      const rendering = S.jobs.some((j) => j.project === p.name && j.action === "render" && running(j));
       const gates = [
         [approved && !!a.current, p.plan ? "Plan goedgekeurd" : "Plan gemaakt en goedgekeurd"],
         [approved && !!a.grade_current, "Grade goedgekeurd" + (g.look != null ? ` (${lookName(g.look)}, ${pct(g.strength)})` : "")],
         [online(), S.demo ? "PC bereikbaar (demo)" : "Studio-sessie op je PC bereikbaar"],
       ];
       $("#gates", el).innerHTML = gates.map(([ok, t]) => `<li class="${ok ? "ok" : "wait"}"><i>${ok ? "✓" : "!"}</i>${esc(t)}</li>`).join("");
-      $("#renderBtn", el).dataset.block = ready ? "" : "1";
+      $("#renderBtn", el).dataset.block = ready && !rendering ? "" : "1";
       $("#qaBtn", el).dataset.block = p.render ? "" : "1";
       $("#rwhy", el).textContent = !online() ? offlineReason()
+        : rendering ? "Er draait al een render voor dit project op je PC. Wacht tot hij klaar is (zie Taken)."
         : !ready ? (a && a.current && !a.grade_current ? "grade gewijzigd: opnieuw goedkeuren" : "Renderen kan pas na je goedkeuring van dit plan en deze grade.")
         : "Rendert de volledige montage met de goedgekeurde grade. QA controleert daarna geluid en beeld.";
-      $("#rwhy", el).className = "why" + (!online() || !ready ? " warn" : "");
+      $("#rwhy", el).className = "why" + (!online() || !ready || rendering ? " warn" : "");
       const rv = p.render && safeUrl(p.render.review_url);
       $("#rinfo", el).innerHTML = p.render ? (rv ? `<img class="mini-sheet" src="${esc(rv)}" alt="Reviewbeeld van de laatste render" style="margin-bottom:12px">` : "") +
         `<dl class="kv"><dt>Gerenderd</dt><dd>${esc(when(p.render.at) || "—")}</dd></dl>

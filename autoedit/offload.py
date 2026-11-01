@@ -10,6 +10,7 @@
 Every file is checked after copying (size + SHA-1 of the copy against the card). Nothing is ever deleted from the card.
 A ledger in the library remembers what was offloaded, so a card with older shoots on it only copies what is new.
 The AutoEdit project of the same name reads its clips straight from `1 Ruw/Video` (a junction), no second copy on C:.
+_Inbox (kind not known yet) gets one folder per recording day, so an old card with months on it is easy to sort.
 """
 from __future__ import annotations
 
@@ -19,6 +20,7 @@ import json
 import os
 import shutil
 import string
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -103,10 +105,14 @@ def copy_checked(src: Path, dst: Path) -> None:
     """Copy via a .part file, hashing the card while reading; compare with a hash of the copy, then rename."""
     part = dst.with_name(dst.name + ".part")
     h = hashlib.sha1()
-    with open(src, "rb") as a, open(part, "wb") as b:
-        while chunk := a.read(CHUNK):
-            h.update(chunk)
-            b.write(chunk)
+    try:
+        with open(src, "rb") as a, open(part, "wb") as b:
+            while chunk := a.read(CHUNK):
+                h.update(chunk)
+                b.write(chunk)
+    except OSError:
+        part.unlink(missing_ok=True)
+        raise
     if part.stat().st_size != src.stat().st_size or _sha1(part) != h.hexdigest():
         part.unlink()
         raise OSError(f"copy of {src.name} does not match the card; nothing kept, try again")
@@ -124,12 +130,13 @@ def _free_name(folder: Path, name: str) -> Path:
     return p
 
 
-def shoot_folder(lib: Path, kind: str, name: str, date: str) -> Path:
-    """Reuse '<any date> <name>' in that kind's folder, else make '<date> <name>' with all subfolders."""
+def shoot_folder(lib: Path, kind: str, name: str, date: str, same_day: bool = False) -> Path:
+    """Reuse '<any date> <name>' (same_day: only '<date> <name>') in that kind's folder, else make '<date> <name>'."""
     kdir = lib / KINDS[kind][0]
     kdir.mkdir(parents=True, exist_ok=True)
     for d in kdir.iterdir():
-        if d.is_dir() and d.name[11:].lower() == name.lower() and d.name[:10].count("-") == 2:
+        if (d.is_dir() and d.name[11:].lower() == name.lower() and d.name[:10].count("-") == 2
+                and (not same_day or d.name[:10] == date)):
             shoot = d
             break
     else:
@@ -188,13 +195,28 @@ def offload(cfg, name: str, kind: str = "inbox", since: str | None = None, cards
         con.print("[green]Nothing new on the card[/] (everything was offloaded before).")
         return {"copied": 0, "skipped": 0, "shoot": None}
 
-    first = min(f.stat().st_mtime for f, _ in todo)
-    shoot = shoot_folder(lib, kind, name, datetime.fromtimestamp(first).strftime("%Y-%m-%d"))
+    def day(f: Path) -> str:
+        return datetime.fromtimestamp(f.stat().st_mtime).strftime("%Y-%m-%d")
+
+    per_day = kind == "inbox"                             # unknown kind: one folder per recording day
+    todo.sort(key=lambda t: t[0].stat().st_mtime)
+    shoots: dict[str, Path] = {}
+
+    def shoot_for(f: Path) -> Path:
+        d = day(f) if per_day else "first"
+        if d not in shoots:
+            shoots[d] = shoot_folder(lib, kind, name, day(f), same_day=per_day)
+        return shoots[d]
+
+    shoot = shoot_for(todo[0][0])
     total = sum(f.stat().st_size for f, _ in todo)
-    con.print(f"[bold]Offload[/] {len(todo)} files ({total / 1e9:.1f} GB) → {shoot}")
+    days = len({day(f) for f, _ in todo}) if per_day else 1
+    con.print(f"[bold]Offload[/] {len(todo)} files ({total / 1e9:.1f} GB) → "
+              + (f"{lib / KINDS[kind][0]}, {days} day folder(s) '<date> {name}'" if per_day else str(shoot)))
     copied = skipped = 0
     done_bytes = 0
     for i, (f, sub) in enumerate(todo, 1):
+        shoot = shoot_for(f)
         folder = shoot / "1 Ruw" / sub
         same = folder / f.name
         if same.exists() and same.stat().st_size == f.stat().st_size:
@@ -202,9 +224,20 @@ def offload(cfg, name: str, kind: str = "inbox", since: str | None = None, cards
             ledger[_key(f)] = str(same)
             continue
         dst = _free_name(folder, f.name)
-        con.print(f"  {i}/{len(todo)}  {f.name} → {sub}/{dst.name}  ({f.stat().st_size / 1e6:.0f} MB, "
+        con.print(f"  {i}/{len(todo)}  {f.name} → {shoot.name[:10] + '/' if per_day else ''}{sub}/{dst.name}  "
+                  f"({f.stat().st_size / 1e6:.0f} MB, "
                   f"{100 * done_bytes / max(total, 1):.0f}%)")
-        copy_checked(f, dst)
+        for attempt in range(1, 4):                       # a USB drive can hiccup for a moment
+            try:
+                copy_checked(f, dst)
+                break
+            except OSError as e:
+                ledger_path.write_text(json.dumps(ledger, indent=1), encoding="utf-8")
+                if attempt == 3:
+                    raise SystemExit(f"{f.name} failed 3 times ({e}). Check the card and the SSD, then run the same "
+                                     "offload again: what is already copied is skipped.")
+                con.print(f"[yellow]  {f.name}: {e}; trying again in {5 * attempt} s[/]")
+                time.sleep(5 * attempt)
         ledger[_key(f)] = str(dst)
         copied += 1
         done_bytes += f.stat().st_size
@@ -215,8 +248,10 @@ def offload(cfg, name: str, kind: str = "inbox", since: str | None = None, cards
     project = None
     if link and kind != "inbox":                          # project named like the shoot folder, not like the typing
         project = link_project(cfg, shoot.name[11:], shoot / "1 Ruw" / "Video", KINDS[kind][1])
-    con.print(f"[green]{copied} file(s) offloaded and checked[/], {skipped} already there → {shoot}")
+    con.print(f"[green]{copied} file(s) offloaded and checked[/], {skipped} already there → "
+              + (f"{len(shoots)} day folder(s) in {lib / KINDS[kind][0]}" if per_day else str(shoot)))
     if project:
         con.print(f"  AutoEdit project [bold]{project.name}[/] reads its clips from {shoot / '1 Ruw' / 'Video'}")
     con.print("  The card is untouched; format it in the camera once you are happy.")
-    return {"copied": copied, "skipped": skipped, "shoot": str(shoot), "project": str(project) if project else None}
+    return {"copied": copied, "skipped": skipped, "shoot": str(shoot), "shoots": sorted(str(s) for s in shoots.values()),
+            "project": str(project) if project else None}

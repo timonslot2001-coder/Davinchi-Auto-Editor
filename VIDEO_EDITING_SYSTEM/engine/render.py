@@ -14,6 +14,7 @@ import numpy as np
 from . import REPO
 from .edl import EDL
 from . import graphics
+from .gradechoice import Grade
 from .gridflow import grid_flow
 
 FF = imageio_ffmpeg.get_ffmpeg_exe()
@@ -41,18 +42,19 @@ def detect_log(clip: str) -> bool:
     return np.percentile(g, 2) > 28 and np.percentile(g, 98) < 225 and sat < 60
 
 
-def lut_for(mode: str, clip: str, notes: list) -> Path | None:
-    """mode = auto | slog3 | rec709 | none, optionally ':<look>' (autoedit/grade.py LOOKS, default reference_film)."""
-    mode, _, look = mode.partition(":")
-    look = look or "reference_film"
+def lut_for(mode: str, clip: str, notes: list, g: Grade | None = None) -> Path | None:
+    """mode = auto | slog3 | rec709 | none (input handling); g = the project's look/strength/exposure
+    (engine/gradechoice.py, default Grade()). Exposure only applies to log clips."""
+    g = g or Grade()
     if mode == "none":
         return None
     sys.path.insert(0, str(REPO))
     from autoedit import grade                                   # AutoEdit's baked film-look LUTs
     is_log = detect_log(clip) if mode == "auto" else mode == "slog3"
-    p = grade.build_lut(look, conversion="SLog3SGamut3.CineToLC-709TypeA.cube" if is_log else None,
-                        exposure=-1.75 if is_log else 0.0)
-    notes.append(f"grade {Path(clip).name}: {'S-Log3 conversion + ' if is_log else ''}{look} LUT ({p.name})")
+    p = grade.build_lut(g.look, strength=g.strength, exposure=g.exposure if is_log else 0.0,
+                        conversion="SLog3SGamut3.CineToLC-709TypeA.cube" if is_log else None)
+    notes.append(f"grade {Path(clip).name}: {'S-Log3 conversion + ' if is_log else ''}{g.look} LUT "
+                 f"(strength {g.strength:g}{f', exposure {g.exposure:g}' if is_log else ''}; {p.name})")
     return p
 
 
@@ -141,7 +143,8 @@ def audio_track(edl: EDL, path: Path, sr: int = 48000) -> Path:
 
 
 # ---------------------------------------------------------------- main render
-def render(edl: EDL, out: Path, work: Path, grade_mode: str = "auto", preview: bool = False, log=print) -> dict:
+def render(edl: EDL, out: Path, work: Path, grade_mode: str = "auto", preview: bool = False, log=print,
+           grade: Grade | None = None) -> dict:
     work.mkdir(parents=True, exist_ok=True)
     W, H, fps = edl.width, edl.height, edl.fps
     if preview:                                                  # cheap review clip: half size
@@ -151,7 +154,7 @@ def render(edl: EDL, out: Path, work: Path, grade_mode: str = "auto", preview: b
     luts = {}
     for ev in edl.events:
         if ev.source and ev.source not in luts:
-            luts[ev.source] = lut_for(grade_mode, ev.source, notes)
+            luts[ev.source] = lut_for(grade_mode, ev.source, notes, grade)
     gfx = {}
     for o in edl.overlays:
         if o.component == "title_slam":

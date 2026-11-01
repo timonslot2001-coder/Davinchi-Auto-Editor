@@ -113,7 +113,14 @@ def cine(p: Path) -> dict:
     work = p / "cine_montage"
     edl_path = work / "edl.json"
     out = {"has_plan": edl_path.exists(), "shots": [], "checks": [], "approval": None, "qa": None, "comments": {},
-           "sheet": None, "notes": []}
+           "sheet": None, "notes": [], "grade": {"look": "reference_film", "strength": 1.0, "exposure": -1.75}}
+    gp = work / "grade.json"
+    if gp.exists():
+        try:
+            g = json.loads(gp.read_text(encoding="utf-8"))
+            out["grade"] = {k: g.get(k, v) for k, v in out["grade"].items()}
+        except ValueError:
+            pass
     if not edl_path.exists():
         return out
     d = json.loads(edl_path.read_text(encoding="utf-8"))

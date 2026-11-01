@@ -27,11 +27,14 @@ environment; see [setup/README.md](setup/README.md).
 4. Or just tell Claude: *"start project smoke"* or *"maak een cine montage van smoke"*.
 
 ## Offload a card to your SSD
+Easiest: double-click **`offload.bat`**, type the shoot name and pick the kind (1 Koken … 6 Weet ik nog niet).
+Or from a terminal:
 ```
 autoedit offload "Beef Tartaar" --soort koken    # Sony + DJI card → I:\Koken\2025-10-06 Beef Tartaar\1 Ruw\Video + Foto
 ```
 One folder per shoot on Timon's SSD (`paths.library_folder`), sorted by kind: `Koken`, `Kleding`, `Smoken`,
-`Reizen`, `Klanten`, `_Inbox` (default, sort it later). Every shoot has `1 Ruw\Video`, `1 Ruw\Foto`,
+`Reizen`, `Klanten`, `_Inbox` (default, sort it later; one folder per recording day, so an old card with months on
+it arrives sorted by day). Every shoot has `1 Ruw\Video`, `1 Ruw\Foto`,
 `2 Bewerkt\Video`, `2 Bewerkt\Foto` and `3 Klaar om te posten`.
 - Copies videos (+ Sony XML), photos (RAW + JPG) and skips DJI `.LRF` proxies. Each copy is checked against the card
   (SHA-1); nothing is ever deleted from the card.
@@ -164,6 +167,7 @@ Videos land in your TikTok inbox; paste the caption (it's in the dashboard) and 
 | `autoedit optimize` | smooth playback in Resolve: proxies, render cache, heavy nodes off (existing timelines too) |
 | `engine validate` | DNA approved, Edge + FFmpeg present, documents up to date (run in `VIDEO_EDITING_SYSTEM/`) |
 | `engine plan <project>` | cine montage plan + storyboard + style checks (`--title`, `--length`, `--accent`, `--song`, `--seed`) |
+| `engine grade <project> --look L` | project grade (`--strength 0..1`, `--exposure -3..0.5`); part of the approval: changing it makes `render` refuse until a new approve |
 | `engine check` / `preview` / `approve` / `render` / `qa` | style checks again / half-size preview / record approval / final render / technical QA |
 
 ## Settings

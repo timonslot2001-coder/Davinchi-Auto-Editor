@@ -1,0 +1,1501 @@
+<title>AutoEdit Studio</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* AutoEdit Studio (claude.ai Artifact). Data comes only from the Artifact db, written by the Studio session on Timon's
+   PC; every PC button sends one comment to that session (webapp/studio.py format).
+   Layout: a grading-suite monitor at night. Sidebar rack, glass panels on an ink ground with a faint scope graticule,
+   one cold signal pair (IJs: ice blue and silver), mono read-outs. One dark world on purpose. */
+:root {
+  --void: #070a0f; --panel: rgba(12, 17, 27, .8); --panel-solid: #0b1019; --panel2: rgba(25, 34, 52, .74);
+  --bar: rgba(7, 10, 16, .9); --line: rgba(138, 170, 230, .11); --line2: rgba(138, 170, 230, .24);
+  --track: rgba(138, 170, 230, .17); --grid-rgb: 120 160 230;
+  --text: #e6ecf8; --muted: #8a95ad; --dim: #5a647d;
+  --a1: #9fdcff; --a2: #d7e3ff; --a1-rgb: 159 220 255; --a2-rgb: 215 227 255; --on-accent: #04060b;
+  --ok: #4ee59b; --warn: #ffc65a; --fail: #ff5a76; --ok-rgb: 78 229 155; --warn-rgb: 255 198 90; --fail-rgb: 255 90 118;
+  --blue: var(--a1); --shadow: rgba(0, 0, 0, .55); --r: 14px; --r-sm: 9px;
+  --display: "Unbounded", "Segoe UI", system-ui, sans-serif;
+  --font: "Geist", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; background: var(--void); color: var(--text); font: 14px/1.55 var(--font); }
+body { -webkit-font-smoothing: antialiased; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bar); }
+a { color: inherit; text-decoration: none; }
+h1 { font: 600 26px/1.15 var(--display); margin: 0; letter-spacing: -.01em; text-wrap: balance; overflow-wrap: anywhere; }
+h2 { font: 500 11px/1.3 var(--mono); text-transform: uppercase; letter-spacing: .16em; color: var(--muted); margin: 0 0 14px;
+  display: flex; align-items: center; gap: 8px; }
+h2::before { content: ""; width: 6px; height: 6px; border-radius: 2px; flex: none; background: var(--a1);
+  box-shadow: 0 0 10px rgb(var(--a1-rgb) / .8); }
+.muted { color: var(--muted); } .small { font-size: 12px; } .mono { font-family: var(--mono); }
+.spacer { flex: 1; }
+
+/* ground: a faint graticule and two glows, behind everything */
+.atmo { position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background: radial-gradient(900px 520px at 8% -8%, rgb(var(--a1-rgb) / .13), transparent 62%),
+    radial-gradient(760px 560px at 105% 105%, rgb(var(--a2-rgb) / .07), transparent 60%); }
+.atmo::after { content: ""; position: absolute; inset: 0; background-size: 36px 36px;
+  background-image: linear-gradient(rgb(var(--grid-rgb) / .055) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--grid-rgb) / .055) 1px, transparent 1px);
+  -webkit-mask-image: radial-gradient(ellipse 85% 70% at 50% 0%, #000 25%, transparent 80%);
+  mask-image: radial-gradient(ellipse 85% 70% at 50% 0%, #000 25%, transparent 80%); }
+
+.shell { position: relative; z-index: 1; display: grid; grid-template-columns: 236px minmax(0, 1fr); min-height: 100vh; }
+.side { background: var(--bar); -webkit-backdrop-filter: blur(18px) saturate(140%); backdrop-filter: blur(18px) saturate(140%);
+  border-right: 1px solid var(--line); padding: 20px 14px; position: sticky; top: 0; height: 100vh;
+  display: flex; flex-direction: column; gap: 22px; }
+.brand { display: flex; align-items: center; gap: 11px; padding: 4px 6px; font: 600 13px/1.2 var(--display); letter-spacing: .02em; }
+.brand b { font-weight: 600; background: linear-gradient(90deg, var(--a1), var(--a2)); -webkit-background-clip: text;
+  background-clip: text; color: transparent; }
+.logo { width: 28px; height: 28px; border-radius: 8px; flex: none; position: relative;
+  background: linear-gradient(135deg, var(--a1), var(--a2)); box-shadow: 0 0 18px -2px rgb(var(--a1-rgb) / .65); }
+.logo::after { content: ""; position: absolute; left: 10px; top: 8px; border-left: 10px solid var(--on-accent);
+  border-top: 6px solid transparent; border-bottom: 6px solid transparent; }
+nav { display: flex; flex-direction: column; gap: 4px; }
+nav a { display: flex; align-items: center; gap: 10px; padding: 9px 11px; border-radius: var(--r-sm); color: var(--muted);
+  border: 1px solid transparent; }
+nav a i { font-style: normal; width: 18px; text-align: center; }
+nav a:hover { color: var(--text); background: var(--panel2); }
+nav a.on { color: var(--text); background: rgb(var(--a1-rgb) / .08); border-color: rgb(var(--a1-rgb) / .28);
+  box-shadow: 0 0 22px -10px rgb(var(--a1-rgb) / .8); }
+nav em { margin-left: auto; font: 600 10.5px/1.6 var(--mono); background: var(--a1); color: var(--on-accent);
+  border-radius: 6px; padding: 0 6px; }
+.side-status { margin-top: auto; display: flex; flex-direction: column; gap: 7px; font: 11.5px/1.4 var(--mono); color: var(--muted); }
+.side-status > div { display: flex; align-items: center; }
+.side-status .short { display: none; }
+.dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 8px; background: var(--dim); flex: none; }
+.dot.on { background: var(--ok); box-shadow: 0 0 10px rgb(var(--ok-rgb) / .9); }
+.dot.off { background: var(--fail); box-shadow: 0 0 10px rgb(var(--fail-rgb) / .8); }
+.dot.busy { background: var(--warn); box-shadow: 0 0 10px rgb(var(--warn-rgb) / .9); animation: blink 1.4s ease-in-out infinite; }
+@keyframes blink { 50% { opacity: .35; } }
+
+main { padding-block: 30px 80px; padding-left: max(36px, env(safe-area-inset-left, 0px));
+  padding-right: max(36px, env(safe-area-inset-right, 0px)); max-width: 1400px; width: 100%; min-width: 0; }
+.head { display: flex; align-items: flex-end; gap: 12px 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.crumb { font: 11px/1.4 var(--mono); text-transform: uppercase; letter-spacing: .12em; color: var(--muted); margin-bottom: 8px; }
+.crumb a:hover { color: var(--a1); }
+.loading { color: var(--muted); padding: 40px 0; font-family: var(--mono); }
+
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 18px; min-width: 0;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .035), 0 18px 40px -24px var(--shadow); }
+.grid { display: grid; gap: 16px; }
+.grid > *, .stack > * { min-width: 0; }
+.cols-grade { grid-template-columns: minmax(0, 1fr) minmax(290px, 350px); align-items: start; }
+.cols-2 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+
+.projects { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+.pcard { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; min-width: 0;
+  display: flex; flex-direction: column; transition: transform .16s, border-color .16s, box-shadow .16s; }
+.pcard:hover { transform: translateY(-3px); border-color: rgb(var(--a1-rgb) / .45);
+  box-shadow: 0 0 0 1px rgb(var(--a1-rgb) / .15), 0 18px 40px -18px rgb(var(--a1-rgb) / .45); }
+.pcard .img { aspect-ratio: 16/9; max-width: 100%; background: var(--panel-solid); display: grid; place-items: center;
+  color: var(--dim); font-size: 28px; overflow: hidden; position: relative; }
+.pcard .img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pcard .img::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 55%, var(--panel-solid)); }
+.pcard .body { padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 8px; }
+.pcard .name { font: 600 15px/1.25 var(--display); overflow-wrap: anywhere; }
+
+.tag { display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 6px; font: 500 11px/1.5 var(--mono);
+  background: rgb(var(--grid-rgb) / .06); border: 1px solid var(--line); color: var(--muted); white-space: nowrap;
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.tag.ok { color: var(--ok); border-color: rgb(var(--ok-rgb) / .35); background: rgb(var(--ok-rgb) / .07); }
+.tag.warn { color: var(--warn); border-color: rgb(var(--warn-rgb) / .35); background: rgb(var(--warn-rgb) / .07); }
+.tag.fail { color: var(--fail); border-color: rgb(var(--fail-rgb) / .35); background: rgb(var(--fail-rgb) / .07); }
+.tag.blue { color: var(--a1); border-color: rgb(var(--a1-rgb) / .35); background: rgb(var(--a1-rgb) / .07); }
+.tag.red { color: var(--on-accent); background: linear-gradient(90deg, var(--a1), var(--a2)); border-color: transparent; font-weight: 600; }
+
+label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--muted); }
+input[type=text] { background: rgb(0 0 0 / .35); color: var(--text); border: 1px solid var(--line2); border-radius: var(--r-sm);
+  padding: 10px 12px; font: inherit; width: 100%; min-width: 0; transition: border-color .15s, box-shadow .15s; }
+input[type=text]::placeholder { color: var(--dim); }
+input[type=text]:focus { outline: none; border-color: var(--a1); box-shadow: 0 0 0 3px rgb(var(--a1-rgb) / .18); }
+input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 22px; margin: 0; background: transparent; cursor: pointer; }
+input[type=range]::-webkit-slider-runnable-track { height: 4px; border-radius: 4px;
+  background: linear-gradient(90deg, var(--a2), var(--a1) var(--p, 50%), var(--track) var(--p, 50%)); }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; margin-top: -7px; border-radius: 50%;
+  border: 0; background: var(--text); box-shadow: 0 0 0 3px rgb(var(--a1-rgb) / .35), 0 0 16px rgb(var(--a1-rgb) / .7); }
+input[type=range]::-moz-range-track { height: 4px; border-radius: 4px; background: var(--track); }
+input[type=range]::-moz-range-progress { height: 4px; border-radius: 4px; background: linear-gradient(90deg, var(--a2), var(--a1)); }
+input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; border: 0; background: var(--text);
+  box-shadow: 0 0 0 3px rgb(var(--a1-rgb) / .35), 0 0 16px rgb(var(--a1-rgb) / .7); }
+
+button { background: linear-gradient(135deg, var(--a1), var(--a2)); color: var(--on-accent); border: 0; border-radius: var(--r-sm);
+  padding: 10px 16px; font: 600 13.5px/1.2 var(--font); cursor: pointer; white-space: nowrap;
+  box-shadow: 0 0 0 1px rgb(var(--a1-rgb) / .35), 0 10px 26px -12px rgb(var(--a1-rgb) / .75);
+  transition: filter .15s, box-shadow .15s, transform .15s; }
+button:hover:not(:disabled) { filter: brightness(1.08);
+  box-shadow: 0 0 0 1px rgb(var(--a1-rgb) / .55), 0 12px 30px -10px rgb(var(--a1-rgb) / .9); }
+button:active:not(:disabled) { transform: translateY(1px); }
+button:disabled { opacity: .38; cursor: not-allowed; box-shadow: none; filter: saturate(.4); }
+button.ghost { background: transparent; border: 1px solid var(--line2); color: var(--text); font-weight: 500; box-shadow: none; }
+button.ghost:hover:not(:disabled) { border-color: rgb(var(--a1-rgb) / .5); color: var(--a1); filter: none;
+  box-shadow: 0 0 18px -8px rgb(var(--a1-rgb) / .8); }
+button.dark { background: var(--panel2); border: 1px solid var(--line2); color: var(--text); font-weight: 500; box-shadow: none; }
+button.dark:hover:not(:disabled) { border-color: rgb(var(--a1-rgb) / .45); filter: none; box-shadow: 0 0 18px -8px rgb(var(--a1-rgb) / .7); }
+button.sm { padding: 5px 11px; font-size: 12px; }
+button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid var(--a1); outline-offset: 2px; }
+
+/* steps: the five tabs as one flow, done / next / current */
+.steps { display: flex; margin-bottom: 20px; padding: 2px 2px 12px; overflow-x: auto; scrollbar-width: none;
+  border-bottom: 1px solid var(--line); }
+.steps::-webkit-scrollbar, .jobs::-webkit-scrollbar, .thumbs::-webkit-scrollbar { display: none; }
+.steps a { display: flex; align-items: center; gap: 9px; padding: 6px 12px 6px 0; color: var(--muted); white-space: nowrap; font-size: 13.5px; }
+.steps a + a { padding-left: 12px; }
+.steps a + a::before { content: ""; width: 18px; height: 1px; background: var(--line2); margin-right: 3px; flex: none; }
+.steps a.done + a::before { background: rgb(var(--ok-rgb) / .6); box-shadow: 0 0 6px rgb(var(--ok-rgb) / .6); }
+.steps a b { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; font: 600 11px/1 var(--mono);
+  border: 1px solid var(--line2); color: var(--muted); flex: none; background: var(--panel-solid); transition: background .2s, box-shadow .2s; }
+.steps a.done b { background: rgb(var(--ok-rgb) / .12); border-color: rgb(var(--ok-rgb) / .6); color: var(--ok);
+  box-shadow: 0 0 12px -2px rgb(var(--ok-rgb) / .55); }
+.steps a.next b { border-color: var(--a1); color: var(--a1); animation: pulse 2.2s ease-in-out infinite;
+  box-shadow: 0 0 0 3px rgb(var(--a1-rgb) / .16), 0 0 16px rgb(var(--a1-rgb) / .55); }
+.steps a.on { color: var(--text); font-weight: 600; }
+.steps a.on b { background: linear-gradient(135deg, var(--a1), var(--a2)); border-color: transparent; color: var(--on-accent);
+  box-shadow: 0 0 18px rgb(var(--a1-rgb) / .6); }
+.steps a:hover { color: var(--text); }
+@keyframes pulse { 50% { box-shadow: 0 0 0 6px rgb(var(--a1-rgb) / .05), 0 0 22px rgb(var(--a1-rgb) / .75); } }
+.nextstep { position: relative; display: flex; align-items: center; gap: 6px 14px; flex-wrap: wrap; padding: 14px 16px;
+  margin-bottom: 20px; border-radius: var(--r); border: 1px solid transparent;
+  background: linear-gradient(var(--panel-solid), var(--panel-solid)) padding-box,
+    linear-gradient(120deg, rgb(var(--a1-rgb) / .75), rgb(var(--a2-rgb) / .5) 60%, rgb(var(--a2-rgb) / .1)) border-box;
+  box-shadow: 0 0 40px -18px rgb(var(--a1-rgb) / .55); }
+.nextstep::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: radial-gradient(600px 120px at 0% 0%, rgb(var(--a1-rgb) / .12), transparent 70%); }
+.nextstep.ok { box-shadow: 0 0 40px -20px rgb(var(--ok-rgb) / .6);
+  background: linear-gradient(var(--panel-solid), var(--panel-solid)) padding-box,
+    linear-gradient(120deg, rgb(var(--ok-rgb) / .6), rgb(var(--ok-rgb) / .08)) border-box; }
+.nextstep.ok::before { background: radial-gradient(600px 120px at 0% 0%, rgb(var(--ok-rgb) / .1), transparent 70%); }
+.nextstep > * { position: relative; }
+.nextstep .k { font: 500 10.5px/1.3 var(--mono); text-transform: uppercase; letter-spacing: .16em; color: var(--a1); width: 100%; }
+.nextstep.ok .k { color: var(--ok); }
+.nextstep .t { font-weight: 600; font-size: 15px; min-width: 0; overflow-wrap: anywhere; flex: 1 1 200px; }
+a.btn { display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, var(--a1), var(--a2));
+  color: var(--on-accent); border-radius: var(--r-sm); padding: 8px 14px; font-weight: 600; font-size: 13px; white-space: nowrap;
+  box-shadow: 0 10px 26px -12px rgb(var(--a1-rgb) / .8); }
+a.btn:hover { filter: brightness(1.08); }
+.progress { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 2px; }
+.progress i { height: 4px; border-radius: 2px; background: var(--track); }
+.progress i.done { background: var(--ok); box-shadow: 0 0 8px rgb(var(--ok-rgb) / .7); }
+.progress i.next { background: var(--a1); box-shadow: 0 0 10px rgb(var(--a1-rgb) / .9); animation: blink 1.8s ease-in-out infinite; }
+.next-line { font-size: 12.5px; color: var(--text); }
+.next-line span { color: var(--a1); font: 500 10.5px var(--mono); text-transform: uppercase; letter-spacing: .1em; margin-right: 4px; }
+.setup { text-align: left; max-width: 580px; margin: 0 auto; }
+.setup ol { margin: 12px 0 0; padding-left: 20px; display: grid; gap: 8px; color: var(--text); }
+.setup code { font: 12px var(--mono); background: rgb(var(--a1-rgb) / .08); color: var(--a1); border: 1px solid rgb(var(--a1-rgb) / .25);
+  border-radius: 5px; padding: 1px 6px; }
+
+.kv { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 16px; font-size: 13px; margin: 0; }
+.kv dt { color: var(--muted); font: 11px/1.9 var(--mono); text-transform: uppercase; letter-spacing: .1em; }
+.kv dd { margin: 0; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+
+.banner { padding: 11px 14px; border-radius: var(--r-sm); background: var(--panel); border: 1px solid var(--line); font-size: 13px; }
+.banner.warn { border-color: rgb(var(--warn-rgb) / .4); background: linear-gradient(90deg, rgb(var(--warn-rgb) / .08), transparent 70%), var(--panel); }
+.banner.ok { border-color: rgb(var(--ok-rgb) / .4); background: linear-gradient(90deg, rgb(var(--ok-rgb) / .08), transparent 70%), var(--panel); }
+.banner.fail { border-color: rgb(var(--fail-rgb) / .4); }
+.banner b { font-weight: 600; }
+#offline { margin-bottom: 16px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+#offline .dot { align-self: center; }
+#demo { margin-bottom: 16px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; border-color: rgb(var(--a1-rgb) / .35);
+  background: linear-gradient(90deg, rgb(var(--a1-rgb) / .1), transparent 60%), var(--panel); }
+.empty { color: var(--muted); padding: 34px 18px; text-align: center; border: 1px dashed var(--line2); border-radius: var(--r);
+  background: rgb(var(--grid-rgb) / .025); }
+.why { font-size: 12px; color: var(--muted); }
+.why.warn, .why .warn { color: var(--warn); } .why.fail, .why .fail { color: var(--fail); }
+
+/* jobs strip */
+.jobs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 18px; scrollbar-width: none; }
+.jobs:empty { display: none; }
+.job { flex: none; display: flex; align-items: center; gap: 2px; max-width: 290px; background: var(--panel); border: 1px solid var(--line);
+  border-radius: 8px; padding: 6px 11px; font: 500 11.5px/1.4 var(--mono); color: var(--text); cursor: pointer; box-shadow: none; }
+.job:hover:not(:disabled) { background: var(--panel2); border-color: var(--line2); filter: none; box-shadow: none; }
+.job span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.job.klaar { border-color: rgb(var(--ok-rgb) / .3); } .job.fout { border-color: rgb(var(--fail-rgb) / .35); }
+.job.bezig { border-color: rgb(var(--warn-rgb) / .35); }
+.jobmsg { margin: -8px 0 18px; }
+pre.out { background: rgb(0 0 0 / .4); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin: 6px 0 0;
+  overflow: auto; max-height: 260px; font: 12px/1.5 var(--mono); color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; }
+.jobs-list { display: flex; flex-direction: column; gap: 10px; }
+
+/* grade: the monitor with viewfinder corners, the read-out under it */
+.stage { position: relative; background: #000; border-radius: 12px; overflow: hidden; touch-action: pan-y; user-select: none;
+  aspect-ratio: 16/9; max-width: 100%; cursor: ew-resize; box-shadow: 0 0 0 1px var(--line2), 0 24px 60px -30px rgb(var(--a1-rgb) / .5); }
+.stage::before { content: ""; position: absolute; inset: 12px; z-index: 2; pointer-events: none; opacity: .9;
+  --c: rgb(var(--a1-rgb) / .9); background-repeat: no-repeat;
+  background-image: linear-gradient(var(--c), var(--c)), linear-gradient(var(--c), var(--c)), linear-gradient(var(--c), var(--c)),
+    linear-gradient(var(--c), var(--c)), linear-gradient(var(--c), var(--c)), linear-gradient(var(--c), var(--c)),
+    linear-gradient(var(--c), var(--c)), linear-gradient(var(--c), var(--c));
+  background-size: 18px 1.5px, 1.5px 18px, 18px 1.5px, 1.5px 18px, 18px 1.5px, 1.5px 18px, 18px 1.5px, 1.5px 18px;
+  background-position: left top, left top, right top, right top, left bottom, left bottom, right bottom, right bottom; }
+.stage canvas, .stage img.orig { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; display: block; }
+.stage img.orig { pointer-events: none; }
+.stage .split { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; z-index: 3; background: var(--a1);
+  box-shadow: 0 0 12px rgb(var(--a1-rgb) / .9); pointer-events: none; }
+.stage .split::after { content: "‹ ›"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  background: linear-gradient(135deg, var(--a1), var(--a2)); color: var(--on-accent); font: 700 11px/1 var(--mono);
+  border-radius: 999px; padding: 5px 8px; white-space: nowrap; box-shadow: 0 0 16px rgb(var(--a1-rgb) / .8); }
+.stage .lbl { position: absolute; top: 20px; z-index: 3; font: 600 10px/1.6 var(--mono); letter-spacing: .14em; text-transform: uppercase;
+  padding: 1px 8px; border-radius: 5px; background: rgb(0 0 0 / .55); color: #fff; pointer-events: none; }
+.stage .lbl.l { left: 22px; } .stage .lbl.r { right: 22px; }
+.stage .msg { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font: 12.5px/1.5 var(--mono);
+  text-align: center; padding: 16px; }
+.readout { display: flex; flex-wrap: wrap; gap: 4px 16px; padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--r-sm);
+  background: rgb(0 0 0 / .3); font: 500 10.5px/1.6 var(--mono); color: var(--muted); letter-spacing: .08em;
+  font-variant-numeric: tabular-nums; }
+.readout:empty { display: none; }
+.readout b { color: var(--a1); font-weight: 600; letter-spacing: .02em; }
+.thumbs { display: flex; gap: 8px; overflow-x: auto; padding: 2px; }
+.thumb { flex: none; width: 116px; padding: 0; border-radius: 9px; overflow: hidden; background: var(--panel-solid);
+  border: 1px solid var(--line2); position: relative; box-shadow: none; }
+.thumb:hover:not(:disabled) { background: var(--panel-solid); border-color: rgb(var(--a1-rgb) / .5); filter: none; box-shadow: none; }
+.thumb.on, .thumb.on:hover:not(:disabled) { border-color: var(--a1); box-shadow: 0 0 0 1px var(--a1), 0 0 18px -4px rgb(var(--a1-rgb) / .8); }
+.thumb img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; }
+.thumb i { position: absolute; left: 5px; bottom: 5px; font: 600 9.5px/1.6 var(--mono); letter-spacing: .06em; font-style: normal;
+  background: rgb(0 0 0 / .7); color: #fff; border-radius: 4px; padding: 0 5px; }
+.chips { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.chip { display: flex; align-items: center; gap: 10px; background: var(--panel2); color: var(--text); border: 1px solid var(--line);
+  font: 600 13px/1.25 var(--font); text-align: left; padding: 9px 10px; white-space: normal; box-shadow: none; }
+.chip span { min-width: 0; }
+.chip .lut { display: block; font: 600 11.5px/1.35 var(--mono); overflow-wrap: anywhere; }
+.chip { gap: 8px; } .chip .sw { width: 22px; height: 22px; border-radius: 6px; }
+.chip small { display: block; color: var(--muted); font: 400 11px/1.3 var(--font); }
+.chip .sw { width: 26px; height: 26px; border-radius: 7px; flex: none; box-shadow: inset 0 0 0 1px rgb(255 255 255 / .14); }
+.chip:hover:not(:disabled) { background: var(--panel2); border-color: var(--line2); filter: none; box-shadow: none; }
+.chip.on, .chip.on:hover:not(:disabled) { border-color: var(--a1); background: rgb(var(--a1-rgb) / .08);
+  box-shadow: 0 0 0 1px rgb(var(--a1-rgb) / .6), 0 0 22px -8px rgb(var(--a1-rgb) / .9); }
+/* each swatch runs shadows → highlights of that look */
+.sw.look-reference_film { background: linear-gradient(135deg, #241c1f, #8d6c55 55%, #f1d6b0); }
+.sw.look-clean_warm { background: linear-gradient(135deg, #2b211b, #c08e62 55%, #fff0d8); }
+.sw.look-moody { background: linear-gradient(135deg, #0c1416, #3d4d50 55%, #a7b2ae); }
+.sw.look-daylight { background: linear-gradient(135deg, #1b2532, #7ea8cc 55%, #fff3d2); }
+.sw.look-blue_hour { background: linear-gradient(135deg, #0a1230, #3a5ca0 55%, #bcd3ff); }
+.sw.look-vintage { background: linear-gradient(135deg, #3b2f27, #a28b6c 55%, #eedfbf); }
+.pcard .img img.log { filter: contrast(1.3) saturate(1.35) brightness(.9); }
+.slider { display: grid; gap: 6px; }
+.slider .top { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--muted); }
+.slider .top b { color: var(--a1); font: 600 12px var(--mono); font-variant-numeric: tabular-nums; }
+.confirm { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid rgb(var(--warn-rgb) / .4);
+  border-radius: var(--r-sm); background: rgb(var(--warn-rgb) / .05); }
+
+.review img { width: 100%; border-radius: 10px; display: block; background: #000; }
+video { width: 100%; max-width: 100%; border-radius: 10px; background: #000; display: block; }
+
+#toasts { position: fixed; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 8px; z-index: 30; max-width: calc(100vw - 32px); }
+.toast { display: flex; gap: 10px; align-items: baseline; background: var(--bar); -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px); border: 1px solid var(--line2); padding: 10px 14px; border-radius: 10px; max-width: 380px;
+  box-shadow: 0 16px 40px -12px var(--shadow); font-size: 13px; overflow-wrap: anywhere; }
+.toast::before { content: ""; width: 7px; height: 7px; border-radius: 50%; flex: none; background: var(--a1);
+  box-shadow: 0 0 10px var(--a1); transform: translateY(-1px); }
+.toast.err::before { background: var(--fail); box-shadow: 0 0 10px var(--fail); }
+.toast.ok::before { background: var(--ok); box-shadow: 0 0 10px var(--ok); }
+
+/* sidebar: icons, the projects and live activity (desktop) */
+.side { overflow-y: auto; scrollbar-width: none; }
+nav a i { display: grid; place-items: center; }
+nav a i svg { width: 16px; height: 16px; display: block; fill: none; stroke: currentColor; stroke-width: 1.5;
+  stroke-linecap: round; stroke-linejoin: round; }
+.side-sec { display: flex; flex-direction: column; gap: 1px; }
+.side-sec:empty { display: none; }
+.side-h { font: 500 10px/1.3 var(--mono); text-transform: uppercase; letter-spacing: .16em; color: var(--dim); padding: 0 11px 7px; }
+.side-p, .side-j { display: flex; align-items: center; gap: 9px; padding: 6px 11px; border-radius: 8px; color: var(--muted);
+  font-size: 13px; min-width: 0; }
+.side-p:hover, .side-j:hover { background: var(--panel2); color: var(--text); }
+.side-p.on { color: var(--text); background: rgb(var(--a1-rgb) / .07); }
+.side-p .nm, .side-j .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.side-p .st, .side-j .t { font: 10.5px var(--mono); color: var(--dim); flex: none; }
+.side-status { padding: 10px 11px; border: 1px solid var(--line); border-radius: var(--r-sm); background: rgb(0 0 0 / .22); }
+.led { width: 7px; height: 7px; border-radius: 50%; flex: none; background: var(--dim); }
+.led.next { background: var(--a1); box-shadow: 0 0 8px rgb(var(--a1-rgb) / .9); }
+.led.klaar { background: var(--ok); box-shadow: 0 0 8px rgb(var(--ok-rgb) / .8); }
+.led.bezig { background: var(--warn); box-shadow: 0 0 8px rgb(var(--warn-rgb) / .9); animation: blink 1.4s ease-in-out infinite; }
+.led.fout { background: var(--fail); box-shadow: 0 0 8px rgb(var(--fail-rgb) / .8); }
+@media (min-width: 901px) { main .jobs, main .jobmsg { display: none !important; } }
+
+/* home: what waits on Timon, before the project grid */
+.todo { margin-bottom: 26px; }
+.todo-row { display: grid; grid-template-columns: auto minmax(0, 200px) minmax(0, 1fr) auto; align-items: center; gap: 4px 12px;
+  padding: 11px 2px; }
+.todo-row + .todo-row { border-top: 1px solid var(--line); }
+.todo-row .nm { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.todo-row .what { color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.todo-row .go { font: 500 10.5px var(--mono); color: var(--a1); text-transform: uppercase; letter-spacing: .1em; white-space: nowrap; }
+.todo-row:hover .nm { color: var(--a1); }
+
+/* plan facts, render gates, the jobs log */
+.specs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line);
+  border-radius: var(--r-sm); overflow: hidden; }
+.specs > div { background: var(--panel-solid); padding: 10px 12px; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.specs span { font: 10px/1.3 var(--mono); text-transform: uppercase; letter-spacing: .14em; color: var(--muted); }
+.specs b { font: 600 19px/1.2 var(--display); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.gates { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+.gates li { display: flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--muted); }
+.gates li i { width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; flex: none; font: 600 11px var(--mono);
+  font-style: normal; border: 1px solid var(--line2); color: var(--dim); }
+.gates li.ok { color: var(--text); }
+.gates li.ok i { border-color: rgb(var(--ok-rgb) / .6); color: var(--ok); background: rgb(var(--ok-rgb) / .1); }
+.gates li.wait i { border-color: rgb(var(--warn-rgb) / .55); color: var(--warn); background: rgb(var(--warn-rgb) / .07); }
+.jlist { padding-block: 4px; }
+.jrow + .jrow { border-top: 1px solid var(--line); }
+.jrow summary { display: flex; align-items: center; gap: 10px; padding: 12px 0; cursor: pointer; list-style: none; min-width: 0; }
+.jrow summary::-webkit-details-marker { display: none; }
+.jrow summary b { font-weight: 600; white-space: nowrap; }
+.jrow summary .p { color: var(--muted); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.jrow summary .t { margin-left: auto; font: 11px var(--mono); color: var(--dim); white-space: nowrap; }
+.jrow pre.out { margin: 0 0 12px; }
+.mini-sheet { width: 100%; max-width: 100%; display: block; border-radius: 8px; border: 1px solid var(--line); }
+.sw { box-shadow: inset 0 0 0 1px rgb(255 255 255 / .14); }
+.kv .sw { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; margin-right: 7px; }
+
+@media (max-width: 900px) {
+  .shell { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+  .side { position: sticky; top: env(safe-area-inset-top, 0px); height: auto; flex-direction: row; align-items: center; z-index: 10;
+    gap: 8px; padding-block: 9px; padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px)); border-right: 0; border-bottom: 1px solid var(--line); }
+  .brand { padding: 4px 0; } .brand span:last-child { display: none; }
+  nav { flex-direction: row; } nav a { padding: 7px 10px; }
+  .side-status { margin: 0 0 0 auto; flex-direction: row; gap: 12px; min-width: 0; }
+  .side-status .full { display: none; } .side-status .short { display: inline; }
+  main { padding-block: 20px 90px; padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .cols-grade, .cols-2 { grid-template-columns: minmax(0, 1fr); }
+  h1 { font-size: 21px; }
+}
+@media (max-width: 480px) { nav a span { display: none; } .card { padding: 14px; }
+  .steps a:not(.on) span { display: none; } .steps a { gap: 6px; padding-right: 4px; } .steps a + a { padding-left: 4px; }
+  .steps a + a::before { width: 10px; margin-right: 0; } }
+@media (max-width: 900px) { .side-sec { display: none; } .side-status { padding: 0; border: 0; background: none; } }
+@media (max-width: 600px) {
+  .todo-row { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .todo-row .go { grid-column: 3; grid-row: 1; } .todo-row .what { grid-column: 2 / 4; grid-row: 2; white-space: normal; }
+  .specs b { font-size: 16px; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Unbounded:wght@500;600&display=swap">
+
+<div class="atmo" aria-hidden="true"></div>
+<div class="shell">
+  <aside class="side">
+    <a class="brand" href="#/"><span class="logo"></span><span>AutoEdit <b>Studio</b></span></a>
+    <nav>
+      <a href="#/" data-nav="home"><i><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2" width="5" height="5" rx="1.2"/><rect x="9" y="2" width="5" height="5" rx="1.2"/><rect x="2" y="9" width="5" height="5" rx="1.2"/><rect x="9" y="9" width="5" height="5" rx="1.2"/></svg></i><span>Projecten</span></a>
+      <a href="#/taken" data-nav="taken"><i><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 8.5h3l2-5 3 9 2-4h3"/></svg></i><span>Taken</span><em id="jobBadge" hidden></em></a>
+    </nav>
+    <div class="side-sec" id="sideProjects"></div>
+    <div class="side-sec" id="sideActivity"></div>
+    <div class="side-status" id="sideStatus"><div><span class="dot"></span><span class="full">PC: onbekend</span></div></div>
+  </aside>
+  <main>
+    <div id="offline" class="banner warn" hidden></div>
+    <div id="demo" class="banner" hidden></div>
+    <div id="view"><div class="loading">Laden…</div></div>
+  </main>
+</div>
+<div id="toasts" role="status" aria-live="polite"></div>
+
+<script id="grade-math">
+// Pure grade maths and request text, shared by the page and tests/studio_page_lut_test.js (no DOM here).
+// Same two stages as webapp/studio_assets.py and autoedit/grade.py build_lut:
+//   x' = clamp(x + exposure*0.0769) (log only) -> c = conv(x') (log only, skipped without conv)
+//   -> o = look(c) -> out = c + (o - c)*strength
+(function (root) {
+  "use strict";
+  const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
+
+  // .cube text -> {n, data}; data[((b*n + g)*n + r)*3 + ch], rows red-fastest like grade.read_cube / write_cube.
+  function parseCube(text) {
+    let n = 0;
+    const vals = [];
+    for (const raw of String(text).split(/\r?\n/)) {
+      const s = raw.trim();
+      if (!s || s[0] === "#") continue;
+      if (/^LUT_3D_SIZE\b/i.test(s)) { n = parseInt(s.split(/\s+/).pop(), 10); continue; }
+      const c = s[0];
+      if ((c >= "0" && c <= "9") || c === "-" || c === ".") {
+        const p = s.split(/\s+/);
+        if (p.length === 3) vals.push(+p[0], +p[1], +p[2]);
+      }
+    }
+    if (!(n >= 2 && n <= 129) || vals.length !== n * n * n * 3 || vals.some((v) => !Number.isFinite(v)))
+      throw new Error("LUT-bestand niet te lezen");
+    return { n, data: Float32Array.from(vals) };
+  }
+
+  // Trilinear lookup, the same as grade.apply_cube.
+  function sample(lut, rgb) {
+    const n = lut.n, d = lut.data, m = n - 1;
+    const x = [clamp01(rgb[0]) * m, clamp01(rgb[1]) * m, clamp01(rgb[2]) * m];
+    const i0 = x.map(Math.floor), i1 = i0.map((i) => Math.min(i + 1, m)), f = x.map((v, k) => v - i0[k]);
+    const at = (b, g, r, ch) => d[((b * n + g) * n + r) * 3 + ch];
+    const out = [0, 0, 0];
+    for (let ch = 0; ch < 3; ch++) {
+      const c00 = at(i0[2], i0[1], i0[0], ch) * (1 - f[0]) + at(i0[2], i0[1], i1[0], ch) * f[0];
+      const c01 = at(i0[2], i1[1], i0[0], ch) * (1 - f[0]) + at(i0[2], i1[1], i1[0], ch) * f[0];
+      const c10 = at(i1[2], i0[1], i0[0], ch) * (1 - f[0]) + at(i1[2], i0[1], i1[0], ch) * f[0];
+      const c11 = at(i1[2], i1[1], i0[0], ch) * (1 - f[0]) + at(i1[2], i1[1], i1[0], ch) * f[0];
+      const c0 = c00 * (1 - f[1]) + c01 * f[1], c1 = c10 * (1 - f[1]) + c11 * f[1];
+      out[ch] = c0 * (1 - f[2]) + c1 * f[2];
+    }
+    return out;
+  }
+
+  // rgb 0..1 -> graded rgb 0..1. conv/look: parsed cubes or null.
+  function gradePixel(rgb, conv, look, exposure, strength, isLog) {
+    let c = [rgb[0], rgb[1], rgb[2]];
+    if (isLog) {
+      const e = exposure * 0.0769;                 // one stop in S-Log3 code values (grade.build_lut)
+      c = c.map((v) => clamp01(v + e));
+      if (conv) c = sample(conv, c);
+    }
+    const o = look ? sample(look, c) : c;
+    return c.map((v, k) => clamp01(v + (o[k] - v) * strength));
+  }
+
+  // Request text for the Studio session, exactly webapp/studio.py's format. Returns {text} or {error}.
+  const ACTIONS = ["plan", "grade", "goedkeuren", "preview", "render", "qa", "stills"];
+  const LOOKS = ["reference_film", "clean_warm", "moody", "daylight", "blue_hour", "vintage"];
+  const quote = (v) => '"' + String(v).replace(/[\\"]/g, (m) => "\\" + m) + '"';
+  const num = (v) => String(Number((+v).toFixed(3)));
+  function requestText(action, name, extra) {
+    extra = extra || {};
+    if (!ACTIONS.includes(action)) return { error: "onbekende actie" };
+    if (!name || typeof name !== "string") return { error: "project onbekend" };
+    let t = "[studio] actie=" + action + " project=" + quote(name);
+    if (action === "grade") {
+      const s = +extra.strength, e = +extra.exposure;
+      if (!LOOKS.includes(extra.look)) return { error: "kies een look" };
+      if (!(s >= 0 && s <= 1)) return { error: "sterkte moet tussen 0 en 100 % liggen" };
+      if (!(e >= -3 && e <= 0.5)) return { error: "belichting moet tussen -3 en +0,5 stop liggen" };
+      t += " look=" + extra.look + " strength=" + num(s) + " exposure=" + num(e);
+    } else if (action === "goedkeuren") {
+      const note = String(extra.note == null ? "" : extra.note).trim();
+      if (!/^[0-9a-f]{12}$/.test(String(extra.plan || ""))) return { error: "het plan heeft nog geen code: maak eerst een plan" };
+      if (!/^[0-9a-f]{12}$/.test(String(extra.grade || ""))) return { error: "de grade heeft nog geen code: wacht op de PC" };
+      if (!note) return { error: "schrijf in je eigen woorden wat je goedkeurt" };
+      if (note.length > 300) return { error: "je notitie is langer dan 300 tekens" };
+      if (note[0] === "-") return { error: "je notitie mag niet met - beginnen" };
+      if (/[\u0000-\u001f\u007f]/.test(note)) return { error: "je notitie mag geen regeleindes bevatten" };
+      t += " plan=" + extra.plan + " grade=" + extra.grade + " notitie=" + quote(note);
+    }
+    return { text: t };
+  }
+
+  root.StudioMath = { clamp01, parseCube, sample, gradePixel, requestText, LOOKS };
+  root.gradePixel = gradePixel;
+})(typeof window !== "undefined" ? window : globalThis);
+</script>
+
+<script>
+"use strict";
+const { parseCube, gradePixel, requestText } = window.StudioMath;
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const enc = encodeURIComponent;
+// Looks go by their LUT name, exactly as in autoedit/grade.py and config.yaml; the hint is how each one feels.
+const LOOK_HINT = {
+  reference_film: "warm, zachte zwarten", clean_warm: "eten, helder", moody: "donker, minder kleur",
+  daylight: "fris, natuurlijk", blue_hour: "koel, avond", vintage: "vaal, warm",
+};
+const ACT_NL = { plan: "Plan maken", grade: "Grade kiezen", goedkeuren: "Goedkeuren", preview: "Voorbeeld", render: "Renderen", qa: "QA", stills: "Stills verversen" };
+const JOB_NL = { bezig: "bezig", klaar: "klaar", fout: "fout" };
+
+// ------------------------------------------------------------------ helpers
+function toDate(v) {
+  if (v == null || v === "") return null;
+  if (typeof v === "number") return new Date(v > 1e12 ? v : v * 1000);
+  if (typeof v === "object" && typeof v.toDate === "function") return v.toDate();
+  const t = Date.parse(v);
+  return Number.isNaN(t) ? null : new Date(t);
+}
+function when(v) {
+  const d = toDate(v);
+  return d ? d.toLocaleString("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "";
+}
+function ago(v) {
+  const d = toDate(v);
+  if (!d) return "";
+  const s = Math.round((Date.now() - d.getTime()) / 1000);
+  if (s < 60) return "zojuist";
+  if (s < 3600) return Math.round(s / 60) + " min geleden";
+  if (s < 86400) return Math.round(s / 3600) + " uur geleden";
+  return when(v);
+}
+const pct = (s) => Math.round((+s || 0) * 100) + " %";
+const stops = (e) => { const v = +e || 0; return (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(2).replace(".", ",") + " stop"; };
+const lookName = (l) => l || "onbekend";
+const obj = (v) => (v && typeof v === "object" && !Array.isArray(v) ? v : null);
+const str = (v) => (typeof v === "string" ? v : v == null ? "" : String(v));
+const safeUrl = (u) => (typeof u === "string" && /^(https?:|blob:|data:image\/)/i.test(u) ? u : "");
+
+function toast(msg, kind = "") {
+  const t = document.createElement("div");
+  t.className = "toast " + kind; t.textContent = msg; $("#toasts").append(t);
+  setTimeout(() => t.remove(), kind === "err" ? 8000 : 4000);
+}
+
+// ------------------------------------------------------------------ state
+const S = {
+  db: null, comments: null, user: null,
+  projects: new Map(), projectsReady: false, jobs: [], pc: null, demo: false, real: { projects: new Map(), jobs: [] },
+  dbNote: "", canSend: "onbekend", owner: null,
+};
+const drafts = new Map();               // per project id: grade draft, note, still index, split
+function draft(id, p) {
+  if (!drafts.has(id)) {
+    const g = obj(p && p.grade) || {};
+    drafts.set(id, {
+      look: StudioMath.LOOKS.includes(g.look) ? g.look : "reference_film",
+      strength: Number.isFinite(+g.strength) && g.strength !== null ? +g.strength : 1,
+      exposure: Number.isFinite(+g.exposure) && g.exposure !== null ? +g.exposure : -1.75,
+      note: "", still: 0, split: 50, confirmPlan: false,
+    });
+  }
+  return drafts.get(id);
+}
+function project(id) {
+  const raw = S.projects.get(id);
+  if (!raw) return null;
+  const plan = obj(raw.plan), approval = obj(raw.approval), grade = obj(raw.grade) || {}, luts = obj(raw.luts) || {};
+  return {
+    id, name: str(raw.name), plan, approval, grade,
+    stills: (Array.isArray(raw.stills) ? raw.stills : []).map(obj).filter((s) => s && safeUrl(s.url)),
+    luts: { conv: safeUrl(luts.conv) || null, looks: obj(luts.looks) || {} },
+    render: obj(raw.render), updated_at: raw.updated_at,
+  };
+}
+const projectList = () => [...S.projects.keys()].map(project).filter((p) => p && p.name)
+  .sort((a, b) => (toDate(b.updated_at)?.getTime() || 0) - (toDate(a.updated_at)?.getTime() || 0) || a.name.localeCompare(b.name));
+const online = () => S.demo || (S.comments && S.canSend === "available" && S.owner !== false);
+function applyData() {
+  S.projects = S.demo ? DEMO.projects : S.real.projects;
+  S.jobs = (S.demo ? DEMO.jobs : S.real.jobs).slice()
+    .sort((a, b) => (toDate(b.started_at)?.getTime() || 0) - (toDate(a.started_at)?.getTime() || 0));
+}
+function offlineReason() {
+  if (!S.comments) return "Opdrachten sturen werkt niet in deze weergave.";
+  if (S.owner === false || S.canSend === "writers_only") return "Alleen de eigenaar kan opdrachten naar de PC sturen.";
+  if (S.canSend !== "available") return "Studio-sessie op je PC is niet bereikbaar.";
+  return "";
+}
+function approvalState(p) {
+  const a = p.approval;
+  if (!p.plan) return { ok: false, cls: "", text: "Nog geen plan." };
+  if (!a || a.status !== "approved") return { ok: false, cls: "warn", text: "Wacht op je goedkeuring." };
+  if (!a.current) return { ok: false, cls: "warn", text: "Het plan is veranderd na je goedkeuring: keur het opnieuw goed." };
+  if (!a.grade_current) return { ok: false, cls: "warn", text: "grade gewijzigd: opnieuw goedkeuren" };
+  return { ok: true, cls: "ok", text: "Goedgekeurd" + (a.note ? ": “" + a.note + "”" : "") };
+}
+// The five tabs as one flow: which are done, and which one Timon should do next.
+const TABS = [["grade", "Grade"], ["plan", "Plan"], ["goedkeuren", "Goedkeuren"], ["renderen", "Renderen"], ["resultaat", "Resultaat"]];
+function flow(p) {
+  const st = approvalState(p);
+  const done = { grade: p.grade && p.grade.look != null, plan: !!p.plan, goedkeuren: st.ok, renderen: st.ok && !!p.render, resultaat: st.ok && !!p.render };
+  let next;
+  if (!done.grade) next = { tab: "grade", text: "Kies een kleurlook voor dit project." };
+  else if (!done.plan) next = { tab: "plan", text: "Maak een plan: de PC kiest de shots en maakt een storyboard." };
+  else if (!done.goedkeuren) next = { tab: "goedkeuren", text: st.text === "Wacht op je goedkeuring." ? "Keur het plan en de grade goed." : st.text };
+  else if (!p.render) next = { tab: "renderen", text: "Plan en grade zijn goedgekeurd: render de montage." };
+  else next = { tab: "resultaat", text: "Klaar: bekijk de render.", ok: true };
+  return { done, next };
+}
+const SETUP = `<ol><li>Zet je PC aan en open <b>DaVinci Resolve</b>.</li>
+  <li>Dubbelklik in de repo op <code>start-studio-sessie.bat</code> (of zeg tegen Claude Code op je PC: <i>start de Studio-sessie</i>).</li>
+  <li>Laat dat venster open. Deze pagina ziet de PC binnen een halve minuut.</li></ol>`;
+
+// ------------------------------------------------------------------ capabilities + data
+async function start() {
+  const use = (name) => (window.claude && typeof window.claude.use === "function"
+    ? Promise.resolve(window.claude.use(name)).catch(() => null) : Promise.resolve(null));
+  const [db, comments, user] = await Promise.all([use("db"), use("comments"), use("user")]);
+  S.db = db; S.comments = comments; S.user = user;
+  if (user && typeof user.isOwner === "function") user.isOwner().then((v) => { S.owner = !!v; refresh(); }).catch(() => {});
+  await checkSend();
+  if (!db) { S.dbNote = "De gegevens van de Studio zijn in deze weergave niet te lezen."; S.projectsReady = true; render(); return; }
+  let loaded = false;
+  const timer = setTimeout(() => { if (!loaded) { S.dbNote = "De gegevens zijn nog niet bereikbaar; wat je ziet kan verouderd zijn."; S.projectsReady = true; refresh(); } }, 10000);
+  const fresh = (snap) => { if (!snap.metadata || !snap.metadata.fromCache) { loaded = true; clearTimeout(timer); S.dbNote = ""; } };
+  const fail = (e) => { loaded = true; clearTimeout(timer); S.dbNote = "Gegevens niet te lezen (" + esc(e && e.code || "fout") + ")."; S.projectsReady = true; refresh(); };
+  db.collection("projects").onSnapshot((snap) => {
+    S.real.projects = new Map(snap.docs.filter((d) => d.exists !== false).map((d) => [d.id, d.data() || {}]));
+    S.projectsReady = true; fresh(snap); applyData(); refresh();
+  }, fail);
+  db.collection("jobs").onSnapshot((snap) => {
+    S.real.jobs = snap.docs.map((d) => ({ id: d.id, ...(d.data() || {}) }));
+    applyData(); refresh();
+  }, () => {});
+  db.doc("studio/pc").onSnapshot((snap) => { S.pc = snap.exists ? snap.data() || null : null; refresh(); }, () => {});
+}
+async function checkSend() {
+  let v = "off";
+  if (S.comments && typeof S.comments.canSendToClaude === "function") {
+    try { v = await S.comments.canSendToClaude(); } catch (e) { v = "off"; }
+  }
+  if (v !== S.canSend) { S.canSend = v; refresh(); }
+}
+setInterval(checkSend, 20000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) checkSend(); });
+
+// One comment per real button press: the PC session runs it (webapp/studio.py) and writes the result back into the db.
+const COMMENT_ERR = {
+  consent_required: "Niet verstuurd: geef eerst toestemming om opmerkingen te plaatsen.",
+  forbidden: "Opdrachten sturen staat uit voor deze pagina (aan te zetten in je opmerkingenpaneel).",
+  claude_unavailable: "Niet verstuurd: de Studio-sessie op je PC luistert nu niet.",
+  rate_limited: "Even rustig: wacht een paar seconden en probeer opnieuw.",
+  unavailable: "Opmerkingen zijn even niet beschikbaar. Probeer het zo nog eens.",
+};
+async function send(btn, action, p, extra) {
+  if (!online()) { toast(offlineReason(), "err"); return false; }
+  const r = requestText(action, p.name, extra);
+  if (r.error) { toast(r.error, "err"); return false; }
+  if (S.demo) { demoRun(action, p, extra); toast(ACT_NL[action] + ": demo, er gaat niets naar je PC.", "ok"); return true; }
+  btn.disabled = true; btn.dataset.sending = "1";
+  try {
+    const anchor = await S.comments.anchorFor(btn);
+    await S.comments.sendToClaude({ anchor, text: r.text });
+    toast(ACT_NL[action] + ": naar je PC gestuurd.", "ok");
+    return true;
+  } catch (e) {
+    toast(COMMENT_ERR[e && e.code] || "Niet verstuurd (" + (e && e.code || "fout") + ").", "err");
+    if (e && (e.code === "claude_unavailable" || e.code === "forbidden")) checkSend();
+    return false;
+  } finally {
+    setTimeout(() => { delete btn.dataset.sending; btn.disabled = false; refresh(); }, 2500);
+  }
+}
+
+// ------------------------------------------------------------------ shell: offline banner, side status, jobs
+function renderShell() {
+  const off = $("#offline");
+  const seen = S.pc && S.pc.seen_at ? ago(S.pc.seen_at) : "";
+  off.hidden = online() || S.canSend === "onbekend";
+  const dm = $("#demo");
+  dm.hidden = !S.demo;
+  if (S.demo && !dm.childElementCount) {
+    dm.innerHTML = `<span class="tag red">Demo</span><span>Voorbeelddata: knoppen werken, maar er gaat niets naar je PC.</span>` +
+      `<span class="spacer"></span><button class="ghost sm" id="demoOff">Demo sluiten</button>`;
+    $("#demoOff").onclick = () => setDemo(false);
+  }
+  if (!off.hidden) {
+    const detail = !S.comments ? "Opdrachten sturen werkt niet in deze weergave."
+      : S.owner === false || S.canSend === "writers_only" ? "Alleen de eigenaar kan opdrachten naar de PC sturen."
+      : "Start de Studio-sessie op je PC.";
+    off.innerHTML = `<span class="dot off"></span><b>Studio-sessie op je PC is niet bereikbaar</b>` +
+      `<span class="muted">${seen ? "Laatst gezien " + esc(seen) + ". " : ""}${esc(detail)} Het grade-voorbeeld werkt wel.</span>`;
+  }
+  const busy = S.jobs.filter((j) => j.status === "bezig").length;
+  const badge = $("#jobBadge"); badge.hidden = !busy; badge.textContent = busy;
+  const pcOn = S.canSend === "available" || S.demo;
+  const pcLabel = S.demo ? "Demo-modus" : pcOn ? "PC-sessie luistert" : "PC-sessie niet bereikbaar";
+  $("#sideStatus").innerHTML = `<div title="${pcLabel}"><span class="dot ${pcOn ? "on" : "off"}"></span><span class="short">${S.demo ? "Demo" : "PC"}</span><span class="full">${pcLabel}</span></div>` +
+    (seen ? `<div class="full">laatst gezien ${esc(seen)}</div>` : "") +
+    (S.pc && S.pc.host ? `<div class="full">${esc(S.pc.host)}</div>` : "") +
+    (busy ? `<div title="${busy} ${busy === 1 ? "taak" : "taken"} bezig"><span class="dot busy"></span><span class="short">${busy}</span><span class="full">${busy} ${busy === 1 ? "taak" : "taken"} bezig</span></div>` : "");
+  renderSide();
+}
+function short(v) {
+  const d = toDate(v);
+  if (!d) return "";
+  const s = Math.round((Date.now() - d.getTime()) / 1000);
+  if (s < 60) return "nu";
+  if (s < 3600) return Math.round(s / 60) + " min";
+  if (s < 86400) return Math.round(s / 3600) + " u";
+  return d.toLocaleDateString("nl-NL", { day: "numeric", month: "short" });
+}
+// Desktop sidebar: every project with what it waits for, and the last jobs on the PC.
+function renderSide() {
+  let cur = "";
+  if (location.hash.startsWith("#/p/")) { try { cur = decodeURIComponent(location.hash.split("/")[2] || ""); } catch (e) { cur = ""; } }
+  const list = projectList();
+  $("#sideProjects").innerHTML = list.length ? `<div class="side-h">Projecten</div>` + list.slice(0, 8).map((p) => {
+    const f = flow(p), busy = S.jobs.some((j) => j.status === "bezig" && j.project === p.name);
+    const led = busy ? "bezig" : f.next.ok ? "klaar" : "next";
+    const what = busy ? "bezig" : f.next.ok ? "klaar" : TABS.find(([k]) => k === f.next.tab)[1].toLowerCase();
+    return `<a class="side-p${p.id === cur ? " on" : ""}" href="#/p/${enc(p.id)}/${f.next.tab}"><span class="led ${led}"></span>` +
+      `<span class="nm">${esc(p.name)}</span><span class="st">${esc(what)}</span></a>`;
+  }).join("") : "";
+  $("#sideActivity").innerHTML = S.jobs.length ? `<div class="side-h">Activiteit</div>` + S.jobs.slice(0, 5).map((j) => {
+    const st = JOB_NL[j.status] ? j.status : "bezig";
+    return `<a class="side-j" href="#/taken" title="${esc(j.message || "")}"><span class="led ${st}"></span>` +
+      `<span class="nm">${esc(ACT_NL[j.action] || j.action || "taak")} · ${esc(j.project || "")}</span><span class="t">${esc(short(j.finished_at || j.started_at))}</span></a>`;
+  }).join("") : "";
+}
+let openJob = null;
+function jobsStrip(el, projectName) {
+  if (!el) return;
+  const list = S.jobs.filter((j) => !projectName || j.project === projectName).slice(0, 10);
+  el.innerHTML = list.map((j) => {
+    const st = JOB_NL[j.status] ? j.status : "bezig";
+    return `<button class="job ${st}" data-job="${esc(j.id)}" aria-expanded="${openJob === j.id}" title="${esc(j.message || "")}">` +
+      `<span class="dot ${st === "klaar" ? "on" : st === "fout" ? "off" : "busy"}"></span>` +
+      `<span>${esc(ACT_NL[j.action] || j.action || "taak")}${projectName ? "" : " · " + esc(j.project || "")} · ${esc(JOB_NL[st])}` +
+      ` · ${esc(ago(j.finished_at || j.started_at))}</span></button>`;
+  }).join("");
+  const msgEl = el.nextElementSibling && el.nextElementSibling.classList.contains("jobmsg") ? el.nextElementSibling : null;
+  const job = list.find((j) => j.id === openJob);
+  if (msgEl) {
+    msgEl.hidden = !job;
+    msgEl.innerHTML = job ? `<pre class="out">${esc(job.message || "Nog geen bericht van de PC.")}</pre>` : "";
+  }
+  el.querySelectorAll("[data-job]").forEach((b) => (b.onclick = () => {
+    openJob = openJob === b.dataset.job ? null : b.dataset.job; jobsStrip(el, projectName);
+  }));
+}
+
+// ------------------------------------------------------------------ demo: sample projects, only in this browser
+// Lets Timon try the whole flow without the PC. Nothing is sent or written; the LUTs only approximate the real looks.
+const DEMO = { projects: new Map(), jobs: [], built: false, sheet: "" };
+const hex12 = () => Array.from({ length: 12 }, () => "0123456789abcdef"[Math.floor(Math.random() * 16)]).join("");
+function demoCube(fn) {
+  const n = 17, rows = ["LUT_3D_SIZE " + n], data = new Float32Array(n * n * n * 3);
+  let i = 0;
+  for (let b = 0; b < n; b++) for (let g = 0; g < n; g++) for (let r = 0; r < n; r++) {
+    const o = fn(r / (n - 1), g / (n - 1), b / (n - 1)).map(StudioMath.clamp01);
+    rows.push(o.map((v) => v.toFixed(4)).join(" ")); data.set(o, i); i += 3;
+  }
+  const url = URL.createObjectURL(new Blob([rows.join("\n")], { type: "text/plain" }));
+  (window.__lutCache = window.__lutCache || new Map()).set(url, Promise.resolve({ n, data }));
+  return url;
+}
+const luma = (r, g, b) => 0.2126 * r + 0.7152 * g + 0.0722 * b;
+function demoLook(q) {
+  return (r, g, b) => {
+    const l = luma(r, g, b);
+    let c = [r, g, b].map((v) => l + (v - l) * q.sat).map((v) => 0.5 + (v - 0.5) * q.con).map((v) => q.lift + v * (q.gain - q.lift));
+    c[0] += q.warm * (0.4 + 0.6 * l); c[2] -= q.warm * (0.4 + 0.6 * l);
+    c[2] += q.cool * (0.3 + 0.6 * (1 - l)); c[0] -= q.cool * 0.3;
+    return c;
+  };
+}
+const DEMO_LOOKS = {
+  reference_film: { sat: 0.95, con: 1.08, lift: 0.03, gain: 0.98, warm: 0.04, cool: 0.02 },
+  clean_warm: { sat: 1.08, con: 1.02, lift: 0.01, gain: 1.02, warm: 0.06, cool: 0 },
+  moody: { sat: 0.7, con: 1.15, lift: 0.02, gain: 0.88, warm: 0, cool: 0.05 },
+  daylight: { sat: 1.15, con: 1, lift: 0, gain: 1.05, warm: 0.03, cool: 0 },
+  blue_hour: { sat: 0.9, con: 1, lift: 0.03, gain: 0.95, warm: -0.02, cool: 0.09 },
+  vintage: { sat: 0.78, con: 0.9, lift: 0.08, gain: 0.94, warm: 0.07, cool: 0 },
+};
+// Cinematic sample frames, drawn once: shallow depth of field, bokeh, backlight, a lens vignette and grain,
+// then flattened to look like Timon's ungraded S-Log3 so the grade preview has real work to do.
+function demoStill(kind) {
+  const c = document.createElement("canvas"); c.width = 960; c.height = 540;
+  const x = c.getContext("2d"), W = 960, H = 540, TAU = Math.PI * 2;
+  let seed = { gerecht: 7, lucht: 11, tegenlicht: 23, nacht: 42 }[kind] || 1;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const lin = (x0, y0, x1, y1, stops) => { const g = x.createLinearGradient(x0, y0, x1, y1); stops.forEach(([o, col]) => g.addColorStop(o, col)); return g; };
+  const rad = (cx, cy, r, stops) => { const g = x.createRadialGradient(cx, cy, 0, cx, cy, r); stops.forEach(([o, col]) => g.addColorStop(o, col)); return g; };
+  const ell = (cx, cy, rx, ry, fill) => { x.fillStyle = fill; x.beginPath(); x.ellipse(cx, cy, rx, ry, 0, 0, TAU); x.fill(); };
+  const soft = (px, fn) => { x.save(); x.filter = `blur(${px}px)`; fn(); x.restore(); };
+  if (kind === "gerecht") {
+    x.fillStyle = rad(300, 90, 900, [[0, "#6d5038"], [0.45, "#33251b"], [1, "#0e0a08"]]); x.fillRect(0, 0, W, H);
+    x.globalAlpha = 0.07;
+    for (let i = 0; i < 40; i++) { x.fillStyle = i % 2 ? "#000" : "#c79a6b"; x.fillRect(0, i * 14 + Math.sin(i) * 4, W, 2 + rnd() * 3); }
+    x.globalAlpha = 1;
+    soft(16, () => { for (let i = 0; i < 6; i++) { const r = 16 + rnd() * 26; ell(760 + rnd() * 180, 60 + rnd() * 120, r, r, "rgba(255,196,128,.45)"); } });
+    soft(22, () => ell(510, 330, 300, 140, "rgba(0,0,0,.7)"));
+    ell(480, 290, 290, 158, lin(0, 140, 0, 450, [[0, "#f6f2ec"], [1, "#b9b1a5"]]));
+    ell(480, 292, 222, 116, lin(0, 180, 0, 410, [[0, "#ebe6de"], [1, "#d3ccc1"]]));
+    soft(6, () => ell(478, 300, 118, 70, "rgba(60,20,12,.55)"));
+    ell(470, 284, 112, 66, rad(450, 260, 130, [[0, "#d0574a"], [0.55, "#9b2e25"], [1, "#5c1611"]]));
+    for (let i = 0; i < 900; i++) {
+      const a = rnd() * TAU, r = Math.sqrt(rnd());
+      x.fillStyle = rnd() < 0.5 ? "rgba(255,190,170,.28)" : "rgba(50,8,6,.35)";
+      x.fillRect(470 + Math.cos(a) * r * 104, 284 + Math.sin(a) * r * 60, 2, 2);
+    }
+    ell(498, 262, 27, 25, rad(490, 252, 32, [[0, "#ffe9a8"], [0.55, "#f3b02a"], [1, "#b8700e"]]));
+    ell(490, 254, 7, 5, "rgba(255,255,255,.75)");
+    for (let i = 0; i < 26; i++) {
+      const a = rnd() * TAU;
+      ell(470 + Math.cos(a) * (60 + rnd() * 50), 284 + Math.sin(a) * (34 + rnd() * 30), 4 + rnd() * 3, 2 + rnd() * 2, rnd() < 0.5 ? "#3f7f2c" : "#5fa043");
+    }
+  } else if (kind === "lucht") {
+    x.fillStyle = lin(0, 0, 0, H, [[0, "#1c2f55"], [0.38, "#a2587a"], [0.6, "#f08a5d"], [0.72, "#ffc98b"], [1, "#ffd9a8"]]); x.fillRect(0, 0, W, H);
+    x.fillStyle = rad(640, 330, 260, [[0, "rgba(255,244,214,1)"], [0.12, "rgba(255,226,170,.95)"], [0.4, "rgba(255,170,110,.35)"], [1, "rgba(255,150,100,0)"]]);
+    x.fillRect(0, 0, W, H);
+    soft(10, () => { for (let i = 0; i < 7; i++) ell(rnd() * W, 60 + rnd() * 170, 90 + rnd() * 160, 10 + rnd() * 16, `rgba(${200 + rnd() * 55 | 0},${130 + rnd() * 60 | 0},${140 + rnd() * 40 | 0},.45)`); });
+    const ridge = (base, amp, freq, phase, col, blur) => soft(blur, () => {
+      x.fillStyle = col; x.beginPath(); x.moveTo(0, H);
+      for (let px = 0; px <= W; px += 8) x.lineTo(px, base - Math.sin(px * freq + phase) * amp - Math.sin(px * freq * 2.7 + phase * 2) * amp * 0.35);
+      x.lineTo(W, H); x.closePath(); x.fill();
+    });
+    ridge(360, 34, 0.006, 1.2, "rgba(150,95,120,.85)", 2);
+    ridge(395, 42, 0.008, 3.1, "rgba(95,62,88,.92)", 1);
+    ridge(430, 38, 0.011, 0.4, "#3a2a3e", 0.5);
+    ridge(470, 30, 0.014, 2.2, "#1d1622", 0);
+  } else if (kind === "tegenlicht") {
+    x.fillStyle = lin(0, 0, W, 0, [[0, "#1a1c22"], [0.55, "#6b6f78"], [1, "#e9e3d6"]]); x.fillRect(0, 0, W, H);
+    x.fillStyle = rad(860, 200, 520, [[0, "rgba(255,240,215,.95)"], [0.35, "rgba(255,226,190,.35)"], [1, "rgba(255,220,180,0)"]]); x.fillRect(0, 0, W, H);
+    soft(18, () => { for (let i = 0; i < 9; i++) { const r = 18 + rnd() * 34; ell(600 + rnd() * 340, 40 + rnd() * 460, r, r, `rgba(255,${210 + rnd() * 40 | 0},${170 + rnd() * 50 | 0},.35)`); } });
+    const sil = () => {
+      x.beginPath(); x.ellipse(430, 215, 78, 96, -0.08, 0, TAU);
+      x.moveTo(250, H); x.bezierCurveTo(255, 400, 330, 330, 420, 318); x.bezierCurveTo(520, 318, 600, 380, 620, H); x.closePath();
+    };
+    soft(10, () => { x.fillStyle = "rgba(255,214,160,.85)"; sil(); x.fill(); });       // rim light around the figure
+    x.save(); x.translate(-5, 2); x.fillStyle = "#121318"; sil(); x.fill(); x.restore();
+  } else {
+    x.fillStyle = lin(0, 0, 0, H, [[0, "#070b18"], [0.55, "#121a33"], [1, "#05070d"]]); x.fillRect(0, 0, W, H);
+    const cols = ["255,176,90", "255,120,80", "120,200,255", "255,220,150", "220,90,140"];
+    soft(14, () => { for (let i = 0; i < 46; i++) { const r = 10 + rnd() * 34; ell(rnd() * W, 60 + rnd() * 300, r, r, `rgba(${cols[i % cols.length]},${(0.25 + rnd() * 0.45).toFixed(2)})`); } });
+    soft(3, () => { for (let i = 0; i < 18; i++) { const r = 3 + rnd() * 6; ell(rnd() * W, 80 + rnd() * 260, r, r, `rgba(${cols[i % cols.length]},.9)`); } });
+    x.fillStyle = lin(0, 380, 0, H, [[0, "#0d1120"], [1, "#05060a"]]); x.fillRect(0, 380, W, H - 380);
+    soft(6, () => { for (let i = 0; i < 26; i++) { x.fillStyle = `rgba(${cols[i % cols.length]},.28)`; x.fillRect(rnd() * W, 390, 4 + rnd() * 10, 80 + rnd() * 70); } });
+  }
+  x.fillStyle = rad(W / 2, H / 2, 640, [[0.55, "rgba(0,0,0,0)"], [1, "rgba(0,0,0,.6)"]]); x.fillRect(0, 0, W, H);
+  const img = x.getImageData(0, 0, W, H), d = img.data;          // flat and bright, like Timon's ungraded S-Log3, plus grain
+  for (let i = 0; i < d.length; i += 4) {
+    const l = luma(d[i], d[i + 1], d[i + 2]), n = (rnd() - 0.5) * 7;
+    for (let k = 0; k < 3; k++) d[i + k] = 0.4 * 255 + (l + (d[i + k] - l) * 0.6) * 0.38 + n;
+  }
+  x.putImageData(img, 0, 0);
+  return c.toDataURL("image/jpeg", 0.86);
+}
+function demoSheet(stills) {
+  const c = document.createElement("canvas"); c.width = 1280; c.height = 760;
+  const x = c.getContext("2d");
+  const signal = getComputedStyle(document.documentElement).getPropertyValue("--a1").trim() || "#9fdcff";
+  x.fillStyle = "#070a10"; x.fillRect(0, 0, 1280, 760);
+  x.fillStyle = "#e9eaee"; x.font = "600 26px Inter, Segoe UI, sans-serif"; x.fillText("STORYBOARD · demo", 32, 48);
+  const imgs = stills.map((u) => { const im = new Image(); im.src = u; return im; });
+  return Promise.all(imgs.map((im) => im.decode().catch(() => {}))).then(() => {
+    for (let i = 0; i < 12; i++) {
+      const cx = 32 + (i % 4) * 307, cy = 76 + Math.floor(i / 4) * 224;
+      x.filter = "contrast(1.5) saturate(1.5)"; x.drawImage(imgs[i % imgs.length], cx, cy, 291, 164); x.filter = "none";
+      x.fillStyle = signal; x.fillRect(cx, cy, 34, 22);
+      x.fillStyle = "#04060b"; x.font = "700 13px Inter, Segoe UI, sans-serif"; x.fillText(String(i + 1).padStart(2, "0"), cx + 8, cy + 16);
+      x.fillStyle = "#8b90a0"; x.font = "12px Inter, Segoe UI, sans-serif";
+      x.fillText((i * 2.6).toFixed(1).replace(".", ",") + " s · " + ["cut", "flash", "whip", "cut"][i % 4], cx, cy + 184);
+    }
+    return c.toDataURL("image/jpeg", 0.85);
+  });
+}
+async function buildDemo() {
+  const now = Date.now();
+  const st = { gerecht: demoStill("gerecht"), lucht: demoStill("lucht"), tegenlicht: demoStill("tegenlicht"), nacht: demoStill("nacht") };
+  const s = (k, label) => ({ url: st[k], is_log: true, label });
+  const conv = demoCube((r, g, b) => {
+    const l = luma(r, g, b);
+    return [r, g, b].map((v) => l + (v - l) * 1.6).map((v) => { const t = StudioMath.clamp01((v - 0.25) / 0.45); return t * t * (3 - 2 * t) * 0.96 + 0.02; });
+  });
+  const looks = {};
+  for (const k in DEMO_LOOKS) looks[k] = demoCube(demoLook(DEMO_LOOKS[k]));
+  const luts = { conv, looks };
+  DEMO.sheet = await demoSheet(Object.values(st));
+  const P = (id, d) => DEMO.projects.set(id, { luts, render: null, ...d });
+  P("beef-tartaar-v2", { name: "Beef Tartaar v2", updated_at: now - 6e5, stills: [s("gerecht", "gerecht"), s("tegenlicht", "tegenlicht"), s("nacht", "nacht")],
+    plan: { edl_sha1: hex12(), shots: 24, duration: 31.4, title: "BEEF TARTAAR", sheet_url: DEMO.sheet },
+    approval: { status: "approved", by: "Timon", at: now - 3e6, note: "ja, render zo", current: true, grade_current: false },
+    grade: { look: "moody", strength: 0.8, exposure: -1.75, key: hex12() } });
+  P("smoke-sesh", { name: "Smoke Sesh", updated_at: now - 8.64e7, stills: [s("nacht", "nacht"), s("tegenlicht", "tegenlicht")],
+    plan: { edl_sha1: hex12(), shots: 18, duration: 22, title: "SMOKE SESH", sheet_url: DEMO.sheet },
+    approval: { status: "approved", by: "Timon", at: now - 9e7, note: "top, zo houden", current: true, grade_current: true },
+    grade: { look: "reference_film", strength: 1, exposure: -1.75, key: hex12() },
+    render: { at: now - 8e7, review_url: DEMO.sheet, preview_url: null } });
+  P("parijs-weekend", { name: "Parijs weekend", updated_at: now - 3e8, stills: [s("lucht", "lucht"), s("nacht", "nacht"), s("tegenlicht", "tegenlicht")],
+    plan: null, approval: null, grade: { look: "daylight", strength: 0.9, exposure: -1.5, key: hex12() } });
+  P("kas", { name: "Kas", updated_at: now - 5e8, stills: [s("lucht", "lucht"), s("gerecht", "gerecht")], plan: null, approval: null, grade: {} });
+  DEMO.jobs = [
+    { id: "d1", project: "Beef Tartaar v2", action: "grade", status: "klaar", message: "Grade opgeslagen: moody 80 %", started_at: now - 7e5, finished_at: now - 6.9e5 },
+    { id: "d2", project: "Smoke Sesh", action: "render", status: "fout", message: "Renderen: mislukt\nResolve was niet open. Open DaVinci Resolve en probeer opnieuw.", started_at: now - 9e6, finished_at: now - 8.9e6 },
+  ];
+  DEMO.built = true;
+}
+async function setDemo(on) {
+  if (on && !DEMO.built) { toast("Voorbeelddata maken…"); await buildDemo(); }
+  S.demo = on; applyData();
+  if (location.hash && location.hash !== "#/") location.hash = "#/"; else render();
+}
+function demoRun(action, p, extra) {
+  const raw = DEMO.projects.get(p.id), now = Date.now();
+  const job = { id: "d" + now, project: p.name, action, status: "bezig", message: "Demo: draait…", started_at: now };
+  DEMO.jobs.push(job); applyData(); refresh();
+  setTimeout(() => {
+    if (action === "grade") {
+      raw.grade = { look: extra.look, strength: extra.strength, exposure: extra.exposure, key: hex12() };
+      if (raw.approval) raw.approval.grade_current = false;
+    } else if (action === "plan") {
+      raw.plan = { edl_sha1: hex12(), shots: 14 + Math.floor(Math.random() * 12), duration: 18 + Math.random() * 14, title: p.name.toUpperCase(), sheet_url: DEMO.sheet };
+      if (raw.approval) raw.approval.current = false;
+    } else if (action === "goedkeuren") {
+      raw.approval = { status: "approved", by: "Timon", at: Date.now(), note: extra.note, current: true, grade_current: true };
+    } else if (action === "render") {
+      raw.render = { at: Date.now(), review_url: DEMO.sheet, preview_url: null };
+    }
+    raw.updated_at = Date.now();
+    Object.assign(job, { status: "klaar", finished_at: Date.now(), message: "Demo: " + ACT_NL[action] + " klaar." + (action === "preview" ? " (In de demo is er geen echte video.)" : "") });
+    applyData(); refresh();
+  }, 1600);
+}
+
+// ------------------------------------------------------------------ router
+let view = null;                                // {key, update()}
+function route() {
+  const [, top = "", id = "", tab = "grade"] = location.hash.split("/").map((s) => { try { return decodeURIComponent(s); } catch (e) { return ""; } });
+  const key = top === "p" ? "p/" + id + "/" + tab : top;
+  document.querySelectorAll("nav a").forEach((a) => a.classList.toggle("on", a.dataset.nav === (top === "taken" ? "taken" : "home")));
+  if (view && view.key === key) return view.update();
+  if (view && view.destroy) view.destroy();
+  view = top === "p" ? projectView(id, tab) : top === "taken" ? jobsView() : homeView();
+  view.key = key;
+  view.update();
+}
+function render() { renderShell(); route(); }
+let queued = false;
+function refresh() { if (queued) return; queued = true; requestAnimationFrame(() => { queued = false; render(); }); }
+window.addEventListener("hashchange", render);
+
+// ------------------------------------------------------------------ home
+function homeView() {
+  const v = $("#view");
+  v.innerHTML = `<div class="head"><div><div class="crumb">AutoEdit Studio</div><h1>Projecten</h1></div></div>
+    <div class="jobs" id="jobs"></div><div class="jobmsg" hidden></div><div id="list"></div>`;
+  return {
+    update() {
+      jobsStrip($("#jobs"), null);
+      const list = projectList();
+      const todo = list.map((p) => [p, flow(p)]).filter(([, f]) => !f.next.ok);
+      const todoHtml = `<div class="card todo"><h2>Te doen</h2>${todo.length ? todo.map(([p, f]) =>
+        `<a class="todo-row" href="#/p/${enc(p.id)}/${f.next.tab}"><span class="led next"></span><span class="nm">${esc(p.name)}</span>` +
+        `<span class="what">${esc(f.next.text)}</span><span class="go">${esc(TABS.find(([k]) => k === f.next.tab)[1])} →</span></a>`).join("")
+        : '<div class="muted">Niets wacht op jou: alle projecten zijn gerenderd.</div>'}</div>`;
+      $("#list").innerHTML = !S.projectsReady ? '<div class="loading">Projecten laden…</div>'
+        : (S.dbNote ? `<div class="banner warn" style="margin-bottom:16px">${S.dbNote}</div>` : "") +
+          (list.length ? todoHtml + `<h2>Alle projecten</h2><div class="grid projects">${list.map(pcard).join("")}</div>`
+            : `<div class="empty"><div class="setup"><b>Nog geen projecten.</b> De Studio-sessie op je PC zet hier elk cine-montage-project neer.
+                ${online() ? "" : SETUP}
+                <div class="row" style="margin-top:14px"><button class="dark" id="demoOn">Bekijk met voorbeelddata</button></div></div></div>`);
+      const on = $("#demoOn");
+      if (on) on.onclick = () => setDemo(true);
+    },
+  };
+}
+function pcard(p) {
+  const f = flow(p);
+  const st0 = p.stills[0], thumb = st0 ? st0.url : (p.render && safeUrl(p.render.review_url)) || "";
+  const g = p.grade || {};
+  return `<a class="pcard" href="#/p/${enc(p.id)}/${f.next.tab}">
+    <div class="img">${thumb ? `<img src="${esc(thumb)}" alt=""${st0 && st0.is_log ? ' class="log"' : ""} loading="lazy">` : "▶"}</div>
+    <div class="body"><div class="name">${esc(p.name)}</div>
+      <div class="row" style="gap:6px">${p.plan ? `<span class="tag">${+p.plan.shots || 0} shots</span>` : '<span class="tag">geen plan</span>'}
+        ${g.look ? `<span class="tag">${esc(lookName(g.look))}</span>` : ""}
+        ${p.render ? '<span class="tag blue">gerenderd</span>' : ""}</div>
+      <div class="progress" aria-hidden="true">${TABS.map(([k]) => `<i class="${f.done[k] ? "done" : k === f.next.tab && !f.next.ok ? "next" : ""}"></i>`).join("")}</div>
+      <div class="next-line"><span>${f.next.ok ? "Klaar" : "Volgende"}:</span> ${esc(f.next.ok ? "render bekijken" : f.next.text)}</div>
+      ${p.updated_at ? `<div class="muted small">bijgewerkt ${esc(ago(p.updated_at))}</div>` : ""}</div></a>`;
+}
+
+// ------------------------------------------------------------------ jobs page
+function jobsView() {
+  const v = $("#view");
+  v.innerHTML = `<div class="head"><div><div class="crumb"><a href="#/">AutoEdit Studio</a></div><h1>Taken</h1></div></div><div id="jl"></div>`;
+  const open = new Set();                        // rows Timon opened stay open across live updates
+  const clock = (t) => { const d = toDate(t); return d ? d.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" }) : ""; };
+  return {
+    update() {
+      $("#jl").innerHTML = S.jobs.length ? `<div class="card jlist">${S.jobs.slice(0, 50).map((j) => {
+        const st = JOB_NL[j.status] ? j.status : "bezig";
+        return `<details class="jrow" data-id="${esc(j.id)}"${open.has(j.id) ? " open" : ""}><summary><span class="led ${st}"></span>` +
+          `<b>${esc(ACT_NL[j.action] || j.action || "taak")}</b><span class="p">${esc(j.project || "")}</span>` +
+          `<span class="tag ${st === "klaar" ? "ok" : st === "fout" ? "fail" : "warn"}">${esc(JOB_NL[st])}</span>` +
+          `<span class="t">${esc(when(j.started_at))}${j.finished_at ? " → " + esc(clock(j.finished_at)) : ""}</span></summary>` +
+          `<pre class="out">${esc(j.message || "Nog geen bericht van de PC.")}</pre></details>`;
+      }).join("")}</div>` : '<div class="empty">Nog geen taken. Elke knop die je indrukt, verschijnt hier met de uitkomst van je PC.</div>';
+      $("#jl").querySelectorAll(".jrow").forEach((d) => (d.ontoggle = () => (d.open ? open.add(d.dataset.id) : open.delete(d.dataset.id))));
+    },
+  };
+}
+
+// ------------------------------------------------------------------ project
+function projectView(id, tab) {
+  if (!TABS.some(([k]) => k === tab)) tab = "grade";
+  const v = $("#view");
+  v.innerHTML = `<div class="head"><div style="min-width:0"><div class="crumb"><a href="#/">Projecten</a> / <span id="pcrumb"></span></div>
+      <h1 id="ptitle"></h1></div><span class="spacer"></span><div class="row" id="ptags" style="gap:6px"></div></div>
+    <div class="jobs" id="jobs"></div><div class="jobmsg" hidden></div>
+    <div id="next"></div>
+    <div class="steps" id="steps" role="navigation" aria-label="Stappen">${TABS.map(([k, l], i) => `<a href="#/p/${enc(id)}/${k}" data-step="${k}" class="${k === tab ? "on" : ""}"${k === tab ? ' aria-current="page"' : ""}><b>${i + 1}</b><span>${l}</span></a>`).join("")}</div>
+    <div id="tab"></div>`;
+  let inner = null, missing = null;
+  return {
+    update() {
+      const p = project(id);
+      if (!p) {
+        if (missing === S.projectsReady) return;
+        missing = S.projectsReady;
+        if (inner && inner.destroy) inner.destroy();
+        inner = null;
+        $("#pcrumb").textContent = ""; $("#ptitle").textContent = S.projectsReady ? "Project niet gevonden" : "Laden…"; $("#ptags").innerHTML = "";
+        $("#tab").innerHTML = S.projectsReady ? '<div class="empty">Dit project staat niet (meer) in de Studio. <a href="#/" style="color:var(--blue)">Terug naar projecten</a></div>' : "";
+        $("#next").className = ""; $("#next").innerHTML = "";
+        jobsStrip($("#jobs"), "\u0000");
+        return;
+      }
+      missing = null;
+      $("#pcrumb").textContent = p.name;
+      $("#ptitle").textContent = p.name;
+      const st = approvalState(p);
+      $("#ptags").innerHTML = (p.plan ? `<span class="tag">${+p.plan.shots || 0} shots</span><span class="tag">${(+p.plan.duration || 0).toFixed(1).replace(".", ",")} s</span>` : "") +
+        (p.plan ? `<span class="tag ${st.ok ? "ok" : "warn"}">${st.ok ? "goedgekeurd" : "niet goedgekeurd"}</span>` : "");
+      jobsStrip($("#jobs"), p.name);
+      const f = flow(p);
+      el_steps(f);
+      const nx = $("#next");
+      nx.className = "nextstep" + (f.next.ok ? " ok" : "");
+      nx.innerHTML = `<span class="k">${f.next.ok ? "Klaar" : "Volgende stap"}</span><span class="t">${esc(f.next.text)}</span>` +
+        (f.next.tab !== tab ? `<a class="btn" href="#/p/${enc(id)}/${f.next.tab}">Naar ${esc(TABS.find(([k]) => k === f.next.tab)[1])} →</a>` : "");
+      if (!inner) inner = ({ grade: gradeTab, plan: planTab, goedkeuren: approveTab, renderen: renderTab, resultaat: resultTab }[tab])($("#tab"), id);
+      inner.update(p);
+    },
+    destroy() { if (inner && inner.destroy) inner.destroy(); },
+  };
+}
+function el_steps(f) {
+  document.querySelectorAll("#steps [data-step]").forEach((a) => {
+    const k = a.dataset.step, i = TABS.findIndex(([t]) => t === k) + 1;
+    a.classList.toggle("done", !!f.done[k]);
+    a.classList.toggle("next", k === f.next.tab && !f.next.ok);
+    a.querySelector("b").textContent = f.done[k] ? "✓" : i;
+  });
+}
+const pcButtons = (root) => root.querySelectorAll("[data-pc]").forEach((b) => { if (!b.dataset.sending) b.disabled = !online() || b.dataset.block === "1"; });
+
+// ---------------------------------------------------------- tab: grade
+function gradeTab(el, id) {
+  el.innerHTML = `<div class="grid cols-grade">
+    <div class="stack">
+      <div class="stage" id="stage" aria-label="Voor en na: sleep om te vergelijken">
+        <canvas id="cv"></canvas><img class="orig" id="orig" alt="">
+        <div class="split" id="split"></div><span class="lbl l">Voor</span><span class="lbl r">Na</span>
+        <div class="msg" id="smsg">Nog geen stills.</div>
+      </div>
+      <div class="readout" id="readout"></div>
+      <label class="slider"><span class="top"><span>Voor / na</span><span id="splitv"></span></span>
+        <input type="range" id="splitr" min="0" max="100" step="1" aria-label="Voor en na vergelijken"></label>
+      <div class="thumbs" id="thumbs"></div>
+      <div class="why" id="gnote"></div>
+    </div>
+    <div class="card stack">
+      <h2 style="margin:0">Kleurlook</h2>
+      <div class="chips" id="chips">${StudioMath.LOOKS.map((l) => `<button class="chip" data-look="${l}" aria-pressed="false"><i class="sw look-${l}" aria-hidden="true"></i><span><b class="lut">${esc(l)}</b><small>${esc(LOOK_HINT[l])}</small></span></button>`).join("")}</div>
+      <label class="slider"><span class="top"><span>Sterkte</span><b id="sv"></b></span>
+        <input type="range" id="sr" min="0" max="100" step="1"></label>
+      <label class="slider"><span class="top"><span>Belichting (alleen S-Log3-beelden)</span><b id="ev"></b></span>
+        <input type="range" id="er" min="-3" max="0.5" step="0.05"></label>
+      <div class="banner" id="saved"></div>
+      <div class="row"><button data-pc id="choose">Kies deze grade</button>
+        <button class="ghost" id="reset">Terug naar opgeslagen</button></div>
+      <div class="row"><button class="dark" data-pc id="stillsBtn">Stills verversen</button></div>
+      <div class="why" id="gwhy"></div>
+    </div></div>`;
+  const D = () => draft(id, project(id));
+  const fill = (inp) => inp.style.setProperty("--p", ((inp.value - inp.min) / (inp.max - inp.min)) * 100 + "%");
+  const cv = $("#cv", el), orig = $("#orig", el), stage = $("#stage", el);
+  const preview = makePreview(cv);
+  let P = null, stillUrl = "", lutKey = "";
+
+  function setSplit(x) {
+    const d = D(); d.split = Math.max(0, Math.min(100, Math.round(x)));
+    orig.style.clipPath = `inset(0 ${100 - d.split}% 0 0)`;
+    $("#split", el).style.left = d.split + "%";
+    $("#splitr", el).value = d.split; $("#splitv", el).textContent = d.split === 0 ? "alleen na" : d.split === 100 ? "alleen voor" : "";
+    fill($("#splitr", el));
+  }
+  const fromPointer = (e) => { const r = stage.getBoundingClientRect(); setSplit(((e.clientX - r.left) / r.width) * 100); };
+  stage.addEventListener("pointerdown", (e) => { stage.setPointerCapture(e.pointerId); fromPointer(e); });
+  stage.addEventListener("pointermove", (e) => { if (stage.hasPointerCapture(e.pointerId)) fromPointer(e); });
+  $("#splitr", el).oninput = (e) => setSplit(+e.target.value);
+
+  function controls() {
+    const d = D();
+    el.querySelectorAll(".chip").forEach((c) => {
+      c.classList.toggle("on", c.dataset.look === d.look); c.setAttribute("aria-pressed", String(c.dataset.look === d.look));
+    });
+    $("#sr", el).value = Math.round(d.strength * 100); $("#sv", el).textContent = pct(d.strength);
+    $("#er", el).value = d.exposure; $("#ev", el).textContent = stops(d.exposure);
+    fill($("#sr", el)); fill($("#er", el));
+    readout();
+  }
+  // What the monitor shows right now, in the units of the grade itself.
+  function readout() {
+    const d = D(), s = P && P.stills[d.still], n = luts.look && luts.look.n;
+    $("#readout", el).innerHTML = `<span>LOOK <b>${esc(lookName(d.look))}</b></span><span>STERKTE <b>${esc(pct(d.strength))}</b></span>` +
+      (s && s.is_log ? `<span>BELICHTING <b>${esc(stops(d.exposure))}</b></span><span><b>S-LOG3 → REC.709</b></span>`
+        : s ? "<span><b>REC.709</b></span>" : "") +
+      (n ? `<span>LUT <b>${n}³</b></span>` : "");
+  }
+  el.querySelectorAll(".chip").forEach((c) => (c.onclick = () => { D().look = c.dataset.look; controls(); loadLuts(); savedLine(); }));
+  $("#sr", el).oninput = (e) => { D().strength = +e.target.value / 100; controls(); draw(); savedLine(); };
+  $("#er", el).oninput = (e) => { D().exposure = +e.target.value; controls(); draw(); savedLine(); };
+  $("#reset", el).onclick = () => { drafts.delete(id); D(); controls(); loadLuts(); savedLine(); setSplit(D().split); };
+  $("#choose", el).onclick = (e) => { const d = D(); send(e.currentTarget, "grade", P, { look: d.look, strength: d.strength, exposure: d.exposure }); };
+  $("#stillsBtn", el).onclick = (e) => send(e.currentTarget, "stills", P);
+
+  const differs = () => { const g = P.grade || {}, d = D(); return g.look !== d.look || Math.abs((+g.strength) - d.strength) > 0.004 || Math.abs((+g.exposure) - d.exposure) > 0.004; };
+  function savedLine() {
+    if (!P) return;
+    const g = P.grade || {};
+    const has = g.look != null;
+    $("#saved", el).className = "banner " + (has && !differs() ? "ok" : "");
+    $("#saved", el).innerHTML = has
+      ? `Opgeslagen: <b>${esc(lookName(g.look))}</b> · ${esc(pct(g.strength))} · ${esc(stops(g.exposure))}` +
+        (differs() ? '<br><span class="muted">Je probeert nu een andere grade. Druk op Kies deze grade om hem op te slaan.</span>' : "")
+      : "Nog geen grade opgeslagen.";
+    $("#choose", el).dataset.block = has && !differs() ? "1" : "";
+    pcButtons(el);
+  }
+
+  function setStill(i) {
+    const s = P.stills[i];
+    D().still = i;
+    el.querySelectorAll(".thumb").forEach((t, k) => t.classList.toggle("on", k === i));
+    if (!s) { stillUrl = ""; orig.removeAttribute("src"); preview.clear(); msg("Nog geen stills. Druk op Stills verversen."); return; }
+    if (s.url === stillUrl) return;
+    stillUrl = s.url;
+    orig.src = s.url;
+    msg("Still laden…");
+    preview.setImage(s.url).then((ok) => { if (stillUrl !== s.url) return; msg(""); draw(); note(); })
+      .catch(() => { if (stillUrl === s.url) { msg("Still niet te laden."); } });
+  }
+  const msg = (t) => { const m = $("#smsg", el); m.hidden = !t; m.textContent = t; };
+  const lutCache = (window.__lutCache = window.__lutCache || new Map());
+  function getLut(url) {
+    if (!url) return Promise.resolve(null);
+    if (!lutCache.has(url)) lutCache.set(url, fetch(url).then((r) => { if (!r.ok) throw new Error("http " + r.status); return r.text(); }).then(parseCube)
+      .catch((e) => { lutCache.delete(url); throw e; }));
+    return lutCache.get(url);
+  }
+  let luts = { conv: null, look: null, err: "" };
+  function loadLuts() {
+    const d = D(), convUrl = P.luts.conv, lookUrl = safeUrl(P.luts.looks[d.look]);
+    const key = convUrl + "|" + lookUrl;
+    if (key === lutKey) { draw(); return; }
+    lutKey = key;
+    Promise.all([getLut(convUrl).catch(() => "err"), getLut(lookUrl).catch(() => "err")]).then(([c, l]) => {
+      if (lutKey !== key) return;
+      luts = { conv: c === "err" ? null : c, look: l === "err" ? null : l, err: c === "err" || l === "err" ? "LUT niet te laden." : "" };
+      if (!lookUrl) luts.err = "De LUT voor " + lookName(d.look) + " ontbreekt: druk op Stills verversen.";
+      preview.setLuts(luts.conv, luts.look);
+      draw(); note();
+    });
+  }
+  function draw() {
+    const d = D(), s = P && P.stills[d.still];
+    preview.draw({ exposure: d.exposure, strength: d.strength, isLog: !!(s && s.is_log) });
+  }
+  function note() {
+    const s = P && P.stills[D().still];
+    const parts = [];
+    if (s) parts.push((s.label ? esc(s.label) + " · " : "") + (s.is_log ? "S-Log3" : "Rec.709 (belichting doet hier niets)"));
+    if (s && s.is_log && !P.luts.conv) parts.push('<span class="warn">Sony-omzetting ontbreekt: voorbeeld zonder omzetting.</span>');
+    if (luts.err) parts.push(`<span class="fail">${esc(luts.err)}</span>`);
+    if (preview.note) parts.push(esc(preview.note));
+    $("#gnote", el).innerHTML = parts.join(" · ");
+    readout();
+  }
+
+  controls(); setSplit(D().split);
+  return {
+    update(p) {
+      P = p;
+      const urls = p.stills.map((s) => s.url).join("|");
+      if (el.dataset.stills !== urls) {
+        el.dataset.stills = urls;
+        $("#thumbs", el).innerHTML = p.stills.map((s, i) => `<button class="thumb" data-i="${i}" title="${esc(s.label || "")}">` +
+          `<img src="${esc(s.url)}" alt="${esc(s.label || "still " + (i + 1))}" loading="lazy">${s.is_log ? "<i>S-Log3</i>" : ""}</button>`).join("");
+        el.querySelectorAll(".thumb").forEach((t) => (t.onclick = () => setStill(+t.dataset.i)));
+        stillUrl = "";
+        setStill(Math.min(D().still, Math.max(0, p.stills.length - 1)));
+      }
+      loadLuts();
+      savedLine();
+      const why = !online() ? offlineReason() : "Kies deze grade bewaart hem op je PC. Een gekozen grade vraagt om nieuwe goedkeuring.";
+      $("#gwhy", el).textContent = why;
+      $("#gwhy", el).className = "why" + (online() ? "" : " warn");
+      pcButtons(el);
+      note();
+    },
+    destroy() { preview.destroy(); },
+  };
+}
+
+// WebGL preview: still + two LUTs (33 slices side by side in a 2D texture), trilinear lookup in the fragment shader.
+// Falls back to the same maths on the CPU (2D canvas) when WebGL is missing.
+function makePreview(canvas) {
+  const self = { note: "" };
+  let gl = null, prog = null, tex = {}, img = null, sizes = { conv: 0, look: 0 }, has = { conv: false, look: false }, floatTex = false;
+  let cpu = null, cpuLuts = { conv: null, look: null }, last = null, pending = false, readable = true;
+  try { gl = canvas.getContext("webgl", { preserveDrawingBuffer: true, premultipliedAlpha: false }); } catch (e) { gl = null; }
+  const VS = "attribute vec2 p; varying vec2 uv; void main(){ uv = vec2(p.x*.5+.5, .5-p.y*.5); gl_Position = vec4(p,0.,1.); }";
+  const FS = `#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+varying vec2 uv; uniform sampler2D img, convT, lookT; uniform float nConv, nLook, expo, strength, isLog, hasConv, hasLook;
+vec3 at(sampler2D t, float n, float r, float g, float b){ return texture2D(t, vec2((b*n + r + .5)/(n*n), (g + .5)/n)).rgb; }
+vec3 lut(sampler2D t, float n, vec3 c){
+  vec3 x = clamp(c, 0., 1.) * (n - 1.); vec3 i0 = floor(x); vec3 i1 = min(i0 + 1., n - 1.); vec3 f = x - i0;
+  vec3 c00 = mix(at(t,n,i0.r,i0.g,i0.b), at(t,n,i1.r,i0.g,i0.b), f.r);
+  vec3 c01 = mix(at(t,n,i0.r,i1.g,i0.b), at(t,n,i1.r,i1.g,i0.b), f.r);
+  vec3 c10 = mix(at(t,n,i0.r,i0.g,i1.b), at(t,n,i1.r,i0.g,i1.b), f.r);
+  vec3 c11 = mix(at(t,n,i0.r,i1.g,i1.b), at(t,n,i1.r,i1.g,i1.b), f.r);
+  return mix(mix(c00, c01, f.g), mix(c10, c11, f.g), f.b);
+}
+void main(){
+  vec3 c = texture2D(img, uv).rgb;
+  if (isLog > .5) { c = clamp(c + expo * .0769, 0., 1.); if (hasConv > .5) c = lut(convT, nConv, c); }
+  vec3 o = hasLook > .5 ? lut(lookT, nLook, c) : c;
+  gl_FragColor = vec4(clamp(c + (o - c) * strength, 0., 1.), 1.);
+}`;
+  function initGL() {
+    const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
+    prog = gl.createProgram();
+    gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+    gl.useProgram(prog);
+    const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+    const loc = gl.getAttribLocation(prog, "p"); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    floatTex = !!gl.getExtension("OES_texture_float");
+    ["img", "convT", "lookT"].forEach((name, unit) => {
+      const t = gl.createTexture(); gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, t);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      const filt = name === "img" ? gl.LINEAR : gl.NEAREST;
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filt); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filt);
+      gl.uniform1i(gl.getUniformLocation(prog, name), unit); tex[name] = t;
+    });
+  }
+  if (gl) { try { initGL(); } catch (e) { gl = null; } }
+  if (!gl) self.note = "Voorbeeld via de processor (geen WebGL): wat trager.";
+
+  function lutTexture(unit, name, cube) {
+    has[name.replace("T", "")] = !!cube;
+    if (!cube) return;
+    const n = cube.n, w = n * n, src = cube.data;
+    const data = floatTex ? new Float32Array(w * n * 4) : new Uint8Array(w * n * 4);
+    for (let b = 0; b < n; b++) for (let g = 0; g < n; g++) for (let r = 0; r < n; r++) {
+      const s = ((b * n + g) * n + r) * 3, o = (g * w + b * n + r) * 4;
+      for (let ch = 0; ch < 3; ch++) data[o + ch] = floatTex ? src[s + ch] : Math.round(Math.min(1, Math.max(0, src[s + ch])) * 255);
+      data[o + 3] = floatTex ? 1 : 255;
+    }
+    gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, tex[name]);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false); gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, n, 0, gl.RGBA, floatTex ? gl.FLOAT : gl.UNSIGNED_BYTE, data);
+    sizes[name.replace("T", "")] = n;
+  }
+  function loadImage(url, cors) {
+    return new Promise((res, rej) => {
+      const im = new Image();
+      if (cors) im.crossOrigin = "anonymous";
+      im.onload = () => res(im); im.onerror = () => rej(new Error("laden mislukt"));
+      im.src = url;
+    });
+  }
+  self.setImage = async (url) => {
+    let im = null;
+    try { im = await loadImage(url, true); } catch (e) { im = await loadImage(url, false); }
+    img = im; readable = true;
+    canvas.width = im.naturalWidth || 1280; canvas.height = im.naturalHeight || 720;
+    if (gl) {
+      try {
+        gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tex.img);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false); gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, im);
+      } catch (e) { readable = false; }
+    } else {
+      const k = Math.min(1, 960 / canvas.width);
+      canvas.width = Math.round(canvas.width * k); canvas.height = Math.round(canvas.height * k);
+      const ctx = canvas.getContext("2d"); ctx.drawImage(im, 0, 0, canvas.width, canvas.height);
+      try { cpu = ctx.getImageData(0, 0, canvas.width, canvas.height); } catch (e) { cpu = null; readable = false; }
+    }
+    self.note = readable ? (gl ? "" : self.note) : "Dit beeld kan niet ingekleurd worden in de browser; je ziet het origineel.";
+    canvas.style.visibility = readable ? "visible" : "hidden";
+    return readable;
+  };
+  self.setLuts = (conv, look) => {
+    cpuLuts = { conv, look };
+    if (gl) { lutTexture(1, "convT", conv); lutTexture(2, "lookT", look); }
+  };
+  self.clear = () => { img = null; cpu = null; canvas.style.visibility = "hidden"; };
+  function paint() {
+    pending = false;
+    if (!img || !readable || !last) return;
+    canvas.style.visibility = "visible";
+    if (gl) {
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      const u = (n, v) => gl.uniform1f(gl.getUniformLocation(prog, n), v);
+      u("nConv", sizes.conv || 2); u("nLook", sizes.look || 2); u("expo", last.exposure); u("strength", last.strength);
+      u("isLog", last.isLog ? 1 : 0); u("hasConv", has.conv ? 1 : 0); u("hasLook", has.look ? 1 : 0);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    } else if (cpu) {
+      const ctx = canvas.getContext("2d"), out = new ImageData(cpu.width, cpu.height), s = cpu.data, o = out.data;
+      for (let i = 0; i < s.length; i += 4) {
+        const g = gradePixel([s[i] / 255, s[i + 1] / 255, s[i + 2] / 255], cpuLuts.conv, cpuLuts.look, last.exposure, last.strength, last.isLog);
+        o[i] = g[0] * 255 + 0.5; o[i + 1] = g[1] * 255 + 0.5; o[i + 2] = g[2] * 255 + 0.5; o[i + 3] = 255;
+      }
+      ctx.putImageData(out, 0, 0);
+    }
+  }
+  self.draw = (params) => { last = params; if (!pending) { pending = true; requestAnimationFrame(paint); } };
+  self.destroy = () => { const ext = gl && gl.getExtension("WEBGL_lose_context"); if (ext) ext.loseContext(); gl = null; };
+  self.mode = () => (gl ? (floatTex ? "webgl-float" : "webgl-byte") : "cpu");
+  return self;
+}
+
+// ---------------------------------------------------------- tab: plan
+function planTab(el, id) {
+  el.innerHTML = `<div class="grid cols-2">
+    <div class="card"><h2>Plan</h2><div id="pinfo"></div></div>
+    <div class="card stack"><h2 style="margin:0">Op je PC</h2>
+      <div class="row"><button data-pc id="planBtn">Plan maken</button><button class="dark" data-pc id="prevBtn">Voorbeeld</button></div>
+      <div class="confirm" id="confirm" hidden><span>Je huidige goedkeuring vervalt met een nieuw plan. Toch een nieuw plan maken?</span>
+        <div class="row"><button data-pc id="planYes">Ja, nieuw plan</button><button class="ghost" id="planNo">Annuleren</button></div></div>
+      <div class="why" id="pwhy"></div></div></div>
+    <div class="card review" id="sheet" style="margin-top:16px" hidden><h2>Storyboard</h2><img alt="Storyboard van het plan"></div>
+    <div class="card" id="pvid" style="margin-top:16px" hidden><h2>Voorbeeldvideo</h2><video controls preload="metadata" playsinline></video></div>`;
+  let P = null;
+  const D = () => draft(id, project(id));
+  const showConfirm = (on) => { D().confirmPlan = on; $("#confirm", el).hidden = !on; $("#planBtn", el).hidden = on; };
+  $("#planBtn", el).onclick = (e) => { if (P.approval && P.approval.status === "approved") return showConfirm(true); send(e.currentTarget, "plan", P); };
+  $("#planYes", el).onclick = (e) => { send(e.currentTarget, "plan", P).then(() => showConfirm(false)); };
+  $("#planNo", el).onclick = () => showConfirm(false);
+  $("#prevBtn", el).onclick = (e) => send(e.currentTarget, "preview", P);
+  return {
+    update(p) {
+      P = p;
+      const pl = p.plan;
+      const sh = pl ? +pl.shots || 0 : 0, du = pl ? +pl.duration || 0 : 0, f1 = (v) => v.toFixed(1).replace(".", ",");
+      $("#pinfo", el).innerHTML = pl ? `<div class="specs"><div><span>Shots</span><b>${sh}</b></div>` +
+          `<div><span>Duur</span><b>${f1(du)} s</b></div><div><span>Per shot</span><b>${sh ? f1(du / sh) + " s" : "—"}</b></div></div>
+          <dl class="kv" style="margin-top:14px"><dt>Titel</dt><dd>${esc(pl.title || "—")}</dd>
+          <dt>Plan-code</dt><dd class="mono">${esc(pl.edl_sha1 || "—")}</dd></dl>`
+        : '<div class="muted">Nog geen plan. Plan maken kiest de shots en maakt een storyboard op je PC.</div>';
+      const sheet = pl && safeUrl(pl.sheet_url);
+      $("#sheet", el).hidden = !sheet;
+      if (sheet && $("#sheet img", el).getAttribute("src") !== sheet) $("#sheet img", el).src = sheet;
+      const pv = pl && safeUrl(pl.preview_url);
+      $("#pvid", el).hidden = !pv;
+      if (pv && $("#pvid video", el).getAttribute("src") !== pv) $("#pvid video", el).src = pv;
+      $("#prevBtn", el).dataset.block = pl ? "" : "1";
+      showConfirm(D().confirmPlan);
+      $("#pwhy", el).textContent = online() ? (pl ? "Voorbeeld rendert een snelle versie op halve grootte." : "Voorbeeld kan pas als er een plan is.") : offlineReason();
+      $("#pwhy", el).className = "why" + (online() ? "" : " warn");
+      pcButtons(el);
+    },
+  };
+}
+
+// ---------------------------------------------------------- tab: goedkeuren
+function approveTab(el, id) {
+  el.innerHTML = `<div class="grid cols-2">
+    <div class="card stack"><h2 style="margin:0">Wat je goedkeurt</h2><div class="banner" id="astate"></div><div id="ainfo"></div></div>
+    <div class="card stack"><h2 style="margin:0">Goedkeuren</h2>
+      <label>Wat keur je goed (in je eigen woorden)<input type="text" id="note" maxlength="300" autocomplete="off" placeholder="bijv. ja, render zo, titel is goed"></label>
+      <div class="row"><button data-pc id="okBtn">Goedkeuren</button><span class="muted small" id="count"></span></div>
+      <div class="why" id="awhy"></div></div></div>`;
+  let P = null;
+  const D = () => draft(id, project(id));
+  const input = $("#note", el);
+  input.value = D().note;
+  const check = () => {
+    const g = P && P.grade || {};
+    return requestText("goedkeuren", P ? P.name : "", { plan: P && P.plan && P.plan.edl_sha1, grade: g.key, note: input.value });
+  };
+  function state() {
+    if (!P) return;
+    const r = check(), empty = !input.value.trim();
+    $("#okBtn", el).dataset.block = r.error ? "1" : "";
+    $("#count", el).textContent = input.value.length ? input.value.length + " / 300" : "";
+    const why = !online() ? offlineReason() : empty ? "Schrijf eerst in je eigen woorden wat je goedkeurt." : r.error || "Je keurt het plan en de opgeslagen grade hiernaast samen goed.";
+    $("#awhy", el).textContent = why;
+    $("#awhy", el).className = "why" + (!online() || (!empty && r.error) ? " warn" : "");
+    pcButtons(el);
+  }
+  input.oninput = () => { D().note = input.value; state(); };
+  $("#okBtn", el).onclick = (e) => {
+    const r = check();
+    if (r.error) return toast(r.error, "err");
+    send(e.currentTarget, "goedkeuren", P, { plan: P.plan.edl_sha1, grade: P.grade.key, note: input.value }).then((ok) => {
+      if (ok) { input.value = ""; D().note = ""; state(); }
+    });
+  };
+  return {
+    update(p) {
+      P = p;
+      const st = approvalState(p), a = p.approval, g = p.grade || {}, d = D();
+      $("#astate", el).className = "banner " + st.cls;
+      $("#astate", el).innerHTML = esc(st.text) + (a && a.status === "approved" && (a.by || a.at) ? `<br><span class="muted small">door ${esc(a.by || "?")}${a.at ? " · " + esc(when(a.at)) : ""}</span>` : "");
+      const tryOther = g.look != null && (g.look !== d.look || Math.abs(+g.strength - d.strength) > 0.004 || Math.abs(+g.exposure - d.exposure) > 0.004);
+      const sheet = p.plan && safeUrl(p.plan.sheet_url);
+      $("#ainfo", el).innerHTML = (sheet ? `<img class="mini-sheet" src="${esc(sheet)}" alt="Storyboard van het plan" style="margin-bottom:14px">` : "") +
+        `<dl class="kv"><dt>Plan</dt><dd>${p.plan ? `<span class="mono">${esc(p.plan.edl_sha1 || "—")}</span> · ${+p.plan.shots || 0} shots` : "nog geen plan"}</dd>
+        <dt>Grade</dt><dd>${g.look != null ? `<i class="sw look-${esc(g.look)}" aria-hidden="true"></i>${esc(lookName(g.look))} · ${esc(pct(g.strength))} · ${esc(stops(g.exposure))}` : "onbekend"}</dd></dl>` +
+        (tryOther ? `<div class="why warn" style="margin-top:8px">Je hebt bij Grade een andere grade geprobeerd maar niet gekozen. Je keurt de opgeslagen grade goed.</div>` : "");
+      state();
+    },
+  };
+}
+
+// ---------------------------------------------------------- tab: renderen
+function renderTab(el, id) {
+  el.innerHTML = `<div class="grid cols-2">
+    <div class="card stack"><h2 style="margin:0">Renderen</h2><ul class="gates" id="gates" aria-label="Wat er klaar moet zijn"></ul>
+      <div class="row"><button data-pc id="renderBtn">Renderen</button><button class="dark" data-pc id="qaBtn">QA</button></div>
+      <div class="why" id="rwhy"></div></div>
+    <div class="card"><h2>Laatste render</h2><div id="rinfo"></div></div></div>`;
+  let P = null;
+  $("#renderBtn", el).onclick = (e) => send(e.currentTarget, "render", P);
+  $("#qaBtn", el).onclick = (e) => send(e.currentTarget, "qa", P);
+  return {
+    update(p) {
+      P = p;
+      const a = p.approval, g = p.grade || {}, approved = !!(a && a.status === "approved");
+      const ready = !!(a && a.current && a.grade_current);
+      const gates = [
+        [approved && !!a.current, p.plan ? "Plan goedgekeurd" : "Plan gemaakt en goedgekeurd"],
+        [approved && !!a.grade_current, "Grade goedgekeurd" + (g.look != null ? ` (${lookName(g.look)}, ${pct(g.strength)})` : "")],
+        [online(), S.demo ? "PC bereikbaar (demo)" : "Studio-sessie op je PC bereikbaar"],
+      ];
+      $("#gates", el).innerHTML = gates.map(([ok, t]) => `<li class="${ok ? "ok" : "wait"}"><i>${ok ? "✓" : "!"}</i>${esc(t)}</li>`).join("");
+      $("#renderBtn", el).dataset.block = ready ? "" : "1";
+      $("#qaBtn", el).dataset.block = p.render ? "" : "1";
+      $("#rwhy", el).textContent = !online() ? offlineReason()
+        : !ready ? (a && a.current && !a.grade_current ? "grade gewijzigd: opnieuw goedkeuren" : "Renderen kan pas na je goedkeuring van dit plan en deze grade.")
+        : "Rendert de volledige montage met de goedgekeurde grade. QA controleert daarna geluid en beeld.";
+      $("#rwhy", el).className = "why" + (!online() || !ready ? " warn" : "");
+      const rv = p.render && safeUrl(p.render.review_url);
+      $("#rinfo", el).innerHTML = p.render ? (rv ? `<img class="mini-sheet" src="${esc(rv)}" alt="Reviewbeeld van de laatste render" style="margin-bottom:12px">` : "") +
+        `<dl class="kv"><dt>Gerenderd</dt><dd>${esc(when(p.render.at) || "—")}</dd></dl>
+        <p class="muted small" style="margin-bottom:0">Bekijk hem bij <a href="#/p/${enc(id)}/resultaat" style="color:var(--blue)">Resultaat</a>.</p>` : '<div class="muted">Nog niet gerenderd.</div>';
+      pcButtons(el);
+    },
+  };
+}
+
+// ---------------------------------------------------------- tab: resultaat
+function resultTab(el) {
+  el.innerHTML = `<div id="res"></div>`;
+  let key = null;
+  return {
+    update(p) {
+      const r = p.render, review = r && safeUrl(r.review_url), prev = r && safeUrl(r.preview_url);
+      const k = [review, prev, r && r.at].join("|");
+      if (k === key) return;
+      key = k;
+      $("#res", el).innerHTML = !r ? '<div class="empty">Nog geen render. Render eerst bij Renderen.</div>'
+        : `<div class="stack"><div class="muted small">Gerenderd ${esc(when(r.at))}</div>
+          ${prev ? `<div class="card"><h2>Voorbeeldvideo</h2><video controls preload="metadata" playsinline src="${esc(prev)}"></video></div>`
+            : '<div class="banner">Geen voorbeeldvideo (te groot om te uploaden). De volledige render staat op je PC.</div>'}
+          ${review ? `<div class="card review"><h2>Review: een beeld per accent</h2><img src="${esc(review)}" alt="Reviewbeeld van de render"></div>` : ""}</div>`;
+    },
+  };
+}
+
+render();
+start();
+</script>

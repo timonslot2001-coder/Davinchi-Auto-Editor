@@ -16,7 +16,7 @@ if not defined NAME (
   exit /b 1
 )
 echo.
-echo   Soort:  1 Koken   2 Kleding   3 Smoken   4 Reizen   5 Klanten   6 Weet ik nog niet
+echo   Soort:  1 Koken   2 Kleding   3 Smoken   4 Reizen   5 Klanten   6 Weet ik nog niet (per dag)
 :kies
 set "K="
 set /p "K=  Kies 1-6: "

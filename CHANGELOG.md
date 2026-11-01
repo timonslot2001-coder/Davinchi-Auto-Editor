@@ -6,6 +6,8 @@ entry; the full list is in `git log`. Hard-to-reverse choices also get a record 
 ## 2026-11-01 — Offload with a double-click
 - `offload.bat`: double-click, type the shoot name, pick the kind (1–6), and the card goes to the SSD. The same
   thing as the *SD-kaart offloaden* button on the website.
+- *Weet ik nog niet* (`_Inbox`) now makes one folder per recording day (`2026-10-09 SD-kaart`), so a card with
+  months of shoots on it arrives sorted by day.
 
 ## 2026-10-31 — Offload to your SSD
 - New `autoedit offload "<shoot>" --soort koken` (and *SD-kaart offloaden* on the website): copies photos and videos

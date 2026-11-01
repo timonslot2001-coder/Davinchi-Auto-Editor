@@ -46,6 +46,8 @@ browser), plan + storyboard, preview video, approve, render, QA, result.
 - **New version of the page:** publish `artifact/studio.html` again to the same link (Claude: Artifact publish with the
   same file), then stop watching it in that session.
 - **PC off:** the page shows *Studio-sessie op je PC is niet bereikbaar*; the grade preview still works.
+- **SSD** (also in the Studio): the shoot folders on the SSD. *Beelden laden* uploads a contact sheet of the clips and
+  photos, *Preview maken* a 20 s clip of 640 px, and *Verplaatsen* runs `autoedit sort` (`actie=ssd-...`, see the skill).
 Decision: [0013](../docs/decisions/0013-studio-artifact-comment-route.md).
 
 ## Approval gates (unchanged)
@@ -87,7 +89,7 @@ On the cine montage tab every shot has a number and a comment box. *Opmerkingen 
 | `app.py` | website + JSON API; turns form fields into commands (validated, never raw text) |
 | `host.py` | `LocalHost` (run jobs, read files on this PC) and `RemoteHost` (the same through the worker) |
 | `validate.py` | the form-field checks and the render `--grade` rule, shared by `app.py` and `studio.py` |
-| `studio.py` | requests from the claude.ai Artifact: `python -m webapp studio --thread <id> "<text>"` checks the fixed `[studio] actie=...` text, runs one `engine` command and prints JSON; `python -m webapp studio-state "<name>"` prints the project's state for the Artifact; `python -m webapp studio-projects` lists the cine montage projects |
+| `studio.py` | requests from the claude.ai Artifact: `python -m webapp studio --thread <id> "<text>"` checks the fixed `[studio] actie=...` text, runs one `engine` command and prints JSON; `python -m webapp studio-state "<name>"` prints the project's state for the Artifact; `python -m webapp studio-projects` lists the cine montage projects; `python -m webapp studio-ssd` lists the SSD shoot folders |
 | `worker.py` | the Windows worker for Docker (token, allowlist) |
 | `query.py` | what the pages show: projects, cine montage state, queue, music, status |
 | `static/` | the interface (HTML, CSS, JS; no build step) |

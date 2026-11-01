@@ -251,4 +251,45 @@ assert list(lf) == ["sheet"] and same(lf["sheet"], work / "storyboard" / "storyb
 assert same(studio.local_files("Zomer Shoot", "preview")["video"], work / "preview.mp4")
 assert studio.local_files("Zomer Shoot", "render")["video"].endswith("cine_montage_20261101_1200.mp4")
 assert studio.local_files("Zomer Shoot", "qa") == {}
+
+# ---- SSD page: parse (no project), then list / look / preview / move on a temp SSD
+assert studio.parse("[studio] actie=ssd-ververs") == {"actie": "ssd-ververs"}
+r = studio.parse('[studio] actie=ssd-verplaats naam="Ibiza" soort=reizen mappen="_Inbox/2026-10-09 SD-kaart|_Inbox/2026-10-10 x"')
+assert r["mappen"] == ["_Inbox/2026-10-09 SD-kaart", "_Inbox/2026-10-10 x"] and r["naam"] == "Ibiza", r
+for bad in ('[studio] actie=ssd-bekijk', '[studio] actie=ssd-bekijk map="_Inbox/../.."', '[studio] actie=ssd-bekijk map="C:/Windows"',
+            '[studio] actie=ssd-bekijk map="_Inbox/x" project="Zomer Shoot"', '[studio] actie=ssd-clip map="_Inbox/x" clip="../a.mp4"',
+            '[studio] actie=ssd-verplaats naam="a/b" soort=reizen mappen="_Inbox/x"',
+            '[studio] actie=ssd-verplaats naam="Ibiza" soort=vakantie mappen="_Inbox/x"',
+            '[studio] actie=ssd-verplaats naam="Ibiza" soort=reizen mappen=""', '[studio] actie=ssd-ververs naam="x"'):
+    raises(studio.parse, bad)
+
+import subprocess                                                  # noqa: E402
+from autoedit import library, offload                              # noqa: E402
+from autoedit.config import Config                                 # noqa: E402
+ssd = tmp / "ssd"
+day = ssd / "_Inbox" / "2026-10-09 SD-kaart"
+(day / "1 Ruw" / "Video").mkdir(parents=True)
+subprocess.run([library._ffmpeg(), "-v", "error", "-f", "lavfi", "-i", "testsrc=duration=2:size=320x180:rate=25",
+                "-pix_fmt", "yuv420p", str(day / "1 Ruw" / "Video" / "C0202.MP4")], check=True)
+lcfg = Config({"paths": {"library_folder": str(ssd), "projects_folder": str(tmp / "projects")}}, {})
+library.CACHE = tmp / "thumbs"
+studio.SSD_ASSETS = tmp / "data" / "studio_assets" / "ssd"
+query.REPO = tmp                                                   # sheet paths are reported repo-relative
+studio._lib = lambda: (library, lcfg)
+docs = studio.ssd_docs()
+assert docs["connected"] and [d["rel"] for d in docs["shoots"]] == ["_Inbox/2026-10-09 SD-kaart"], docs
+assert "sheet_url" not in docs["shoots"][0] and docs["shoots"][0]["id"] == studio.slug("_Inbox/2026-10-09 SD-kaart")
+code, out = cli(["--thread", "s-1", '[studio] actie=ssd-bekijk map="_Inbox/2026-10-09 SD-kaart"'], h)
+assert code == 0 and out["clips"][0]["name"] == "C0202.MP4" and (tmp / out["assets"]["sheet"]).exists(), out
+assert "photos" not in out["assets"]
+code, out = cli(["--thread", "s-2", '[studio] actie=ssd-clip map="_Inbox/2026-10-09 SD-kaart" clip="C0202.MP4"'], h)
+assert code == 0 and Path(out["local_files"]["video"]).exists(), out
+code, out = cli(["--thread", "s-3", '[studio] actie=ssd-clip map="_Inbox/2026-10-09 SD-kaart" clip="C9999.MP4"'], h)
+assert code == 1 and "staat niet" in out["message"], out
+code, out = cli(["--thread", "s-4", '[studio] actie=ssd-verplaats naam="Ibiza" soort=reizen mappen="_Inbox/2026-10-09 SD-kaart"'], h)
+assert code == 0 and h.runs[-1] == ["autoedit", "sort", "Ibiza", "_Inbox/2026-10-09 SD-kaart", "--soort", "reizen"], (out, h.runs)
+assert out["ssd"]["shoots"], out
+n = len(h.runs)
+code, out = cli(["--thread", "s-5", '[studio] actie=ssd-verplaats naam="Ibiza" soort=reizen mappen="_Inbox/2026-01-01 bestaat niet"'], h)
+assert code == 1 and len(h.runs) == n, "a folder that is not on the SSD never reaches autoedit sort"
 print("studio test OK")

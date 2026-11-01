@@ -146,7 +146,7 @@ Timon did not choose yet. Default: the Artifact shows the review image (`<base>_
 
 ## Left to the builder
 - The exact request format, `db` layout, and how job progress is reported (polling the job log vs. writing at the end).
-- How the Studio session is started on the PC (a `.bat` that opens Claude Code with a skill, or a skill Timon invokes
+- How the Studio session is started on the PC (a .bat file that opens Claude Code with a skill, or a skill Timon invokes
   in a new session), as long as it is one click or one sentence for Timon.
 - Which stills to pick per project and how many.
 - WebGL details and the LUT transport format.

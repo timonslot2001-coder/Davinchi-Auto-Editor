@@ -42,6 +42,75 @@ def _slot_lengths(p: Profile, L: float, title_in: float, title_hold: float, rng:
     return slots
 
 
+def _felt_beats(music: dict, start: float, L: float) -> tuple[np.ndarray, float]:
+    """Beat grid you feel, relative to the song start. Fast trap/hip-hop (>= 135 BPM) is felt half-time: every other
+    beat, on the phase that carries more strong onsets (heuristic)."""
+    beats, bpm = np.array(music["beats"]), float(music["tempo"])
+    if bpm >= 135 and len(beats) > 4:
+        on = np.array(music["strong_onsets"])
+        hits = [sum(np.min(np.abs(on - b)) < 0.05 for b in beats[k::2]) if len(on) else 0 for k in (0, 1)]
+        beats, bpm = beats[int(hits[1] > hits[0])::2], bpm / 2
+    rel = beats - start
+    return rel[(rel > 0.05) & (rel < L)], bpm
+
+
+def _energy(music: dict, start: float):
+    """Song energy 0..1 (95th percentile of the whole song = 1) as a function of video time."""
+    env = np.array(music["energy_10hz"])
+    env = env / (np.percentile(env, 95) + 1e-9)
+    return lambda a, b: float(np.clip(env[int((start + a) * 10):max(int((start + a) * 10) + 1, int((start + b) * 10))].mean(), 0, 1.5))
+
+
+def _music_slots(L: float, title_in: float, title_hold: float, music: dict, start: float,
+                 rng: random.Random) -> tuple[list[tuple[float, str]], list[str], list[float]]:
+    """Shot lengths from the song (Timon 2026-11-01: 'kijk naar de muziek', not the category). Cuts on the felt beat;
+    loud = 1-2 beats per shot, calm/breakdown = 3-4 beats (long, flowing), a drop = cut on it + short burst."""
+    grid, bpm = _felt_beats(music, start, L)
+    energy = _energy(music, start)
+    notes = [f"music pacing: felt tempo {bpm:.0f} BPM (beat {60 / bpm:.2f} s), song from {start:.1f} s"]
+    # drops: quiet for >= 2 s, then loud (RULE_MUSIC_DROP, heuristic)
+    drops = []
+    for b in grid:
+        if b > 1.5 and energy(b - 2.0, b - 0.2) < 0.4 and energy(b, b + 1.0) > 0.6 and not any(abs(b - d) < 4 for d in drops):
+            drops.append(float(b))
+    if drops:
+        notes.append("drop at " + ", ".join(f"{d:.2f}s" for d in drops) + ": cut on it + burst")
+    final_min = min(max(0.9, L * 0.08), 2.2)
+    slots, t = [], 0.0
+    while t < title_in - 0.05:                                 # cold open burst up to the title (RULE_COLD_OPEN)
+        s = min(rng.uniform(0.12, 0.32), title_in - t)
+        if s < 0.08:
+            break
+        slots.append((s, "cold_open"))
+        t += s
+    if slots and t < title_in:
+        slots[-1] = (slots[-1][0] + title_in - t, slots[-1][1])
+        t = title_in
+    nxt = grid[grid > t + title_hold * 0.6]                    # the title ends on a felt beat
+    end = float(nxt[0]) if len(nxt) else t + title_hold
+    slots.append((end - t, "title"))
+    t = end
+    burst = 0
+    while True:
+        later = grid[grid > t + 0.05]
+        if burst:                                              # after a drop: half-beat shots
+            n_cut = t + 30 / bpm
+            burst -= 1
+        else:
+            e = energy(t, t + 0.8)
+            n = rng.choice([1, 1, 2]) if e > 0.6 else 2 if e > 0.35 else rng.choice([3, 4])
+            n_cut = float(later[n - 1]) if len(later) >= n else L
+        d = [x for x in drops if t + 0.2 < x <= n_cut + 0.01]
+        if d:                                                  # never cut past a drop: end this shot on it
+            n_cut, burst = d[0], 3
+        if n_cut > L - final_min:
+            break
+        slots.append((n_cut - t, "body"))
+        t = n_cut
+    slots.append((L - t, "final"))
+    return slots, notes, drops
+
+
 def _snap(times: list[float], onsets: list[float], fps: float) -> list[float]:
     """Optional: move a cut onto a strong onset only if it is within 2 frames (DNA: sync allowed, not required)."""
     out, keep = [], []
@@ -68,7 +137,8 @@ NO_GRID_FLOW = {"food", "cooking", "fashion", "clothing"}     # project.yaml cat
 def plan(p: Profile, inv: dict, music: dict | None, title: str | None, length: float | None = None,
          accent: str | None = None, fps: float = 25.0, size=(1920, 1080), seed: int = 1, card: str = "auto",
          bw: str = "auto", title_variant: str | None = None, grid_flow: str = "auto",
-         pinned: dict | None = None, order: list | str | None = None, category: str | None = None) -> EDL:
+         pinned: dict | None = None, order: list | str | None = None, category: str | None = None,
+         pacing: str = "curve", song_start: float = 0.0) -> EDL:
     rng = random.Random(seed)
     segs = [s for c in inv["clips"] if c["kind"] == "video" for s in c["segments"] if "soft" not in s["tags"]]
     notes, questions = [], []
@@ -85,19 +155,25 @@ def plan(p: Profile, inv: dict, music: dict | None, title: str | None, length: f
     if not segs:
         raise ValueError("no usable video segments in the project")
     L = length or 18.0
+    song_start = song_start if music else 0.0
     if music:
-        L = min(L, music["duration"] - 0.5)
+        L = min(L, music["duration"] - song_start - 0.5)
     L = float(np.clip(L, 8.0, 30.0))
     tt = p.title_timing
     title_in = float(np.clip(tt["in_s_median"], 0.3, 1.2)) if len(segs) >= 8 else 0.0
     if title_in == 0.0:
         notes.append("fewer than 8 usable segments: calm opener without cold-open burst (RULE_COLD_OPEN exception)")
     title_hold = float(tt["hold_s_median"])
-    slots = _slot_lengths(p, L, title_in, title_hold, rng)
+    drops: list[float] = []
+    if pacing == "music" and music:
+        slots, mnotes, drops = _music_slots(L, title_in, title_hold, music, song_start, rng)
+        notes += mnotes
+    else:
+        slots = _slot_lengths(p, L, title_in, title_hold, rng)
 
-    # cut times on the frame grid, optionally snapped to strong onsets
+    # cut times on the frame grid; curve pacing snaps to strong onsets, music pacing is on the beat already
     cuts = list(np.cumsum([s for s, _ in slots])[:-1])
-    cuts, keep = _snap(cuts, music["strong_onsets"] if music else [], fps)
+    cuts, keep = _snap(cuts, music["strong_onsets"] if music and pacing != "music" else [], fps)
     # cut i starts slot i+1; a dropped cut merges slot i+1 into slot i (keep the earlier slot's role)
     merged, rank = [slots[0]], {"title": 3, "final": 2, "cold_open": 1, "body": 0}
     kept = set(keep)
@@ -212,9 +288,12 @@ def plan(p: Profile, inv: dict, music: dict | None, title: str | None, length: f
     n_whip = budget - n_flash
     last_acc = -9.0
     cand = []
+    energy = _energy(music, song_start) if pacing == "music" and music else None
     for e_prev, e in zip(events, events[1:]):
         t = e.out_in
         if t_lo - 0.01 <= t <= t_hi + 0.01 or t > L * 0.85:          # never on/inside the title; calm wind-down
+            continue
+        if energy and energy(t - 0.3, t + 0.3) < 0.4:               # music pacing: a breakdown flows, no flash or whip
             continue
         moving = "motion" in e_prev.params["tags"] and abs(e_prev.params["pan_dx"]) > 0.8
         scene_change = e_prev.source != e.source
@@ -241,6 +320,9 @@ def plan(p: Profile, inv: dict, music: dict | None, title: str | None, length: f
     if card != "off" and len(body) >= 4 and (card == "on" or L >= 12):
         k0 = len(body) // 2 - 2
         run = body[max(k0, 0): max(k0, 0) + 4]
+        after = [e for e in events if e.params["role"] == "body" and drops and e.out_in >= drops[0] - 0.05]
+        if len(after) >= 4:                                     # music pacing: the card series is the burst on the drop
+            run = after[:4]
         nxt = events[events.index(run[-1]) + 1] if events.index(run[-1]) + 1 < len(events) else None
         for e in run + ([nxt] if nxt else []):                  # the card cuts in/out hard, no accents inside
             if e in run:
@@ -304,5 +386,5 @@ def plan(p: Profile, inv: dict, music: dict | None, title: str | None, length: f
     if not music:
         questions.append("No song in <project>/music: the profile is music-only. Which song?")
     edl = EDL(str(inv["project"]), p.id, size[0], size[1], fps, L, accent or p.defaults.get("accent", "#E70002"),
-              music["path"] if music else None, 0.0, events, overlays, notes, questions)
+              music["path"] if music else None, round(song_start, 3), events, overlays, notes, questions)
     return edl

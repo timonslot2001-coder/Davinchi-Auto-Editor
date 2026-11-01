@@ -122,6 +122,9 @@ def main(argv=None):
     a.add_argument("--fps", type=float, default=25.0); a.add_argument("--variant", choices=["poster_condensed", "heavy_grotesque"])
     a.add_argument("--card", choices=["auto", "on", "off"], default="auto"); a.add_argument("--bw", choices=["auto", "off"], default="auto")
     a.add_argument("--grid-flow", choices=["auto", "off"], default="auto")
+    a.add_argument("--pacing", choices=["curve", "music"], default="curve",
+                   help="curve = measured deceleration (default); music = cuts on the felt beat, long shots in calm parts, burst on a drop")
+    a.add_argument("--song-start", type=float, default=None, help="start the song at this second (e.g. where the TikTok sound starts)")
     a.add_argument("--grade", choices=["auto", "slog3", "rec709", "none"], default="auto")
     a.add_argument("--title-shot", help="clip for the title, CLIP[:seconds], e.g. C0086:7")
     a.add_argument("--final-shot", help="clip for the last shot, CLIP[:seconds]")
@@ -184,7 +187,10 @@ def main(argv=None):
                            card=args.card, bw=args.bw, title_variant=args.variant, grid_flow=args.grid_flow,
                            pinned={"title": args.title_shot, "final": args.final_shot},
                            order=story_order(proj) if args.order == "story" else None,
-                           category=settings(proj).get("category"))
+                           category=settings(proj).get("category"),
+                           pacing=args.pacing if args.pacing != "curve" else (settings(proj).get("pacing") or "curve"),
+                           song_start=float(args.song_start if args.song_start is not None
+                                            else settings(proj).get("song_start") or 0))
         fixed = style_checks.fix(edl)
         errs = edl.validate()
         if errs:

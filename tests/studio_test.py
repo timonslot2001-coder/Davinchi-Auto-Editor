@@ -234,4 +234,19 @@ studio.HANDLED.write_text("[]")
 code, out = cli(["--thread", "c-107", '[studio] actie=qa project="Zomer Shoot"'], h)
 assert code == 1 and out["ok"] is False and len(h.runs) == 1, out
 studio.to_args = orig
+
+# ---- project list and files to upload after a job
+(tmp / "projects" / "Geen Cine").mkdir()
+assert studio.projects() == ["Zomer Shoot"], studio.projects()
+assert studio.local_files("Zomer Shoot", "render") == {}
+(work / "storyboard").mkdir()
+(work / "storyboard" / "storyboard_sheet.jpg").write_bytes(b"x")
+(work / "preview.mp4").write_bytes(b"x")
+(proj / "exports").mkdir()
+for stamp in ("20261101_1000", "20261101_1200"):
+    (proj / "exports" / f"cine_montage_{stamp}.mp4").write_bytes(b"x")
+assert studio.local_files("Zomer Shoot", "plan") == {"sheet": str(work / "storyboard" / "storyboard_sheet.jpg")}
+assert studio.local_files("Zomer Shoot", "preview")["video"] == str(work / "preview.mp4")
+assert studio.local_files("Zomer Shoot", "render")["video"].endswith("cine_montage_20261101_1200.mp4")
+assert studio.local_files("Zomer Shoot", "qa") == {}
 print("studio test OK")

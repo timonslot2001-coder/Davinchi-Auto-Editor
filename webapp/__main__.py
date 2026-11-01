@@ -13,9 +13,9 @@ import webbrowser
 
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
-    if argv and argv[0] in ("studio", "studio-state"):      # own arguments; no Flask needed
+    if argv and argv[0] in ("studio", "studio-state", "studio-projects"):      # own arguments; no Flask needed
         from . import studio
-        return (studio.cli if argv[0] == "studio" else studio.state_cli)(argv[1:])
+        return {"studio": studio.cli, "studio-state": studio.state_cli, "studio-projects": studio.projects_cli}[argv[0]](argv[1:])
     ap = argparse.ArgumentParser(prog="webapp")
     ap.add_argument("role", nargs="?", choices=["app", "worker", "laptop-info"], default="app")
     ap.add_argument("--port", type=int)

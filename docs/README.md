@@ -57,6 +57,7 @@ Timon's own channels come first; client work runs on a separate track so it neve
 | [EDITING_DNA_PACKAGE/CLAUDE_CODE_IMPLEMENTATION_PROMPT.md](../EDITING_DNA_PACKAGE/CLAUDE_CODE_IMPLEMENTATION_PROMPT.md) | the Stage 2 brief, kept as a record |
 | [.claude/skills/cine-montage/SKILL.md](../.claude/skills/cine-montage/SKILL.md) | Claude's working instructions for a cine montage |
 | [.claude/skills/juict-edit/SKILL.md](../.claude/skills/juict-edit/SKILL.md) | Claude's working instructions for a JUICT / client film |
+| [.claude/skills/studio-session/SKILL.md](../.claude/skills/studio-session/SKILL.md) | Claude's working instructions for the Studio session that runs the Studio Artifact's buttons |
 | [CLAUDE.md](../CLAUDE.md) | how Claude works in this repo (loaded every session) |
 
 ## Keeping the docs true

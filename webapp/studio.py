@@ -285,8 +285,45 @@ def cli(argv=None, host=None, poll: float = 1.0) -> int:
     log = redact("\n".join(j.get("log", [])[-8:]))
     msg = (f"{LABELS.get(act, act)}: klaar" if ok else f"{LABELS.get(act, act)}: mislukt ({j['status']})") + \
         (f"\n{log}" if log else "")
-    _out({"ok": ok, "action": act, "slug": slug(name), "message": msg, "state": _state_or_none(name)})
+    out = {"ok": ok, "action": act, "slug": slug(name), "message": msg, "state": _state_or_none(name)}
+    if ok:
+        files = local_files(name, act)
+        if files:
+            out["local_files"] = files
+    _out(out)
     return 0 if ok else 1
+
+
+def local_files(name: str, act: str) -> dict:
+    """Files on this PC the session uploads after a job (never written to the db: they are local paths)."""
+    p = _project(name)
+    work = p / "cine_montage"
+    files = {}
+    sheet = work / "storyboard" / "storyboard_sheet.jpg"
+    if act in ("plan", "preview", "render") and sheet.exists():
+        files["sheet"] = str(sheet)
+    if act == "preview" and (work / "preview.mp4").exists():
+        files["video"] = str(work / "preview.mp4")
+    if act == "render":
+        exports = sorted((p / "exports").glob("cine_montage_*.mp4"))
+        if exports:
+            files["video"] = str(exports[-1])
+    return files
+
+
+def projects() -> list[str]:
+    """Projects with a cine montage folder: the ones the Studio shows."""
+    root = Path(query.roots()["projects"])
+    if not root.exists():
+        return []
+    return [p.name for p in sorted(root.iterdir(), key=lambda d: d.stat().st_mtime, reverse=True)
+            if p.is_dir() and (p / "cine_montage").is_dir()]
+
+
+def projects_cli(argv=None) -> int:
+    argparse.ArgumentParser(prog="webapp studio-projects").parse_args(argv)
+    _out([{"name": n, "slug": slug(n)} for n in projects()])
+    return 0
 
 
 def stills_dir(name: str) -> Path:

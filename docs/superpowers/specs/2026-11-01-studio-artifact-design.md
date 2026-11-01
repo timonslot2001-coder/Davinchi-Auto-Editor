@@ -1,6 +1,6 @@
 # AutoEdit Studio as a working Artifact: design
 
-Date: 2026-11-01 · Status: draft for Timon's approval (builder check done)
+Date: 2026-11-01 · Status: built (Studio session: skill `studio-session`, decision 0013)
 
 ## Why
 Timon wants to drive his editor from the Claude app (phone, laptop), not from `http://127.0.0.1:5060`. That link only

@@ -188,11 +188,15 @@ def create(host=None) -> Flask:
                 a += [flag, b[key]]
         return job(a, "Cine montage: plan maken", name)
 
-    def grade_args(b, action):
-        """--grade is part of the approval (set at plan); the look lives in cine_montage/grade.json, so render never
-        gets --look. Only preview takes a non-persisting --look try-out."""
+    def grade_args(b, action, pr):
+        """--grade is part of the approval (set at plan): render ignores the body and sends the approved mode itself.
+        The look lives in cine_montage/grade.json, so render never gets --look; preview takes a non-persisting try-out."""
         a = []
-        if b.get("grade") in GRADES:
+        if action == "render":
+            mode = ((pr["cine"].get("approval") or {}).get("grade_mode")) or "auto"
+            if mode != "auto" and mode in GRADES:
+                a += ["--grade", mode]
+        elif b.get("grade") in GRADES:
             a += ["--grade", b["grade"]]
         if action == "preview" and b.get("look") in LOOKS:
             a += ["--look", b["look"]]
@@ -205,7 +209,7 @@ def create(host=None) -> Flask:
             raise ValueError(f"look: one of {sorted(LOOKS)}")
         a = ["engine", "grade", proj(name)["path"], "--look", b["look"]]
         for flag, val in (("--strength", _num(b.get("strength"), 0, 1)), ("--exposure", _num(b.get("exposure"), -3, 0.5))):
-            if val:
+            if val is not None:
                 a += [flag, val]
         return job(a, "Cine montage: kleurlook instellen", name)
 
@@ -221,7 +225,8 @@ def create(host=None) -> Flask:
         if action not in ("preview", "render", "qa", "check"):
             raise KeyError(action)
         b = request.get_json() or {}
-        a = ["engine", action, proj(name)["path"]] + (grade_args(b, action) if action in ("preview", "render") else [])
+        pr = proj(name)
+        a = ["engine", action, pr["path"]] + (grade_args(b, action, pr) if action in ("preview", "render") else [])
         if action == "qa" and b.get("grade") in GRADES:
             a += ["--grade", b["grade"]]
         labels = {"preview": "Voorbeeld (halve grootte)", "render": "Renderen", "qa": "QA", "check": "Stijlchecks"}

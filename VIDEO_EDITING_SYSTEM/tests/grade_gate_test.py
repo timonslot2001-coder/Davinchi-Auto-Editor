@@ -108,6 +108,19 @@ try:
         pass
     assert gradechoice.load(work) == gradechoice.Grade("daylight", 0.5, -1.0)
 
+    # approve --expect-sha1/--expect-grade: refuse unless plan and grade are still the ones the user saw
+    approve_pending(work)
+    before = (work / "APPROVAL.json").read_text()
+    sha, gk = cli.edl_hash(work / "edl.json"), gradechoice.key(gradechoice.load(work))
+    base = ["approve", proj, "--by", "Timon", "--note", "ja"]
+    assert "plan is veranderd" in exits(base + ["--expect-sha1", "0123456789ab", "--expect-grade", gk])
+    assert "grade is veranderd" in exits(base + ["--expect-sha1", sha, "--expect-grade", "0123456789ab"])
+    assert (work / "APPROVAL.json").read_text() == before                    # refused -> nothing written
+    with contextlib.redirect_stdout(io.StringIO()):
+        cli.main(base + ["--expect-sha1", sha, "--expect-grade", gk])
+    appr = json.loads((work / "APPROVAL.json").read_text())
+    assert appr["status"] == "approved" and appr["edl_sha1"] == sha and appr["grade_key"] == gk
+
     assert set(gradechoice.LOOKS) == set(grade.LOOKS) - {"none"}, gradechoice.LOOKS
 finally:
     shutil.rmtree(tmp, ignore_errors=True)

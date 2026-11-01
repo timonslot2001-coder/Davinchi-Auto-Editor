@@ -8,6 +8,7 @@
                                                  the project's grade (cine_montage/grade.json), part of the approval
   python -m engine check <project>              style checks on the current plan (EDITING_PSYCHOLOGY.md)
   python -m engine approve <project> --by "<who>" --note "<user's words>"     record the user's approval of the plan
+                         [--expect-sha1 H] [--expect-grade K]   refuse unless the plan / grade are still the ones seen
   python -m engine preview <project> [--look L]  half-size review render (allowed before approval; --look = try-out only)
   python -m engine render <project>             final MP4 (refuses unless the current plan, grade.json and --grade mode
                                                  are the approved ones)
@@ -115,6 +116,8 @@ def main(argv=None):
     a.add_argument("--strength", type=float, default=1.0, help="look strength 0..1")
     a.add_argument("--exposure", type=float, default=-1.75, help="exposure in stops on log clips, -3..0.5")
     a = sub.add_parser("approve"); a.add_argument("project"); a.add_argument("--by", required=True); a.add_argument("--note", required=True)
+    a.add_argument("--expect-sha1", help="edl hash the user saw (12 hex); refuse if the plan changed since")
+    a.add_argument("--expect-grade", help="grade key the user saw (12 hex); refuse if the grade changed since")
     for c in ("check", "preview", "render", "qa"):
         a = sub.add_parser(c); a.add_argument("project")
         a.add_argument("--grade", choices=["auto", "slog3", "rec709", "none"], default="auto")
@@ -186,11 +189,16 @@ def main(argv=None):
         if not edl_path.exists():
             raise SystemExit("no plan to approve")
         prev = json.loads(appr_path.read_text(encoding="utf-8")) if appr_path.exists() else {}
-        appr_path.write_text(json.dumps({"status": "approved", "edl_sha1": edl_hash(edl_path),
-                                         "grade_key": gradechoice.key(g), "grade_mode": prev.get("grade_mode", "auto"),
+        sha, gkey = edl_hash(edl_path), gradechoice.key(g)        # what is checked is what gets recorded
+        if args.expect_sha1 is not None and args.expect_sha1 != sha:
+            raise SystemExit("het plan is veranderd sinds je het zag: bekijk het nieuwe plan")
+        if args.expect_grade is not None and args.expect_grade != gkey:
+            raise SystemExit("de grade is veranderd sinds je hem zag: bekijk de grade opnieuw")
+        appr_path.write_text(json.dumps({"status": "approved", "edl_sha1": sha,
+                                         "grade_key": gkey, "grade_mode": prev.get("grade_mode", "auto"),
                                          "by": args.by, "note": args.note,
                                          "at": datetime.now().isoformat(timespec="seconds")}, indent=1), encoding="utf-8")
-        print(f"approved plan {edl_hash(edl_path)} with grade {g.look}/{g.strength:g}/{g.exposure:g}")
+        print(f"approved plan {sha} with grade {g.look}/{g.strength:g}/{g.exposure:g}")
         return
 
     if args.cmd == "render":                                     # gate first: refuse before touching the EDL or footage

@@ -2,7 +2,7 @@
 PC; the session runs `python -m webapp studio --thread <id> "<text>"`. The text has one fixed format:
 
     [studio] actie=<plan|grade|goedkeuren|preview|render|qa|stills> project="<name>"
-             [look=.. strength=.. exposure=..] [plan=<edl_sha1>] [notitie="<own words>"]
+             [look=.. strength=.. exposure=..] [plan=<edl_sha1> grade=<grade key> notitie="<own words>"]
 
 It comes from a comment, so nothing in it becomes command text: every key and value is checked here and mapped to
 exactly one allowed `engine ...` argv (host.ALLOWED + check_args). Each comment thread runs once (data/studio_handled.json).
@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import shlex
 import sys
@@ -28,15 +29,23 @@ HANDLED = query.REPO / "data" / "studio_handled.json"
 KEEP = 500
 ACTIONS = ("plan", "grade", "goedkeuren", "preview", "render", "qa", "stills")
 # keys allowed per action, besides actie and project (both required)
-KEYS = {"grade": {"look", "strength", "exposure"}, "goedkeuren": {"plan", "notitie"}}
-ALL_KEYS = {"actie", "project", "look", "strength", "exposure", "plan", "notitie"}
+KEYS = {"grade": {"look", "strength", "exposure"}, "goedkeuren": {"plan", "grade", "notitie"}}
+ALL_KEYS = {"actie", "project", "look", "strength", "exposure", "plan", "grade", "notitie"}
 DEFAULT_GRADE = ("reference_film", 1.0, -1.75)                   # engine gradechoice.Grade()
 LABELS = {"plan": "plan maken", "grade": "kleurlook instellen", "goedkeuren": "plan goedkeuren",
           "preview": "voorbeeld", "render": "renderen", "qa": "QA"}
 
 
+PLAN_CHANGED = "het plan is veranderd sinds je het zag: bekijk het nieuwe plan"       # same texts as engine approve
+GRADE_CHANGED = "de grade is veranderd sinds je hem zag: bekijk de grade opnieuw"
+
+
 class NotYet(Exception):
     """The action exists in the request format but has no command yet."""
+
+
+class HandledListError(Exception):
+    """data/studio_handled.json can not be read: run nothing rather than risk running a request twice."""
 
 
 def grade_key(look: str, strength: float, exposure: float) -> str:
@@ -45,7 +54,21 @@ def grade_key(look: str, strength: float, exposure: float) -> str:
 
 
 def slug(name: str) -> str:
-    return re.sub(r"[^a-z0-9]", "-", name.lower())
+    """Readable and unique: "Zomer Shoot" -> zomer-shoot-<6 hex of sha1(name)>, so "Zomer_Shoot" gets another slug."""
+    base = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
+    return f"{base}-{hashlib.sha1(name.encode('utf-8')).hexdigest()[:6]}"
+
+
+def _grade(work: Path) -> dict:
+    """grade.json with the engine's defaults (gradechoice.load), plus its key."""
+    g = dict(zip(("look", "strength", "exposure"), DEFAULT_GRADE))
+    try:
+        d = json.loads((work / "grade.json").read_text(encoding="utf-8"))
+        g.update({k: d[k] for k in g if k in d})
+    except (OSError, ValueError):
+        pass
+    g = {"look": str(g["look"]), "strength": float(g["strength"]), "exposure": float(g["exposure"])}
+    return {**g, "key": grade_key(g["look"], g["strength"], g["exposure"])}
 
 
 # ---------------------------------------------------------------- request -> argv
@@ -92,6 +115,8 @@ def parse(text: str) -> dict:
                 del req[key]
     if "plan" in req and not re.fullmatch(r"[0-9a-f]{12}", req["plan"]):
         raise ValueError("plan moet de 12-teken code van het plan zijn")
+    if "grade" in req and not re.fullmatch(r"[0-9a-f]{12}", req["grade"]):
+        raise ValueError("grade moet de 12-teken code van de grade zijn")
     if "notitie" in req:
         try:
             req["notitie"] = _text(req["notitie"], 300)
@@ -130,9 +155,14 @@ def to_args(req: dict) -> list[str]:
     elif act == "goedkeuren":
         if not req.get("notitie"):
             raise ValueError("schrijf in een notitie wat je goedkeurt")
-        if req.get("plan") is None or req["plan"] != _edl_sha1(p / "cine_montage"):
-            raise ValueError("het plan is veranderd sinds je het zag: bekijk het nieuwe plan")
-        a = ["engine", "approve", path, "--by", "Timon", "--note", req["notitie"]]
+        work = p / "cine_montage"
+        if req.get("plan") is None or req["plan"] != _edl_sha1(work):
+            raise ValueError(PLAN_CHANGED)
+        if req.get("grade") is None or req["grade"] != _grade(work)["key"]:
+            raise ValueError(GRADE_CHANGED)
+        # the engine checks both again at the moment it writes APPROVAL.json (no check-then-act gap)
+        a = ["engine", "approve", path, "--by", "Timon", "--note", req["notitie"],
+             "--expect-sha1", req["plan"], "--expect-grade", req["grade"]]
     elif act == "render":
         a = ["engine", "render", path] + grade_args({}, "render", {"cine": query.cine(p)})
     else:                                                        # plan, preview, qa: no options from the Artifact
@@ -144,10 +174,15 @@ def to_args(req: dict) -> list[str]:
 # ---------------------------------------------------------------- dedupe
 
 def _handled_list() -> list[str]:
-    try:
-        return list(json.loads(HANDLED.read_text(encoding="utf-8")))
-    except (OSError, ValueError):
+    if not HANDLED.exists():
         return []
+    try:
+        ids = json.loads(HANDLED.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        raise HandledListError("afgehandeld-lijst onleesbaar") from None
+    if not isinstance(ids, list) or not all(isinstance(t, str) for t in ids):
+        raise HandledListError("afgehandeld-lijst onleesbaar")
+    return ids
 
 
 def handled(thread_id: str) -> bool:
@@ -157,7 +192,9 @@ def handled(thread_id: str) -> bool:
 def mark(thread_id: str) -> None:
     ids = [t for t in _handled_list() if t != thread_id] + [thread_id]
     HANDLED.parent.mkdir(parents=True, exist_ok=True)
-    HANDLED.write_text(json.dumps(ids[-KEEP:]), encoding="utf-8")
+    tmp = HANDLED.with_name(HANDLED.name + f".{os.getpid()}.tmp")
+    tmp.write_text(json.dumps(ids[-KEEP:]), encoding="utf-8")
+    os.replace(tmp, HANDLED)                                     # never a half-written list
 
 
 # ---------------------------------------------------------------- state for the Artifact db
@@ -166,8 +203,7 @@ def state(name: str) -> dict:
     p = _project(name)
     work = p / "cine_montage"
     c = query.cine(p)
-    g = c["grade"]
-    grade = {"look": str(g["look"]), "strength": float(g["strength"]), "exposure": float(g["exposure"])}
+    grade = _grade(work)
     plan = None
     if c["has_plan"]:
         plan = {"edl_sha1": _edl_sha1(work), "shots": len(c["shots"]), "duration": c.get("duration"),
@@ -178,7 +214,7 @@ def state(name: str) -> dict:
         approved_key = a.get("grade_key", grade_key(*DEFAULT_GRADE))   # like the engine's render_allowed
         approval = {"status": a.get("status"), "by": a.get("by"), "at": a.get("at"), "note": a.get("note"),
                     "current": bool(a.get("current")),
-                    "grade_current": approved_key == grade_key(grade["look"], grade["strength"], grade["exposure"])}
+                    "grade_current": approved_key == grade["key"]}
     return {"name": p.name, "plan": plan, "approval": approval, "grade": grade, "stills": [],
             "luts": {"conv": None, "looks": {}}, "render": None,
             "updated_at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
@@ -196,8 +232,9 @@ def _wait(host, jid: str, poll: float) -> dict:
 
 def redact(text: str) -> str:
     """Local paths in a log line -> their last part (the job message goes into the shared db, which has no paths)."""
-    return re.sub(r"(?:[A-Za-z]:[\\/]|\\\\)[^\s\"'<>|]*", lambda m: re.split(r"[\\/]", m.group().rstrip("\\/"))[-1],
-                  text)
+    last = lambda m: re.split(r"[\\/]", m.group().rstrip("\\/"))[-1] or m.group()   # noqa: E731
+    text = re.sub(r"(?:(?<!\w)[A-Za-z]:[\\/]|\\\\)[^\s\"'<>|]*", last, text)           # C:\..., D:/..., \\server\...
+    return re.sub(r"(?<![\w.:/~-])/(?!/)[^\s\"'<>|]+", last, text)                  # /home/..., /tmp/... (not URLs)
 
 
 def _out(d: dict) -> None:
@@ -216,17 +253,22 @@ def cli(argv=None, host=None, poll: float = 1.0) -> int:
     ap.add_argument("--thread", required=True)
     ap.add_argument("text")
     args = ap.parse_args(argv)
-    if handled(args.thread):
-        _out({"ok": False, "message": "al afgehandeld"})
+    try:
+        if handled(args.thread):
+            _out({"ok": False, "message": "al afgehandeld"})
+            return 1
+        mark(args.thread)                                        # before running: a render never runs twice
+    except HandledListError as e:
+        _out({"ok": False, "message": str(e)})
         return 1
-    mark(args.thread)                                            # before running: a render never runs twice
     act, name = None, None
     try:
         req = parse(args.text)
         act, name = req["actie"], req["project"]
         a = to_args(req)
-    except (ValueError, NotYet, PermissionError) as e:
-        _out({"ok": False, "action": act, "message": str(e), "state": _state_or_none(name) if name else None})
+    except Exception as e:                                       # refused or broken: still one JSON line
+        msg = str(e) if isinstance(e, (ValueError, NotYet, PermissionError)) else f"fout: {type(e).__name__}: {e}"
+        _out({"ok": False, "action": act, "message": redact(msg), "state": _state_or_none(name) if name else None})
         return 1
     if host is None:
         from .host import LocalHost

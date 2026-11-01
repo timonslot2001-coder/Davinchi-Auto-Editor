@@ -25,6 +25,7 @@ edl = {"duration": 18.0, "music": None, "notes": [], "overlays": [{"component": 
 (work / "edl.json").write_text(json.dumps(edl))
 sha = hashlib.sha1((work / "edl.json").read_bytes()).hexdigest()[:12]
 P = str(proj.resolve())
+G0 = hashlib.sha1(json.dumps(["reference_film", 1.0, -1.75]).encode()).hexdigest()[:12]   # default grade key
 
 
 def raises(fn, *a, contains=""):
@@ -38,8 +39,10 @@ def raises(fn, *a, contains=""):
 
 # ---- parse
 note = "mooi zo, a=b werkt & meer"
-r = studio.parse(f'[studio] actie=goedkeuren project="Zomer Shoot" plan={sha} notitie="{note}"')
-assert r == {"actie": "goedkeuren", "project": "Zomer Shoot", "plan": sha, "notitie": note}, r
+r = studio.parse(f'[studio] actie=goedkeuren project="Zomer Shoot" plan={sha} grade={G0} notitie="{note}"')
+assert r == {"actie": "goedkeuren", "project": "Zomer Shoot", "plan": sha, "grade": G0, "notitie": note}, r
+raises(studio.parse, f'[studio] actie=goedkeuren project="Zomer Shoot" plan={sha} grade=moody notitie=ok')
+raises(studio.parse, f'[studio] actie=render project="Zomer Shoot" grade={G0}')       # grade key only for goedkeuren
 assert studio.parse('  [studio] actie=render project="Zomer Shoot"') == {"actie": "render", "project": "Zomer Shoot"}
 raises(studio.parse, 'actie=render project="Zomer Shoot"', contains="[studio]")
 raises(studio.parse, '[studio] actie=wis project="Zomer Shoot"', contains="onbekende actie")
@@ -68,12 +71,16 @@ assert argv('[studio] actie=grade project="Zomer Shoot" look=moody strength=0.8 
     ["engine", "grade", P, "--look", "moody", "--strength", "0.8", "--exposure", "-1.5"]
 assert argv('[studio] actie=grade project="Zomer Shoot" look=vintage') == ["engine", "grade", P, "--look", "vintage"]
 raises(argv, '[studio] actie=grade project="Zomer Shoot"', contains="look")
-raises(argv, f'[studio] actie=goedkeuren project="Zomer Shoot" plan={sha}', contains="notitie")
-raises(argv, '[studio] actie=goedkeuren project="Zomer Shoot" notitie="ja"', contains="plan is veranderd")
-raises(argv, '[studio] actie=goedkeuren project="Zomer Shoot" plan=0123456789ab notitie="ja"',
+raises(argv, f'[studio] actie=goedkeuren project="Zomer Shoot" plan={sha} grade={G0}', contains="notitie")
+raises(argv, f'[studio] actie=goedkeuren project="Zomer Shoot" grade={G0} notitie="ja"', contains="plan is veranderd")
+raises(argv, f'[studio] actie=goedkeuren project="Zomer Shoot" plan=0123456789ab grade={G0} notitie="ja"',
        contains="het plan is veranderd sinds je het zag: bekijk het nieuwe plan")
-assert argv(f'[studio] actie=goedkeuren project="Zomer Shoot" plan={sha} notitie="{note}"') == \
-    ["engine", "approve", P, "--by", "Timon", "--note", note]
+raises(argv, f'[studio] actie=goedkeuren project="Zomer Shoot" plan={sha} notitie="ja"',
+       contains="de grade is veranderd sinds je hem zag: bekijk de grade opnieuw")
+raises(argv, f'[studio] actie=goedkeuren project="Zomer Shoot" plan={sha} grade=0123456789ab notitie="ja"',
+       contains="de grade is veranderd sinds je hem zag: bekijk de grade opnieuw")
+assert argv(f'[studio] actie=goedkeuren project="Zomer Shoot" plan={sha} grade={G0} notitie="{note}"') == \
+    ["engine", "approve", P, "--by", "Timon", "--note", note, "--expect-sha1", sha, "--expect-grade", G0]
 raises(argv, '[studio] actie=render project="Bestaat Niet"', contains="project")
 try:
     argv('[studio] actie=stills project="Zomer Shoot"')
@@ -100,6 +107,16 @@ for i in range(600):
     studio.mark(f"x{i}")
 kept = json.loads(studio.HANDLED.read_text())
 assert len(kept) == 500 and studio.handled("x599") and not studio.handled("t-1"), len(kept)
+assert not list(studio.HANDLED.parent.glob("*.tmp"))                    # atomic write leaves no temp file
+good = studio.HANDLED.read_text()
+studio.HANDLED.write_text("{kapot")
+for fn in (studio.handled, studio.mark):
+    try:
+        fn("x1")
+        raise AssertionError("corrupt handled list accepted")
+    except studio.HandledListError:
+        pass
+studio.HANDLED.write_text(good)
 
 # ---- state
 gkey = studio.grade_key("reference_film", 1.0, -1.75)
@@ -110,15 +127,23 @@ assert s["name"] == "Zomer Shoot"
 assert s["plan"] == {"edl_sha1": sha, "shots": 3, "duration": 18.0, "title": "ZOMER"}, s["plan"]
 assert s["approval"] == {"status": "approved", "by": "Timon", "at": "2026-11-01T10:00:00", "note": "top",
                          "current": True, "grade_current": True}, s["approval"]
-assert s["grade"] == {"look": "reference_film", "strength": 1.0, "exposure": -1.75}
+assert s["grade"] == {"look": "reference_film", "strength": 1.0, "exposure": -1.75, "key": G0}
 assert s["stills"] == [] and s["luts"] == {"conv": None, "looks": {}} and s["render"] is None and s["updated_at"]
 (work / "grade.json").write_text(json.dumps({"look": "moody", "strength": 0.8, "exposure": -1.5}))
 s = studio.state("Zomer Shoot")
 assert s["approval"]["grade_current"] is False and s["approval"]["current"] is True
-assert s["grade"] == {"look": "moody", "strength": 0.8, "exposure": -1.5}
+G1 = studio.grade_key("moody", 0.8, -1.5)
+assert s["grade"] == {"look": "moody", "strength": 0.8, "exposure": -1.5, "key": G1} and G1 != G0
+# the page sends what state() shows; a grade change after that is refused
+assert argv(f'[studio] actie=goedkeuren project="Zomer Shoot" plan={s["plan"]["edl_sha1"]} grade={s["grade"]["key"]} '
+            'notitie=ja')[-4:] == ["--expect-sha1", sha, "--expect-grade", G1]
+raises(argv, f'[studio] actie=goedkeuren project="Zomer Shoot" plan={sha} grade={G0} notitie=ja', contains="grade is veranderd")
 dump = json.dumps(s)
 assert "\\\\" not in dump and "\\" not in dump and ":/" not in dump, dump
-assert studio.slug("Zomer Shoot") == "zomer-shoot" and studio.slug("Café (2)") == "caf---2-"
+h6 = lambda n: hashlib.sha1(n.encode()).hexdigest()[:6]   # noqa: E731
+assert studio.slug("Zomer Shoot") == "zomer-shoot-" + h6("Zomer Shoot")
+assert studio.slug("Café (2)") == "caf-2-" + h6("Café (2)")
+assert studio.slug("Zomer_Shoot") != studio.slug("Zomer Shoot") and studio.slug("Zomer_Shoot").startswith("zomer-shoot-")
 empty = tmp / "projects" / "Leeg"
 empty.mkdir()
 s = studio.state("Leeg")
@@ -157,10 +182,13 @@ code, out = cli(["--thread", "c-100", '[studio] actie=grade project="Zomer Shoot
 assert code == 0 and out["ok"] is True and out["action"] == "grade", out
 assert h.runs == [["engine", "grade", P, "--look", "daylight"]] and h.polls >= 2
 assert "klaar met grade" in out["message"] and out["state"]["name"] == "Zomer Shoot"
-assert set(out) >= {"ok", "action", "message", "state"} and out["slug"] == "zomer-shoot"
+assert set(out) >= {"ok", "action", "message", "state"} and out["slug"] == studio.slug("Zomer Shoot")
 assert "sheet.jpg" in out["message"] and "\\" not in out["message"] and ":/" not in out["message"], out["message"]
 assert studio.redact("lut D:/AutoEdit/luts/moody.cube ok") == "lut moody.cube ok"
 assert studio.redact(r"in \\nas\share\x.mp4") == "in x.mp4"
+assert studio.redact("sheet /home/timon/AutoEdit/p/sheet.jpg and /tmp/x.log") == "sheet sheet.jpg and x.log"
+assert studio.redact('lut="/Users/t/luts/a.cube"') == 'lut="a.cube"'
+assert studio.redact("zie https://claude.ai/x/y en 50/50, and/or") == "zie https://claude.ai/x/y en 50/50, and/or"
 code, out = cli(["--thread", "c-100", '[studio] actie=grade project="Zomer Shoot" look=daylight'], h)
 assert out == {"ok": False, "message": "al afgehandeld"} and len(h.runs) == 1, out
 code, out = cli(["--thread", "c-101", '[studio] actie=render project="Zomer Shoot" ; del *'], h)
@@ -178,4 +206,22 @@ class BrokenHost(FakeHost):
 
 code, out = cli(["--thread", "c-104", '[studio] actie=qa project="Zomer Shoot"'], BrokenHost())
 assert code == 1 and out["ok"] is False and "worker weg" in out["message"], out
+
+
+class WeirdHost(FakeHost):
+    def job(self, jid, since=0):
+        raise KeyError(jid)
+
+
+code, out = cli(["--thread", "c-105", '[studio] actie=qa project="Zomer Shoot"'], WeirdHost())
+assert code == 1 and out["ok"] is False, out
+studio.HANDLED.write_text("[kapot")
+code, out = cli(["--thread", "c-106", '[studio] actie=qa project="Zomer Shoot"'], h)
+assert out == {"ok": False, "message": "afgehandeld-lijst onleesbaar"} and len(h.runs) == 1, out
+orig = studio.to_args
+studio.to_args = lambda req: 1 / 0
+studio.HANDLED.write_text("[]")
+code, out = cli(["--thread", "c-107", '[studio] actie=qa project="Zomer Shoot"'], h)
+assert code == 1 and out["ok"] is False and len(h.runs) == 1, out
+studio.to_args = orig
 print("studio test OK")

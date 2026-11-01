@@ -441,10 +441,19 @@ def _sheet(paths: list[Path], labels: list[str], out: Path, cols: int, w: int) -
         font = ImageFont.truetype("arialbd.ttf", 14)
     except OSError:
         font = ImageFont.load_default()
-    for i, (p, label) in enumerate(zip(paths, labels)):
+    from concurrent.futures import ThreadPoolExecutor
+
+    def thumb(p):                                                # made in parallel; cached ones return at once
+        try:
+            return library.thumb(cfg, str(p))
+        except Exception:
+            return None
+    with ThreadPoolExecutor(6) as ex:
+        thumbs = list(ex.map(thumb, paths))
+    for i, (t, label) in enumerate(zip(thumbs, labels)):
         x, y = (i % cols) * w, (i // cols) * (h + 20)
         try:
-            with Image.open(library.thumb(cfg, str(p))) as im:
+            with Image.open(t) as im:
                 im = im.convert("RGB")
                 im.thumbnail((w - 4, h - 4))
                 sheet.paste(im, (x + (w - im.width) // 2, y + (h - im.height) // 2))

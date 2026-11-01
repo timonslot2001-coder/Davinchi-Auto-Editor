@@ -11,6 +11,8 @@ entry; the full list is in `git log`. Hard-to-reverse choices also get a record 
 - The same **SSD** page is in the AutoEdit Studio in the Claude app (phone, laptop): *Beelden laden* shows an overview
   of every clip, *Preview maken* a short clip, and *Verplaatsen* names and moves the folders. It needs the
   Studio session running on the PC.
+- The SSD page opens faster: thumbnails are made ahead of time (after an offload or a move, or with `autoedit thumbs`),
+  and the Studio's *Beelden laden* makes them in parallel.
 
 ## 2026-11-01 — Pace from the music (test)
 - Cine montage: `engine plan --pacing music` lets the song set the pace instead of a fixed curve: cuts on the beat you

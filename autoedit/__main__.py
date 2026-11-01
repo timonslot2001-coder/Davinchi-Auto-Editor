@@ -56,6 +56,11 @@ def main(argv=None):
                    help="kind of video → folder on the SSD (default: _Inbox, sort it later)")
     a.add_argument("--since", help="only files from this day on, YYYY-MM-DD")
     a.add_argument("--no-project", action="store_true", help="don't make/link the AutoEdit project")
+    a = sub.add_parser("sort", help="name shoot folders on the SSD and move them to a kind (e.g. out of _Inbox)")
+    a.add_argument("name", help="name of the shoot, e.g. 'Ibiza'")
+    a.add_argument("folders", nargs="+", help="shoot folders as '<Soort>/<datum naam>', e.g. '_Inbox/2026-10-09 SD-kaart'")
+    a.add_argument("--soort", required=True, choices=["koken", "kleding", "smoken", "reizen", "klanten", "inbox"])
+    a.add_argument("--no-project", action="store_true", help="don't make/link the AutoEdit project")
     a = sub.add_parser("project", help="edit a project by name (partial name is fine)")
     a.add_argument("name")
     a.add_argument("--song", help="override the project's song")
@@ -193,6 +198,9 @@ def main(argv=None):
     elif args.cmd == "offload":
         from . import offload
         offload.offload(cfg, args.name, args.soort, args.since, link=not args.no_project)
+    elif args.cmd == "sort":
+        from . import library
+        library.move(cfg, args.name, args.soort, args.folders, link=not args.no_project)
     elif args.cmd == "project":
         from . import projects
         res = projects.run(cfg, args.name, song=args.song, title=args.title, variants=args.variants, seed=args.seed)

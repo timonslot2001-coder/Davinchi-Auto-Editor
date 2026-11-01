@@ -126,6 +126,24 @@ dialog { background: var(--panel); color: var(--text); border: 1px solid var(--l
 dialog::backdrop { background: rgba(0,0,0,.6); }
 dialog menu { display: flex; justify-content: flex-end; gap: 8px; padding: 0; margin: 16px 0 0; }
 
+.ssd-move { position: sticky; top: 0; z-index: 5; }
+.ssd-grid { grid-template-columns: minmax(240px, 320px) 1fr; }
+.ssd-list { max-height: calc(100vh - 220px); overflow: auto; }
+.ssd-list h3 { margin: 10px 0 6px; } .ssd-list h3:first-child { margin-top: 0; }
+.ssd-row { display: flex; gap: 10px; align-items: flex-start; padding: 7px 8px; border-radius: 8px; cursor: pointer; }
+.ssd-row:hover { background: var(--panel2); } .ssd-row.on { background: var(--panel2); box-shadow: inset 2px 0 0 var(--accent); }
+.ssd-row input { width: auto; margin-top: 3px; } .ssd-row .nm { flex: 1; min-width: 0; }
+.thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.thumbs.photos { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+.th { position: relative; aspect-ratio: 16/9; background: var(--panel2); border-radius: 6px; overflow: hidden; cursor: pointer;
+  border: 2px solid transparent; }
+.photos .th { aspect-ratio: 3/2; }
+.th img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.th.on, .th:hover { border-color: var(--accent); }
+.th .d, .th .n { position: absolute; bottom: 3px; background: rgba(0,0,0,.75); font-size: 11px; padding: 0 5px; border-radius: 4px; }
+.th .d { right: 3px; } .th .n { left: 3px; color: var(--muted); }
+#sdPlayer video { max-height: 50vh; }
+
 .empty { color: var(--muted); padding: 30px; text-align: center; border: 1px dashed var(--line); border-radius: var(--r); }
 .banner { padding: 10px 14px; border-radius: 10px; background: var(--panel2); border: 1px solid var(--line); font-size: 13px; }
 .banner.warn { border-color: #5c4a1b; } .banner.ok { border-color: #1f5a3c; }
@@ -139,4 +157,6 @@ dialog menu { display: flex; justify-content: flex-end; gap: 8px; padding: 0; ma
   main { padding: 18px 16px 90px; }
   .cols-2, .form { grid-template-columns: 1fr; }
   .shots { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .ssd-move { position: static; } .ssd-list { max-height: 45vh; }
+  .thumbs { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
 }

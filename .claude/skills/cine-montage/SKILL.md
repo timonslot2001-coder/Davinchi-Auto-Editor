@@ -31,7 +31,11 @@ Python: `C:\Users\Timon\.aev\Scripts\python.exe` (run from `VIDEO_EDITING_SYSTEM
 4. Optional review clip before approval: `python -m engine preview "<project>"` (half size).
 5. New fonts/colours/effects outside the DNA → show a test and ask first (gate C).
 6. Only after Timon's yes: `python -m engine approve "<project>" --by Timon --note "<his words>"`, then
-   `python -m engine render "<project>"` (refuses if the EDL changed after approval) → `<project>/exports/cine_montage_*.mp4` + QA.
+   `python -m engine render "<project>"` → `<project>/exports/cine_montage_*.mp4` + QA. The approval covers the plan
+   **and** the grade: the look/strength/exposure in `cine_montage/grade.json` (set with `python -m engine grade
+   "<project>" --look L [--strength S] [--exposure E]` or `plan --look`) and the `--grade` mode the plan was made with.
+   Render refuses after any change to the EDL, the grade or the grade mode until a new `approve`. Render takes no
+   `--look`; give it the same `--grade` mode as the plan (`render --grade rec709` after `plan --grade rec709`).
 7. Watch the QA (size, duration, black/frozen, LUFS ≈ −14, true peak ≤ −1) and look at frames around the title, flashes,
    card series and the last shot. Fix and re-render if needed, then send the MP4 (or a <30 MB preview for the phone).
 
@@ -57,7 +61,8 @@ paced, not beat-locked (snapped to a strong onset only within 2 frames).
   clean_warm` keeps food natural. The score likes sharp, empty frames (a bare counter), so check the sheet for them.
   Timon still picked B (reference_film). On render, `--grade auto` took one DJI clip (no sidecar) for S-Log3: the
   pot shots came out oversaturated. Read the "grade" notes in qa.json after every render; when all footage is
-  Rec.709, render with `--grade rec709` (same EDL, the approval stays valid).
+  Rec.709, re-plan with `plan --grade rec709` (the mode is part of the approval since 2026-11-01), show the sheet again,
+  get a new approve, then `render --grade rec709`.
   2026-10-30: Timon spotted near-identical consecutive shots (same clip, same framing) on the sheet. Story order puts
   two windows of one clip next to each other; merge such pairs into one longer shot before gate B. A run of shots
   where something changes (knife cutting further) can stay. Without Grid Flow (food) seed 1 had only 3 accents:

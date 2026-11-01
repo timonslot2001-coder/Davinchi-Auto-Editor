@@ -25,6 +25,12 @@ entry; the full list is in `git log`. Hard-to-reverse choices also get a record 
   is sent or saved.
 - The Studio's preview and render videos are a small 720p copy (max 20 MB) made on the PC; a new plan clears the old
   render from the page.
+- Long jobs (plan, preview, render) keep running on the PC even if the Studio session's command stops; the PC runs
+  one Studio job at a time. A job still *bezig* after 3 hours shows as *vastgelopen? start opnieuw*, and *Renderen* is
+  greyed out while a render of that project runs.
+- The storyboard and preview say which look they were made with, and warn when the grade changed since. The Grade step
+  counts as done only after you picked a grade. Preview uses the plan's grade mode, like render.
+- When the page loses its connection it says *Verbinding kwijt* and reconnects once by itself.
 
 ## 2026-10-31 — Offload to your SSD
 - New `autoedit offload "<shoot>" --soort koken` (and *SD-kaart offloaden* on the website): copies photos and videos

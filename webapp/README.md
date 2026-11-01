@@ -34,15 +34,18 @@ The container holds the website, its logic and the job queue; the worker (`pytho
 the commands and serves the files.
 
 ## Studio in the Claude app
-The page `artifact/studio.html` is published as the claude.ai Artifact **AutoEdit Studio** (link in
-`start-studio-sessie.bat`). It works from your phone or laptop for the cine montage: grade (instant preview in the
+The page `artifact/studio.html` is published as the claude.ai Artifact **AutoEdit Studio** (its link is `STUDIO_URL`
+in `start-studio-sessie.bat`). The Studio artifact and the PC's Claude account must match (same account, or shared
+with it with edit rights), otherwise the PC session cannot watch it or write its data. It works from your phone or laptop for the cine montage: grade (instant preview in the
 browser), plan + storyboard, preview video, approve, render, QA, result.
 - **On the PC:** double-click `start-studio-sessie.bat` and leave the window open. That opens the one Claude Code
   session that runs the buttons (skill `studio-session`). Only that session may watch the Studio; otherwise one click
   runs twice.
-- **Each button** sends one `[studio] actie=...` comment; the session checks it with `python -m webapp studio`, runs one
-  `engine` command and writes the result back into the page. Approving needs your own words; a grade change needs a new
-  approval.
+- **Each button** sends one `[studio] actie=...` comment; the session checks it with `python -m webapp studio`, which
+  starts one `engine` command in a background worker on the PC (one job at a time; it keeps running if the session's
+  call ends) and answers at once. The session fetches the result with `python -m webapp studio-result --thread <id>`
+  and writes it back into the page. Approving needs your own words; a grade change needs a new approval. A job still
+  *bezig* after 3 hours shows as *vastgelopen? start opnieuw*.
 - **New version of the page:** publish `artifact/studio.html` again to the same link (Claude: Artifact publish with the
   same file), then stop watching it in that session.
 - **PC off:** the page shows *Studio-sessie op je PC is niet bereikbaar*; the grade preview still works.
@@ -81,7 +84,7 @@ On the cine montage tab every shot has a number and a comment box. *Opmerkingen 
 | `app.py` | website + JSON API; turns form fields into commands (validated, never raw text) |
 | `host.py` | `LocalHost` (run jobs, read files on this PC) and `RemoteHost` (the same through the worker) |
 | `validate.py` | the form-field checks and the render `--grade` rule, shared by `app.py` and `studio.py` |
-| `studio.py` | requests from the claude.ai Artifact: `python -m webapp studio --thread <id> --text-file data/studio_inbox/<id>.txt` checks the fixed `[studio] actie=...` text (from a file, never on the command line), runs one `engine` command, makes the 720p video copy for the page and prints JSON; `python -m webapp studio-state "<name>"` prints the project's state for the Artifact; `python -m webapp studio-projects` lists the cine montage projects |
+| `studio.py` | requests from the claude.ai Artifact: `python -m webapp studio --thread <id> --text-file data/studio_inbox/<id>.txt` checks the fixed `[studio] actie=...` text (from a file, never on the command line) and starts one `engine` command in a detached worker (`studio-worker`, lock `data/studio.lock`), which makes the 720p video copy for the page and writes `data/studio_results/<id>.json`; `python -m webapp studio-result --thread <id>` prints that result; `python -m webapp studio-state "<name>"` prints the project's state for the Artifact; `python -m webapp studio-projects` prints every cine montage project with its state |
 | `worker.py` | the Windows worker for Docker (token, allowlist) |
 | `query.py` | what the pages show: projects, cine montage state, queue, music, status |
 | `static/` | the interface (HTML, CSS, JS; no build step) |

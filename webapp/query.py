@@ -25,7 +25,8 @@ def roots() -> dict:
     """Folders the web app may read from (and the few files it may write)."""
     cfg = _cfg()
     return {"projects": str(Path(cfg.get("paths.projects_folder"))), "music": str(Path(cfg.get("paths.music_folder"))),
-            "output": str(Path(cfg.get("paths.output_folder") or REPO / "data")), "data": str(REPO / "data")}
+            "output": str(Path(cfg.get("paths.output_folder") or REPO / "data")), "data": str(REPO / "data"),
+            "library": str(Path(cfg.get("paths.library_folder") or "I:/"))}
 
 
 def project_dir(name: str) -> Path:
@@ -215,6 +216,31 @@ def ai_models() -> list[dict]:
     return local + [{"id": k, "note": v.get("note", ""), "local": False} for k, v in aigen.PRESETS.items()]
 
 
+# ---------------------------------------------------------------- SSD library (page "SSD")
+
+def _library():
+    sys.path.insert(0, str(REPO))
+    from autoedit import library
+    return library
+
+
+def library() -> dict:
+    return _library().shoots(_cfg())
+
+
+def library_shoot(rel: str) -> dict:
+    return _library().shoot(_cfg(), rel)
+
+
+def library_thumb(path: str) -> str:
+    return _library().thumb(_cfg(), path)
+
+
+def library_preview(path: str) -> str:
+    return _library().preview(_cfg(), path)
+
+
 CALLS = {"status": status, "roots": roots, "projects": projects, "project": project, "save_settings": save_settings,
          "save_comments": save_comments, "queue": queue, "queue_choose": queue_choose, "music": music,
-         "report": report, "ai_models": ai_models}
+         "report": report, "ai_models": ai_models, "library": library, "library_shoot": library_shoot,
+         "library_thumb": library_thumb, "library_preview": library_preview}

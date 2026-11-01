@@ -1,0 +1,280 @@
+"""Your SSD library: see what is in each shoot folder, then name and move it.
+
+  autoedit sort "Ibiza" --soort reizen "_Inbox/2026-10-09 SD-kaart" "_Inbox/2026-10-10 SD-kaart"
+
+moves those folders into one shoot `Reizen/2026-10-09 Ibiza/` (1 Ruw/Video, 1 Ruw/Foto, ...), links the AutoEdit
+project of that name to it, and repoints any project whose clips were in a moved folder. Files are only moved on the
+SSD itself (a rename, no copy); nothing is deleted except the empty folders left behind.
+
+The web app (page *SSD*) shows the shoots, a thumbnail per clip and photo, and a short preview of a clip, all made on
+demand and cached in data/library_thumbs/.
+"""
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+import re
+import subprocess
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+
+from rich.console import Console
+
+from . import offload
+from .config import ROOT
+
+con = Console()
+
+CACHE = ROOT / "data" / "library_thumbs"
+PHOTO_SHOWN = {".jpg", ".jpeg", ".png"}                 # RAW files are counted, not shown (the JPG twin is)
+PREVIEW_S = 20
+
+
+def _ffmpeg() -> str:
+    import imageio_ffmpeg
+    return imageio_ffmpeg.get_ffmpeg_exe()
+
+
+def kind_of(folder: str) -> str | None:
+    return next((k for k, (d, _) in offload.KINDS.items() if d == folder), None)
+
+
+def resolve_shoot(cfg, rel: str) -> Path:
+    """'<Kind folder>/<shoot folder>' → the folder on the SSD; anything else is refused."""
+    parts = re.split(r"[\\/]", str(rel).strip())
+    if len(parts) != 2 or kind_of(parts[0]) is None or not parts[1] or parts[1] in (".", ".."):
+        raise ValueError(f"not a shoot folder: {rel!r} (expected '<Soort>/<datum naam>')")
+    p = offload.library(cfg) / parts[0] / parts[1]
+    if not p.is_dir():
+        raise FileNotFoundError(f"{rel} is not on the SSD")
+    return p
+
+
+def _media(shoot: Path):
+    vids, photos, raw, size = [], [], 0, 0
+    for dp, _, fs in os.walk(shoot):
+        for n in fs:
+            f = Path(dp) / n
+            ext = f.suffix.lower()
+            try:
+                size += f.stat().st_size
+            except OSError:
+                continue
+            if ext in offload.VIDEO:
+                vids.append(f)
+            elif ext in PHOTO_SHOWN:
+                photos.append(f)
+            elif ext in offload.PHOTO:
+                raw += 1
+    return sorted(vids), sorted(photos), raw, size
+
+
+def _linked_projects(cfg) -> dict[str, str]:
+    """clips folder (resolved, lower case) → project name."""
+    from . import projects
+    out = {}
+    for p in projects.root(cfg).iterdir():
+        c = p / "clips"
+        try:
+            if p.is_dir() and c.exists():
+                out[str(c.resolve()).lower()] = p.name
+        except OSError:
+            pass
+    return out
+
+
+def shoots(cfg) -> dict:
+    """Every shoot folder on the SSD, _Inbox first, with counts and the project that reads its clips."""
+    lib = offload.library(cfg)
+    if not lib.exists():
+        return {"library": str(lib), "connected": False, "kinds": [], "shoots": []}
+    linked = _linked_projects(cfg)
+    rows = []
+    for kind, (folder, _) in sorted(offload.KINDS.items(), key=lambda kv: (kv[0] != "inbox", kv[1][0])):
+        kdir = lib / folder
+        for d in sorted(kdir.iterdir()) if kdir.is_dir() else []:
+            if not d.is_dir():
+                continue
+            vids, photos, raw, size = _media(d)
+            video_dir = d / "1 Ruw" / "Video"
+            m = re.match(r"(\d{4}-\d{2}-\d{2}) (.+)", d.name)
+            rows.append({"rel": f"{folder}/{d.name}", "kind": kind, "kind_folder": folder, "folder": d.name,
+                         "date": m[1] if m else None, "name": m[2] if m else d.name, "videos": len(vids),
+                         "photos": len(photos) + raw, "size": size,
+                         "project": linked.get(str(video_dir.resolve()).lower()) if video_dir.exists() else None})
+    return {"library": str(lib), "connected": True,
+            "kinds": [{"kind": k, "folder": f} for k, (f, _) in offload.KINDS.items()], "shoots": rows}
+
+
+def _key(f: Path) -> str:
+    st = f.stat()
+    return hashlib.sha1(f"{f}|{st.st_size}|{int(st.st_mtime)}".encode()).hexdigest()[:20]
+
+
+def duration(f: Path) -> float:
+    meta = CACHE / f"{_key(f)}.json"
+    if meta.exists():
+        return json.loads(meta.read_text())["duration"]
+    err = subprocess.run([_ffmpeg(), "-hide_banner", "-i", str(f)], capture_output=True, text=True,
+                         errors="ignore").stderr
+    m = re.search(r"Duration: (\d+):(\d+):([\d.]+)", err)
+    d = int(m[1]) * 3600 + int(m[2]) * 60 + float(m[3]) if m else 0.0
+    CACHE.mkdir(parents=True, exist_ok=True)
+    meta.write_text(json.dumps({"duration": d}))
+    return d
+
+
+def shoot(cfg, rel: str) -> dict:
+    """The clips (with length) and the viewable photos of one shoot."""
+    p = resolve_shoot(cfg, rel)
+    vids, photos, raw, size = _media(p)
+    with ThreadPoolExecutor(8) as ex:
+        durs = list(ex.map(duration, vids))
+    return {"rel": rel, "path": str(p), "size": size, "raw": raw,
+            "videos": [{"name": f.name, "path": str(f), "size": f.stat().st_size, "duration": d}
+                       for f, d in zip(vids, durs)],
+            "photos": [{"name": f.name, "path": str(f)} for f in photos]}
+
+
+def _inside_library(cfg, path: str) -> Path:
+    f = Path(path).resolve()
+    lib = offload.library(cfg).resolve()
+    if lib not in f.parents or not f.is_file():
+        raise PermissionError("only files on the SSD library")
+    return f
+
+
+def thumb(cfg, path: str) -> str:
+    """A 320 px still of a clip (at 40 %) or a photo, cached; returns its path."""
+    f = _inside_library(cfg, path)
+    out = CACHE / f"{_key(f)}.jpg"
+    if out.exists():
+        return str(out)
+    CACHE.mkdir(parents=True, exist_ok=True)
+    tmp = out.with_suffix(".part.jpg")
+    if f.suffix.lower() in offload.VIDEO:
+        t = duration(f) * 0.4
+        subprocess.run([_ffmpeg(), "-v", "error", "-y", "-ss", f"{t:.2f}", "-i", str(f), "-frames:v", "1",
+                        "-vf", "scale=320:-2", "-q:v", "4", str(tmp)], capture_output=True, timeout=120)
+    else:
+        from PIL import Image, ImageOps
+        with Image.open(f) as im:
+            im.draft("RGB", (640, 640))
+            im = ImageOps.exif_transpose(im).convert("RGB")
+            im.thumbnail((320, 320))
+            im.save(tmp, quality=80)
+    if not tmp.exists():
+        raise RuntimeError(f"could not make a thumbnail of {f.name}")
+    os.replace(tmp, out)
+    return str(out)
+
+
+def preview(cfg, path: str) -> str:
+    """A small H.264 clip (20 s from 10 % in, 640 px, no sound) that every browser plays; cached; returns its path."""
+    f = _inside_library(cfg, path)
+    if f.suffix.lower() not in offload.VIDEO:
+        raise ValueError("only clips have a preview")
+    out = CACHE / f"{_key(f)}_preview.mp4"
+    if out.exists():
+        return str(out)
+    CACHE.mkdir(parents=True, exist_ok=True)
+    d = duration(f)
+    start = d * 0.1 if d > PREVIEW_S * 1.5 else 0
+    tmp = out.with_name(out.stem + ".part.mp4")
+    subprocess.run([_ffmpeg(), "-v", "error", "-y", "-ss", f"{start:.2f}", "-i", str(f), "-t", str(PREVIEW_S), "-an",
+                    "-vf", "scale=640:-2,format=yuv420p", "-c:v", "libx264", "-preset", "veryfast", "-crf", "28",
+                    "-movflags", "+faststart", str(tmp)], capture_output=True, timeout=600)
+    if not tmp.exists():
+        raise RuntimeError(f"could not make a preview of {f.name}")
+    os.replace(tmp, out)
+    return str(out)
+
+
+# ---------------------------------------------------------------- moving
+
+
+def _move_tree(src: Path, dst: Path) -> int:
+    """Move every file under src to the same place under dst (a rename on the same drive); returns the count."""
+    n = 0
+    for dp, _, fs in os.walk(src):
+        rel = Path(dp).relative_to(src)
+        for name in fs:
+            target_dir = dst / rel
+            target_dir.mkdir(parents=True, exist_ok=True)
+            target = offload._free_name(target_dir, name)
+            os.replace(Path(dp) / name, target)
+            n += 1
+    for dp, _, _ in sorted(os.walk(src), key=lambda w: -len(w[0])):      # deepest first; only empty folders go
+        try:
+            os.rmdir(dp)
+        except OSError:
+            pass
+    return n
+
+
+def _repoint(cfg, old_video: Path, new_video: Path) -> list[str]:
+    """Projects whose clips junction pointed into a moved folder now point at the new place."""
+    import _winapi
+    from . import projects
+    moved = []
+    for p in projects.root(cfg).iterdir():
+        c = p / "clips"
+        try:
+            target = os.readlink(c)
+        except (OSError, ValueError):
+            continue                                              # not a link (real clips folder) or missing
+        target = target[4:] if target.startswith("\\\\?\\") else target
+        if os.path.normcase(os.path.normpath(target)) == os.path.normcase(os.path.normpath(str(old_video))):
+            os.rmdir(c)                                           # removes the junction only, never the footage
+            _winapi.CreateJunction(str(new_video), str(c))
+            moved.append(p.name)
+    return moved
+
+
+def move(cfg, name: str, kind: str, sources: list[str], link: bool = True) -> dict:
+    """Merge the source shoot folders into '<Kind>/<earliest date> <name>' and link the project."""
+    if kind not in offload.KINDS:
+        raise SystemExit(f"--soort must be one of: {', '.join(offload.KINDS)}")
+    name = name.strip()
+    if not name or name[0] == "." or name[-1] == "." or any(c in name for c in '\\/:*?"<>|'):
+        raise SystemExit(f"'{name}' can not be a folder name (no \\ / : * ? \" < > |, no leading or trailing dot)")
+    if not sources:
+        raise SystemExit("name at least one shoot folder to move")
+    lib = offload.library(cfg)
+    srcs = []
+    for rel in sources:
+        try:
+            srcs.append(resolve_shoot(cfg, rel))
+        except (ValueError, FileNotFoundError) as e:
+            raise SystemExit(str(e))
+    dates = [m[1] for s in srcs if (m := re.match(r"(\d{4}-\d{2}-\d{2}) ", s.name))]
+    date = min(dates) if dates else __import__("datetime").date.today().isoformat()
+    target = offload.shoot_folder(lib, kind, name, date)
+    ledger_path = lib / offload.LEDGER
+    ledger = json.loads(ledger_path.read_text(encoding="utf-8")) if ledger_path.exists() else {}
+    total, relinked = 0, []
+    for s in srcs:
+        if s.resolve() == target.resolve():
+            con.print(f"  {s.name}: already there")
+            continue
+        n = _move_tree(s, target)
+        total += n
+        old = str(s)
+        for k, v in ledger.items():                               # keep the offload ledger pointing at the files
+            if v.startswith(old + os.sep) or v.startswith(old + "/"):
+                ledger[k] = str(target) + v[len(old):]
+        relinked += _repoint(cfg, s / "1 Ruw" / "Video", target / "1 Ruw" / "Video")
+        con.print(f"  {s.parent.name}/{s.name} → {n} file(s)")
+    if ledger:
+        ledger_path.write_text(json.dumps(ledger, indent=1), encoding="utf-8")
+    project = None
+    if link and kind != "inbox":
+        project = offload.link_project(cfg, target.name[11:], target / "1 Ruw" / "Video", offload.KINDS[kind][1])
+    con.print(f"[green]{total} file(s) moved[/] → {target}")
+    if relinked:
+        con.print(f"  project(s) {', '.join(sorted(set(relinked)))} now read their clips from the new place")
+    if project:
+        con.print(f"  AutoEdit project [bold]{project.name}[/] reads its clips from {target / '1 Ruw' / 'Video'}")
+    return {"moved": total, "shoot": str(target), "project": str(project) if project else None,
+            "relinked": sorted(set(relinked))}

@@ -3,6 +3,11 @@
 What changed, in words you would notice in an edit or on the PC. Newest first. Small fixes are folded into the day's
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
+## 2026-11-01 — Sort the SSD on the website
+- New page **SSD** in the AutoEdit website: all shoot folders (_Inbox first) with a thumbnail of every clip and photo.
+  Click a clip to watch it; tick folders, type a name, pick the kind and press *Verplaatsen*. They become one shoot
+  (`Reizen\2026-10-09 Ibiza`) with its AutoEdit project. Also from a terminal: `autoedit sort`.
+
 ## 2026-11-01 — Pace from the music (test)
 - Cine montage: `engine plan --pacing music` lets the song set the pace instead of a fixed curve: cuts on the beat you
   feel, long flowing shots in a breakdown, a cut and a white-card burst exactly on the drop. `--song-start` starts the

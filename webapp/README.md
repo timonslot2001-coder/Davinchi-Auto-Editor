@@ -58,7 +58,7 @@ Decision: [0013](../docs/decisions/0013-studio-artifact-comment-route.md).
 
 ## Safety
 - The worker only runs the commands in `host.ALLOWED` and only serves files inside the AutoEdit folders (projects,
-  music, output, `data/`, and project `clips` links). It writes only `<project>/project.yaml`, `<project>/cine_montage/comments.json` and uploaded songs.
+  music, output, `data/`, the SSD library and project `clips` links). It writes only `<project>/project.yaml`, `<project>/cine_montage/comments.json` and uploaded songs.
 - Every worker request needs `AEV_WORKER_TOKEN`. The worker makes it once and stores it in `.env` (never committed);
   `docker compose` reads it from there. The container gets only this token, no other secrets.
 - `start-worker-for-laptop.bat` opens the worker to your home network (needed for the laptop); every request still
@@ -70,6 +70,12 @@ Decision: [0013](../docs/decisions/0013-studio-artifact-comment-route.md).
 *SD-kaart offloaden* on the Projecten page runs `autoedit offload "<name>" --soort <soort>`: photos and videos from
 the camera card go to the SSD (`<Soort>\<date> <name>\1 Ruw`), checked, card untouched. The card and the SSD must be
 in the Resolve PC, because the worker does the copying. See the main [README](../README.md#offload-a-card-to-your-ssd).
+
+## SSD
+The *SSD* page lists every shoot folder on the SSD (`_Inbox` first), shows a thumbnail per clip and photo and plays a
+clip (the original where the browser plays HEVC, else a 20 s H.264 preview made on demand). Tick folders, give a name
+and a kind, and *Verplaatsen* runs `autoedit sort "<name>" <folders> --soort <soort>`: the files move on the SSD into
+`<Soort>\<date> <name>` and the project is linked. Thumbnails and previews are cached in `data/library_thumbs/`.
 
 ## Shot comments
 On the cine montage tab every shot has a number and a comment box. *Opmerkingen opslaan* writes

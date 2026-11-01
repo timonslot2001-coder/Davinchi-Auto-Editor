@@ -21,7 +21,7 @@ LOG_DIR = REPO / "data" / "webapp_jobs"
 # first argument -> allowed subcommands. Interactive or always-on commands (tiktok-login, watch, dashboard) are left out.
 ALLOWED = {
     "engine": {"validate", "plan", "check", "approve", "preview", "render", "qa", "grade"},
-    "autoedit": {"project", "run", "analyze", "import", "offload", "new", "projects", "queue", "approve", "post", "post-due",
+    "autoedit": {"project", "run", "analyze", "import", "offload", "sort", "new", "projects", "queue", "approve", "post", "post-due",
                  "stats", "report", "ideas", "generate", "ai-models", "ai-balance", "sfx", "optimize", "explainer",
                  "repurpose"},
 }

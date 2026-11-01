@@ -1162,9 +1162,11 @@ function ssdView() {
   }
   return {
     update(id) {
-      if ((id || "") !== cur) { cur = id || ""; playing = ""; }
+      const moved = (id || "") !== cur;
+      if (moved) { cur = id || ""; playing = ""; }
       jobsStrip($("#jobs", v), "SSD");                            // the session writes SSD jobs with project "SSD"
       renderList(); renderDetail(); moveBar();
+      if (moved && cur && innerWidth < 900) $("#sDetail", v).scrollIntoView({ block: "start" });   // phone: the folder is below the list
     },
   };
 }

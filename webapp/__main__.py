@@ -2,7 +2,11 @@
 python -m webapp worker          the Windows worker for the Docker container (port 5061, token from .env)
 python -m webapp laptop-info     address + token for a Docker container on another computer
 python -m webapp --bind 0.0.0.0  also reachable from other devices on your network (phone)
-python -m webapp studio --thread <id> "<text>"   one request from the claude.ai Artifact (see studio.py), JSON out
+python -m webapp studio --thread <id> --text-file data/studio_inbox/<id>.txt
+                                 one request from the claude.ai Artifact (see studio.py): validates and starts it
+                                 detached, JSON out at once ({status: "bezig"} or the refusal)
+python -m webapp studio-result --thread <id>     that request's result line ({status: "bezig"} while it runs)
+python -m webapp studio-projects                 every Studio project with its state document, JSON out
 python -m webapp studio-state "<name>"           the project's state document for the Artifact db, JSON out
 python -m webapp studio-ssd                      the SSD shoot folders for the Artifact db (ssd/<id>), JSON out"""
 from __future__ import annotations
@@ -14,9 +18,11 @@ import webbrowser
 
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
-    if argv and argv[0] in ("studio", "studio-state", "studio-projects", "studio-ssd"):   # own arguments; no Flask
+    studio_cmds = ("studio", "studio-result", "studio-worker", "studio-state", "studio-projects", "studio-ssd")
+    if argv and argv[0] in studio_cmds:                                      # own arguments; no Flask needed
         from . import studio
-        return {"studio": studio.cli, "studio-state": studio.state_cli, "studio-projects": studio.projects_cli,
+        return {"studio": studio.cli, "studio-result": studio.result_cli, "studio-worker": studio.worker_cli,
+                "studio-state": studio.state_cli, "studio-projects": studio.projects_cli,
                 "studio-ssd": studio.ssd_cli}[argv[0]](argv[1:])
     ap = argparse.ArgumentParser(prog="webapp")
     ap.add_argument("role", nargs="?", choices=["app", "worker", "laptop-info"], default="app")

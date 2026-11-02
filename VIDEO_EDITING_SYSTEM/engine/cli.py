@@ -59,14 +59,21 @@ def story_order(proj: Path) -> list | str:
 
 
 def edl_hash(path: Path) -> str:
-    return hashlib.sha1(path.read_bytes()).hexdigest()[:12]
+    return sha12(path.read_bytes())
 
 
-def render_allowed(work: Path, g: gradechoice.Grade, mode: str = "auto") -> tuple[bool, str]:
-    """Gate B: the current EDL, grade `g` and --grade `mode` must be the ones the user approved. Returns (ok, reason)."""
+def sha12(data: bytes) -> str:
+    return hashlib.sha1(data).hexdigest()[:12]
+
+
+def render_allowed(work: Path, g: gradechoice.Grade, mode: str = "auto",
+                   edl_bytes: bytes | None = None) -> tuple[bool, str]:
+    """Gate B: the current EDL, grade `g` and --grade `mode` must be the ones the user approved. Returns (ok, reason).
+    `edl_bytes`: the edl.json bytes the caller will render (hash and parse one read), else the file is read here."""
     appr_path = work / "APPROVAL.json"
     appr = json.loads(appr_path.read_text(encoding="utf-8")) if appr_path.exists() else {}
-    if appr.get("status") != "approved" or appr.get("edl_sha1") != edl_hash(work / "edl.json"):
+    sha = sha12(edl_bytes) if edl_bytes is not None else edl_hash(work / "edl.json")
+    if appr.get("status") != "approved" or appr.get("edl_sha1") != sha:
         return False, ("the current EDL is not approved (gate B/D). Run plan, show the storyboard, "
                        "and record the user's approval with `approve` first.")
     # approvals made before the grade was part of the approval have no grade_key: they only cover the default grade
@@ -76,6 +83,15 @@ def render_allowed(work: Path, g: gradechoice.Grade, mode: str = "auto") -> tupl
     if appr.get("grade_mode", "auto") != mode:                    # approvals without grade_mode were made with "auto"
         return False, f"de grade-modus wijkt af van de goedkeuring ({mode} vs {appr.get('grade_mode', 'auto')})"
     return True, ""
+
+
+def write_made_with(path: Path, g: gradechoice.Grade, mode: str) -> None:
+    """The grade a storyboard sheet / preview was made with, next to it (the Studio labels them with it)."""
+    path.write_text(json.dumps({"key": gradechoice.key(g), "look": g.look, "strength": g.strength,
+                                "exposure": g.exposure, "grade_mode": mode}), encoding="utf-8")
+
+
+MADE_WITH = {"plan": Path("storyboard") / "made_with.json", "preview": Path("preview_made_with.json")}
 
 
 def effective_grade(work: Path, look: str | None) -> gradechoice.Grade:
@@ -182,7 +198,9 @@ def main(argv=None):
         edl.save(edl_path)
         checks = style_checks.check(edl)
         print_checks(checks, fixed)
+        (work / MADE_WITH["plan"]).unlink(missing_ok=True)
         sb = storyboard.build(edl, work / "storyboard", args.grade, checks=checks, grade=g)
+        write_made_with(work / MADE_WITH["plan"], g, args.grade)
         appr_path.write_text(json.dumps({"status": "pending", "edl_sha1": edl_hash(edl_path), "grade_mode": args.grade,
                                          "created": datetime.now().isoformat(timespec="seconds")}, indent=1), encoding="utf-8")
         print(f"plan: {len(edl.events)} events, {edl.duration:.2f} s, problems in footage: {inv['problems'] or 'none'}")
@@ -207,17 +225,21 @@ def main(argv=None):
         print(f"approved plan {sha} with grade {g.look}/{g.strength:g}/{g.exposure:g}")
         return
 
-    if args.cmd == "render":                                     # gate first: refuse before touching the EDL or footage
-        ok, why = render_allowed(work, g, args.grade)
+    edl_bytes = None
+    if args.cmd == "render":                                     # gate first: refuse before touching the footage
+        edl_bytes = edl_path.read_bytes() if edl_path.exists() else b""   # one read: what is approved is rendered
+        ok, why = render_allowed(work, g, args.grade, edl_bytes)
         if not ok:
             raise SystemExit("REFUSED: " + why)
-    edl = EDL.load(edl_path)
+    edl = EDL.loads(edl_bytes) if edl_bytes is not None else EDL.load(edl_path)
     if args.cmd == "check":
         print_checks(style_checks.check(edl), [])
         return
     if args.cmd == "preview":
         out = work / "preview.mp4"
+        (work / MADE_WITH["preview"]).unlink(missing_ok=True)
         res = render.render(edl, out, work / "render", args.grade, preview=True, grade=g)
+        write_made_with(work / MADE_WITH["preview"], g, args.grade)
         print("preview:", res["out"], res["notes"])
         return
     if args.cmd == "render":

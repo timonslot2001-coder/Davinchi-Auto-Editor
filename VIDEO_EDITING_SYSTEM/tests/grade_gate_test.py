@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT.parent))
 from engine import cli, gradechoice             # noqa: E402
+from engine.edl import EDL                     # noqa: E402
 from autoedit import grade                      # noqa: E402
 
 
@@ -122,6 +123,59 @@ try:
     assert appr["status"] == "approved" and appr["edl_sha1"] == sha and appr["grade_key"] == gk
 
     assert set(gradechoice.LOOKS) == set(grade.LOOKS) - {"none"}, gradechoice.LOOKS
+    # render hashes and parses the same bytes of edl.json: one read, no window between gate and render
+    (work / "edl.json").write_text('{"events": []}')
+    gradechoice.save(work, gradechoice.Grade())
+    approve_pending(work)
+    with contextlib.redirect_stdout(io.StringIO()):
+        cli.main(["approve", proj, "--by", "Timon", "--note", "ja"])
+    reads, parsed = [], []
+    real_rb, real_rt = Path.read_bytes, Path.read_text
+
+    def rb(self):
+        if self.name == "edl.json":
+            reads.append("bytes")
+        return real_rb(self)
+
+    def rt(self, *a, **kw):
+        if self.name == "edl.json":
+            reads.append("text")
+        return real_rt(self, *a, **kw)
+
+    class Stop(Exception):
+        pass
+
+    class FakeEDL:
+        @staticmethod
+        def load(path):
+            raise AssertionError("render must not read edl.json a second time")
+
+        @staticmethod
+        def loads(data):
+            parsed.append(data)
+            raise Stop()
+
+    real_edl, Path.read_bytes, Path.read_text, cli.EDL = cli.EDL, rb, rt, FakeEDL
+    try:
+        cli.main(["render", proj])
+        raise AssertionError("render did not reach the parse")
+    except Stop:
+        pass
+    finally:
+        Path.read_bytes, Path.read_text, cli.EDL = real_rb, real_rt, real_edl
+    assert reads == ["bytes"] and parsed == [b'{"events": []}'], (reads, parsed)
+    ev = {"id": "E01", "out_in": 0, "out_out": 1, "source": None, "src_in": 0, "src_out": 1, "transition_in": "cut",
+          "treatment": "none", "params": {}}
+    d = {"project": "p", "profile": "P", "width": 1920, "height": 1080, "fps": 25.0, "accent": "#E70002", "music_offset": 0,
+         "duration": 1.0, "music": None, "notes": [], "overlays": [], "events": [ev]}
+    assert EDL.loads(json.dumps(d).encode()).events[0].id == "E01"            # same result as EDL.load
+    # storyboard/preview record the grade they were made with (webapp/studio.py state() reads it)
+    mw = work / cli.MADE_WITH["preview"]
+    cli.write_made_with(mw, gradechoice.Grade("moody", 0.8, -1.5), "rec709")
+    d = json.loads(mw.read_text())
+    assert d == {"key": gradechoice.key(gradechoice.Grade("moody", 0.8, -1.5)), "look": "moody", "strength": 0.8,
+                 "exposure": -1.5, "grade_mode": "rec709"}, d
+    assert cli.MADE_WITH["plan"].as_posix() == "storyboard/made_with.json"
 finally:
     shutil.rmtree(tmp, ignore_errors=True)
 print("grade gate ok")

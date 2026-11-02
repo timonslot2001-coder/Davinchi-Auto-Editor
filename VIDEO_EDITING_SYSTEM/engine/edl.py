@@ -57,7 +57,12 @@ class EDL:
 
     @staticmethod
     def load(path: Path) -> "EDL":
-        d = json.loads(path.read_text(encoding="utf-8"))
+        return EDL.loads(path.read_text(encoding="utf-8"))
+
+    @staticmethod
+    def loads(data: str | bytes) -> "EDL":
+        """From the file's text or bytes (render parses the exact bytes it hashed for the approval gate)."""
+        d = json.loads(data)
         d["events"] = [Event(**e) for e in d["events"]]
         d["overlays"] = [Overlay(**o) for o in d["overlays"]]
         return EDL(**d)

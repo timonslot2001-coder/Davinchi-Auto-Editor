@@ -177,7 +177,7 @@ print("grade gate ok")
 
 **Files:**
 - Create: `webapp/artifact/studio.html` (source of the published page, no data inside)
-- Publish: to the existing **AutoEdit Studio** artifact `https://claude.ai/artifact/4YCCLgHK4KozydqGCpjLQR` (`Artifact` action `read` first, then publish with `url`), capabilities `{"comments": {}, "db": {"rules": [{"path": "", "read": "view", "write": "owner"}]}, "user": {}, "assets": {}}`. After publishing, stop watching it in that session (`ArtifactComments` watch `on: false`).
+- Publish: to the existing **AutoEdit Studio** artifact (the link in `STUDIO_URL`, `start-studio-sessie.bat`; `Artifact` action `read` first, then publish with `url`), capabilities `{"comments": {}, "db": {"rules": [{"path": "", "read": "view", "write": "owner"}]}, "user": {}, "assets": {}}`. After publishing, stop watching it in that session (`ArtifactComments` watch `on: false`).
 
 **Interfaces:**
 - Consumes: db layout and request format (Task 4), browser maths (Task 5).

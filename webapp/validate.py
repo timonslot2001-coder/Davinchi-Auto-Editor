@@ -37,11 +37,15 @@ def grade_args(b, action, pr):
     The look lives in cine_montage/grade.json, so render never gets --look; preview takes a non-persisting try-out."""
     a = []
     if action == "render":
-        mode = ((pr["cine"].get("approval") or {}).get("grade_mode")) or "auto"
-        if mode != "auto" and mode in GRADES:
-            a += ["--grade", mode]
+        a += mode_args(pr["cine"])
     elif b.get("grade") in GRADES:
         a += ["--grade", b["grade"]]
     if action == "preview" and b.get("look") in LOOKS:
         a += ["--look", b["look"]]
     return a
+
+
+def mode_args(cine):
+    """The plan's --grade mode (APPROVAL.json, pending or approved; recorded by `engine plan`) as engine arguments."""
+    mode = ((cine.get("approval") or {}).get("grade_mode")) or "auto"
+    return ["--grade", mode] if mode != "auto" and mode in GRADES else []

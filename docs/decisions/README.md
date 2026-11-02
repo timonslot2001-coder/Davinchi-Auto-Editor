@@ -20,5 +20,6 @@ new record replaces it, and the old one gets `Status: superseded by NNNN`.
 | [0012](0012-grid-flow-once-travel-only.md) | Grid Flow once per video, not in cooking or clothing videos | 2026-10-30 |
 | [0013](0013-studio-artifact-comment-route.md) | The Studio Artifact talks to the PC through comments, with one executing session | 2026-11-01 |
 | [0014](0014-one-app-the-website.md) | One app: the website (also on the phone via Tailscale); the Studio Artifact is frozen | 2026-11-02 |
+| [0015](0015-render-button-is-the-approval.md) | On the website, *Ja, renderen* is the approval; no grade step | 2026-11-02 |
 
 Smaller taste feedback stays in `taste.yaml` (AutoEdit) and `EDITING_PSYCHOLOGY.md` §10 (cine montage).

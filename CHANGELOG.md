@@ -3,6 +3,15 @@
 What changed, in words you would notice in an edit or on the PC. Newest first. Small fixes are folded into the day's
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
+## 2026-11-02 — A video in 4 steps
+- A project's *Cine montage* tab starts with one path: **Clips → Muziek → Bekijken → Ja, renderen**. Pick the song
+  from a list, press *Maak voorstel*, look at the storyboard, press *Ja, renderen*. That button is your approval of
+  that plan; no sentence to type any more.
+- No grade step: every video gets your house look. *Zelf bijsturen* (folded away) still has the plan options, another
+  look, the half-size preview and QA.
+- The home page shows the next step for every project (*Clips kiezen*, *Voorstel maken*, *Bekijken → Ja, renderen*,
+  *Klaar*).
+
 ## 2026-11-02 — One app
 - Double-click `autoedit.bat` and the website opens: that is now the one app (the old dashboard and
   the separate website start file are no longer the way in). It costs no tokens.

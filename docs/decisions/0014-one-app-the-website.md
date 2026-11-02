@@ -12,7 +12,7 @@ feature was built twice (website and Studio). Every Studio click is a Claude tur
 Studio session runs, which asks for Bypass Permissions on every start. The website costs no tokens.
 
 ## Decision
-- The website is the one app. Double-clicking `autoedit.bat` opens it; `start-studio.bat` is gone.
+- The website is the one app. Double-clicking `autoedit.bat` opens it; the separate website start file is gone.
 - On the phone the website comes through Tailscale (`python -m webapp --phone`): only this PC and the devices in
   Timon's tailnet get in, everyone else gets 403 (`webapp/phone.py`). No password or token in the repo.
 - New features go into the website only. The Studio Artifact stays as it is (frozen): it keeps working while its

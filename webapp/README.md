@@ -83,6 +83,13 @@ links in `<SSD>\_Edits\<name>` (no copy) and the project reads its clips from th
 Sorting folders is done in Windows Explorer (`autoedit sort` still exists). Thumbnails and previews are cached in
 `data/library_thumbs/`.
 
+## A video in 4 steps
+A project's *Cine montage* tab starts with the path Clips → Muziek → Bekijken → **Ja, renderen**. The song list is
+your music folder (saved as `song:` in `project.yaml`); *Maak voorstel* runs `engine plan` with the title and song;
+*Ja, renderen* runs `engine approve --note "Ja, renderen (knop in de website)"` and then `engine render` (decision
+[0015](../docs/decisions/0015-render-button-is-the-approval.md)). Plan options, another look, preview and QA are under
+*Zelf bijsturen*. The home page shows each project's next step.
+
 ## Shot comments
 On the cine montage tab every shot has a number and a comment box. *Opmerkingen opslaan* writes
 `<project>/cine_montage/comments.json` (`{"12": "eruit", ...}`); tell Claude to "verwerk de opmerkingen".

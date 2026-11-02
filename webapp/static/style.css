@@ -127,6 +127,13 @@ dialog::backdrop { background: rgba(0,0,0,.6); }
 dialog menu { display: flex; justify-content: flex-end; gap: 8px; padding: 0; margin: 16px 0 0; }
 
 .ssd-move { position: sticky; top: 0; z-index: 5; }
+.steps4 { list-style: none; margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.steps4 li { display: flex; gap: 10px; align-items: flex-start; padding: 10px; border-radius: 8px; background: var(--panel2); min-width: 0; overflow-wrap: anywhere; }
+.steps4 .no { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-weight: 700;
+  border: 1.5px solid var(--muted); }
+.steps4 li.done .no { background: var(--accent); border-color: var(--accent); color: #fff; }
+.steps4 select { width: 100%; margin-top: 4px; }
+details.more > summary { cursor: pointer; padding: 10px 2px; }
 .ssd-grid { grid-template-columns: minmax(240px, 320px) 1fr; }
 .ssd-list { max-height: calc(100vh - 220px); overflow: auto; }
 .ssd-list h3 { margin: 10px 0 6px; } .ssd-list h3:first-child { margin-top: 0; }
@@ -160,5 +167,6 @@ dialog menu { display: flex; justify-content: flex-end; gap: 8px; padding: 0; ma
   .cols-2, .form { grid-template-columns: 1fr; }
   .shots { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
   .ssd-move { position: static; } .ssd-list { max-height: 45vh; }
+  .steps4 { grid-template-columns: 1fr 1fr; }
   .thumbs { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
 }

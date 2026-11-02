@@ -69,7 +69,9 @@ def create(host=None) -> Flask:
 
     @app.get("/api/file")
     def file():
-        path = request.args["path"]
+        return serve(request.args["path"])
+
+    def serve(path):
         if host.mode == "local":
             return send_file(host.file_path(path), conditional=True)
         fwd = {k: v for k, v in request.headers.items() if k.lower() in ("range", "if-none-match", "if-modified-since")}
@@ -114,6 +116,35 @@ def create(host=None) -> Flask:
             raise ValueError("date as YYYY-MM-DD")
         args = ["autoedit", "offload", name, "--soort", kind] + (["--since", since] if since else [])
         return job(args, f"Offload: {name}", None if kind == "inbox" else name)
+
+    # ------------------------------------------------------------ SSD library: look, name, move
+    @app.get("/api/library")
+    def library():
+        return host.call("library")
+
+    @app.get("/api/library/shoot")
+    def library_shoot():
+        return host.call("library_shoot", {"rel": request.args["rel"]})
+
+    @app.get("/api/library/<what>")
+    def library_media(what):
+        if what not in ("thumb", "preview"):
+            raise KeyError(what)
+        return serve(host.call(f"library_{what}", {"path": request.args["path"]}))
+
+    @app.post("/api/library/move")
+    def library_move():
+        b = request.get_json() or {}
+        name = _name(b.get("name"))
+        kind = b.get("soort")
+        if kind not in {"koken", "kleding", "smoken", "reizen", "klanten", "inbox"}:
+            raise ValueError("soort: koken, kleding, smoken, reizen, klanten or inbox")
+        folders = b.get("folders") or []
+        if not folders or not all(isinstance(f, str) and re.fullmatch(r"_?[A-Za-z]+/[^/\\]{1,120}", f) and
+                                  f.split("/", 1)[1] not in (".", "..") for f in folders):
+            raise ValueError("folders as '<Soort>/<datum naam>'")
+        return job(["autoedit", "sort", name, *folders, "--soort", kind], f"Verplaatsen: {name}",
+                   None if kind == "inbox" else name)
 
     @app.get("/api/projects/<name>")
     def project(name):

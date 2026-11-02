@@ -280,6 +280,30 @@ pre.out { background: rgb(0 0 0 / .4); border: 1px solid var(--line); border-rad
   border-radius: var(--r-sm); background: rgb(var(--warn-rgb) / .05); }
 
 .review img { width: 100%; border-radius: 10px; display: block; background: #000; }
+
+/* SSD page: shoot folders on the PC's SSD, name + move */
+select { background: rgb(0 0 0 / .35); color: var(--text); border: 1px solid var(--line2); border-radius: var(--r-sm);
+  padding: 9px 11px; font: inherit; }
+select:focus { outline: none; border-color: var(--a1); box-shadow: 0 0 0 3px rgb(var(--a1-rgb) / .18); }
+.ssd-grid { grid-template-columns: minmax(0, 340px) minmax(0, 1fr); }
+.ssd-move { position: sticky; top: 0; z-index: 3; margin-bottom: 16px; }
+.ssd-move .row > input[type=text] { flex: 1 1 200px; min-width: 0; }
+.ssd-list { max-height: calc(100vh - 230px); overflow: auto; }
+.ssd-list h3 { font: 500 11px/1.3 var(--mono); text-transform: uppercase; letter-spacing: .14em; color: var(--muted); margin: 14px 0 6px; }
+.ssd-list h3:first-child { margin-top: 0; }
+.ssd-row { display: flex; gap: 10px; align-items: flex-start; padding: 8px 9px; border-radius: var(--r-sm); cursor: pointer;
+  border: 1px solid transparent; }
+.ssd-row:hover { background: var(--panel2); }
+.ssd-row.on { background: rgb(var(--a1-rgb) / .08); border-color: rgb(var(--a1-rgb) / .28); }
+.ssd-row input { margin-top: 4px; accent-color: var(--a1); width: 16px; height: 16px; flex: none; }
+.ssd-row .nm { flex: 1; min-width: 0; } .ssd-row .nm b { font-weight: 600; overflow-wrap: anywhere; }
+.clips { display: flex; flex-direction: column; gap: 4px; max-height: 360px; overflow: auto; }
+.clip { display: flex; gap: 10px; align-items: center; padding: 6px 8px; border-radius: var(--r-sm); background: var(--panel2);
+  font: 12px/1.4 var(--mono); }
+.clip .n { color: var(--a1); min-width: 26px; } .clip .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ssd-player video { width: 100%; border-radius: 10px; background: #000; display: block; }
+@media (max-width: 900px) { .ssd-grid { grid-template-columns: minmax(0, 1fr); } .ssd-move { position: static; }
+  .ssd-list { max-height: 45vh; } }
 video { width: 100%; max-width: 100%; border-radius: 10px; background: #000; display: block; }
 
 #toasts { position: fixed; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); right: max(16px, env(safe-area-inset-right, 0px));
@@ -383,6 +407,7 @@ nav a i svg { width: 16px; height: 16px; display: block; fill: none; stroke: cur
     <a class="brand" href="#/"><span class="logo"></span><span>AutoEdit <b>Studio</b></span></a>
     <nav>
       <a href="#/" data-nav="home"><i><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2" width="5" height="5" rx="1.2"/><rect x="9" y="2" width="5" height="5" rx="1.2"/><rect x="2" y="9" width="5" height="5" rx="1.2"/><rect x="9" y="9" width="5" height="5" rx="1.2"/></svg></i><span>Projecten</span></a>
+      <a href="#/ssd" data-nav="ssd"><i><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="10" rx="1.6"/><path d="M5 10h6M5 7h3"/></svg></i><span>SSD</span></a>
       <a href="#/taken" data-nav="taken"><i><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 8.5h3l2-5 3 9 2-4h3"/></svg></i><span>Taken</span><em id="jobBadge" hidden></em></a>
     </nav>
     <div class="side-sec" id="sideProjects"></div>
@@ -455,13 +480,40 @@ nav a i svg { width: 16px; height: 16px; display: block; fill: none; stroke: cur
   }
 
   // Request text for the Studio session, exactly webapp/studio.py's format. Returns {text} or {error}.
-  const ACTIONS = ["plan", "grade", "goedkeuren", "preview", "render", "qa", "stills"];
+  const SSD = ["ssd-ververs", "ssd-bekijk", "ssd-clip", "ssd-verplaats"];
+  const ACTIONS = ["plan", "grade", "goedkeuren", "preview", "render", "qa", "stills"].concat(SSD);
   const LOOKS = ["reference_film", "clean_warm", "moody", "daylight", "blue_hour", "vintage"];
+  const SOORTEN = ["koken", "kleding", "smoken", "reizen", "klanten", "inbox"];
   const quote = (v) => '"' + String(v).replace(/[\\"]/g, (m) => "\\" + m) + '"';
   const num = (v) => String(Number((+v).toFixed(3)));
+  const MAP_RE = /^_?[A-Za-z]+\/[\p{L}\p{N}_ .,'&()\-]{1,120}$/u;
+  const CLIP_RE = /^[\w.\- ]{1,120}\.(mp4|mov|mxf|avi)$/i;
+  const NAME_RE = /^[\p{L}\p{N}_ .,'&()\-]{1,80}$/u;
+  // SSD page requests (webapp/studio.py _parse_ssd): no project; map = "<Soort>/<folder>" as listed in the db.
+  function ssdText(action, extra) {
+    let t = "[studio] actie=" + action;
+    if (action === "ssd-bekijk" || action === "ssd-clip") {
+      if (!MAP_RE.test(String(extra.map || ""))) return { error: "map onbekend" };
+      t += " map=" + quote(extra.map);
+      if (action === "ssd-clip") {
+        if (!CLIP_RE.test(String(extra.clip || ""))) return { error: "clip onbekend" };
+        t += " clip=" + quote(extra.clip);
+      }
+    } else if (action === "ssd-verplaats") {
+      const name = String(extra.name == null ? "" : extra.name).trim(), maps = Array.isArray(extra.maps) ? extra.maps : [];
+      if (!name) return { error: "geef de shoot een naam" };
+      if (!NAME_RE.test(name) || name[0] === "." || name[name.length - 1] === ".") return { error: "die naam kan geen mapnaam zijn (geen / \\ : * ? \" < > |)" };
+      if (!SOORTEN.includes(extra.soort)) return { error: "kies een soort" };
+      if (!maps.length || maps.length > 60) return { error: "vink 1 tot 60 mappen aan" };
+      if (!maps.every((m) => MAP_RE.test(String(m)))) return { error: "een map is onbekend" };
+      t += " naam=" + quote(name) + " soort=" + extra.soort + " mappen=" + quote(maps.join("|"));
+    }
+    return { text: t };
+  }
   function requestText(action, name, extra) {
     extra = extra || {};
     if (!ACTIONS.includes(action)) return { error: "onbekende actie" };
+    if (SSD.includes(action)) return ssdText(action, extra);
     if (!name || typeof name !== "string") return { error: "project onbekend" };
     let t = "[studio] actie=" + action + " project=" + quote(name);
     if (action === "grade") {
@@ -483,7 +535,7 @@ nav a i svg { width: 16px; height: 16px; display: block; fill: none; stroke: cur
     return { text: t };
   }
 
-  root.StudioMath = { clamp01, parseCube, sample, gradePixel, requestText, LOOKS };
+  root.StudioMath = { clamp01, parseCube, sample, gradePixel, requestText, LOOKS, SOORTEN };
   root.gradePixel = gradePixel;
 })(typeof window !== "undefined" ? window : globalThis);
 </script>
@@ -499,7 +551,8 @@ const LOOK_HINT = {
   reference_film: "warm, zachte zwarten", clean_warm: "eten, helder", moody: "donker, minder kleur",
   daylight: "fris, natuurlijk", blue_hour: "koel, avond", vintage: "vaal, warm",
 };
-const ACT_NL = { plan: "Plan maken", grade: "Grade kiezen", goedkeuren: "Goedkeuren", preview: "Voorbeeld", render: "Renderen", qa: "QA", stills: "Stills verversen" };
+const ACT_NL = { plan: "Plan maken", grade: "Grade kiezen", goedkeuren: "Goedkeuren", preview: "Voorbeeld", render: "Renderen", qa: "QA", stills: "Stills verversen",
+  "ssd-ververs": "SSD verversen", "ssd-bekijk": "Beelden laden", "ssd-clip": "Clip-preview", "ssd-verplaats": "Verplaatsen" };
 const JOB_NL = { bezig: "bezig", klaar: "klaar", fout: "fout" };
 
 // ------------------------------------------------------------------ helpers
@@ -528,7 +581,8 @@ const stops = (e) => { const v = +e || 0; return (v > 0 ? "+" : v < 0 ? "−" : 
 const lookName = (l) => l || "onbekend";
 const obj = (v) => (v && typeof v === "object" && !Array.isArray(v) ? v : null);
 const str = (v) => (typeof v === "string" ? v : v == null ? "" : String(v));
-const safeUrl = (u) => (typeof u === "string" && /^(https?:|blob:|data:image\/)/i.test(u) ? u : "");
+// Uploaded assets come back as "/_blob/<id>" (resolves in every view of the artifact).
+const safeUrl = (u) => (typeof u === "string" && /^(https?:|blob:|data:image\/|\/_blob\/[0-9a-f]{8,64}$)/i.test(u) ? u : "");
 
 function toast(msg, kind = "") {
   const t = document.createElement("div");
@@ -540,6 +594,7 @@ function toast(msg, kind = "") {
 const S = {
   db: null, comments: null, user: null,
   projects: new Map(), projectsReady: false, jobs: [], pc: null, real: { projects: new Map(), jobs: [] },
+  ssd: new Map(), ssdReady: false, ssdSel: new Set(),
   dbNote: "", canSend: "onbekend", owner: null,
 };
 const drafts = new Map();               // per project id: grade draft, note, still index, split
@@ -627,6 +682,10 @@ async function start() {
     applyData(); refresh();
   }, () => {});
   db.doc("studio/pc").onSnapshot((snap) => { S.pc = snap.exists ? snap.data() || null : null; refresh(); }, () => {});
+  db.collection("ssd").onSnapshot((snap) => {
+    S.ssd = new Map(snap.docs.filter((d) => d.exists !== false).map((d) => [d.id, d.data() || {}]));
+    S.ssdReady = true; refresh();
+  }, () => { S.ssdReady = true; refresh(); });
 }
 async function checkSend() {
   let v = "off";
@@ -648,7 +707,7 @@ const COMMENT_ERR = {
 };
 async function send(btn, action, p, extra) {
   if (!online()) { toast(offlineReason(), "err"); return false; }
-  const r = requestText(action, p.name, extra);
+  const r = requestText(action, p ? p.name : "", extra);
   if (r.error) { toast(r.error, "err"); return false; }
   btn.disabled = true; btn.dataset.sending = "1";
   try {
@@ -740,13 +799,13 @@ function jobsStrip(el, projectName) {
 let view = null;                                // {key, update()}
 function route() {
   const [, top = "", id = "", tab = "grade"] = location.hash.split("/").map((s) => { try { return decodeURIComponent(s); } catch (e) { return ""; } });
-  const key = top === "p" ? "p/" + id + "/" + tab : top;
-  document.querySelectorAll("nav a").forEach((a) => a.classList.toggle("on", a.dataset.nav === (top === "taken" ? "taken" : "home")));
-  if (view && view.key === key) return view.update();
+  const key = top === "p" ? "p/" + id + "/" + tab : top === "ssd" ? "ssd" : top;
+  document.querySelectorAll("nav a").forEach((a) => a.classList.toggle("on", a.dataset.nav === (top === "taken" || top === "ssd" ? top : "home")));
+  if (view && view.key === key) return view.update(id);
   if (view && view.destroy) view.destroy();
-  view = top === "p" ? projectView(id, tab) : top === "taken" ? jobsView() : homeView();
+  view = top === "p" ? projectView(id, tab) : top === "taken" ? jobsView() : top === "ssd" ? ssdView() : homeView();
   view.key = key;
-  view.update();
+  view.update(id);
 }
 function render() { renderShell(); route(); }
 let queued = false;
@@ -808,6 +867,110 @@ function jobsView() {
           `<pre class="out">${esc(j.message || "Nog geen bericht van de PC.")}</pre></details>`;
       }).join("")}</div>` : '<div class="empty">Nog geen taken. Elke knop die je indrukt, verschijnt hier met de uitkomst van je PC.</div>';
       $("#jl").querySelectorAll(".jrow").forEach((d) => (d.ontoggle = () => (d.open ? open.add(d.dataset.id) : open.delete(d.dataset.id))));
+    },
+  };
+}
+
+// ------------------------------------------------------------------ SSD: look at the shoot folders, name + move them
+// Video only (photos get their own editor later). The PC session writes ssd/<id> (one per folder with video) and,
+// after Beelden laden / Preview, the uploaded sheet and clip URLs.
+const KIND_NL = { inbox: "Weet ik nog niet (_Inbox)", koken: "Koken", kleding: "Kleding", smoken: "Smoken", reizen: "Reizen", klanten: "Klanten" };
+const size = (b) => { b = +b || 0; return b >= 1e9 ? (b / 1e9).toFixed(1).replace(".", ",") + " GB" : Math.round(b / 1e6) + " MB"; };
+const clipDur = (s) => { s = +s || 0; return s >= 3600 ? Math.floor(s / 3600) + "u" + String(Math.floor((s % 3600) / 60)).padStart(2, "0") : Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0"); };
+function ssdShoot(id) {
+  const d = S.ssd.get(id);
+  if (!d || typeof d.rel !== "string") return null;
+  return { id, rel: d.rel, kind: str(d.kind), folder: str(d.folder), name: str(d.name), date: str(d.date),
+    videos: +d.videos || 0, size: +d.size || 0, project: str(d.project), sheet: safeUrl(d.sheet_url), loaded_at: d.loaded_at,
+    clips: (Array.isArray(d.clips) ? d.clips : []).map(obj).filter((c) => c && typeof c.name === "string")
+      .map((c) => ({ n: +c.n || 0, name: c.name, duration: +c.duration || 0, preview: safeUrl(c.preview_url) })) };
+}
+function ssdView() {
+  const v = $("#view");
+  v.innerHTML = `<div class="head"><div><div class="crumb"><a href="#/">AutoEdit Studio</a></div><h1>SSD</h1></div><span class="spacer"></span>
+      <button class="ghost sm" data-pc id="ssdRefresh">Lijst verversen</button></div>
+    <div class="jobs" id="jobs"></div><div class="jobmsg" hidden></div>
+    <div class="card ssd-move"><div class="row"><b id="mvCount"></b><span class="spacer"></span>
+      <input type="text" id="mvName" maxlength="80" autocomplete="off" placeholder="Naam van de shoot, bijv. Ibiza">
+      <select id="mvKind">${StudioMath.SOORTEN.map((k) => `<option value="${k}"${k === "reizen" ? " selected" : ""}>${esc(KIND_NL[k])}</option>`).join("")}</select>
+      <button data-pc id="mvGo">Verplaatsen</button></div>
+      <div class="why" id="mvHint" style="margin-top:8px"></div></div>
+    <div class="grid ssd-grid"><div class="card ssd-list" id="sList"></div><div id="sDetail"></div></div>`;
+  let cur = "", listKey = null, detailKey = null, playing = "";
+  const list = () => [...S.ssd.keys()].map(ssdShoot).filter(Boolean);
+  function moveBar() {
+    const all = new Map(list().map((s) => [s.rel, s]));
+    [...S.ssdSel].forEach((r) => all.has(r) || S.ssdSel.delete(r));
+    const sel = [...S.ssdSel].map((r) => all.get(r)).sort((a, b) => a.date.localeCompare(b.date));
+    const name = $("#mvName", v).value.trim(), kind = $("#mvKind", v).value;
+    const r = requestText("ssd-verplaats", "", { name, soort: kind, maps: sel.map((s) => s.rel) });
+    $("#mvCount", v).textContent = sel.length ? sel.length + (sel.length === 1 ? " map geselecteerd" : " mappen geselecteerd") : "Vink mappen aan om ze een naam te geven";
+    $("#mvGo", v).dataset.block = r.error ? "1" : "";
+    const target = (kind === "inbox" ? "_Inbox" : KIND_NL[kind]) + "/" + (sel[0] ? sel[0].date : "<datum>") + " " + (name || "<naam>");
+    $("#mvHint", v).textContent = !online() ? offlineReason() : sel.length ? sel.map((s) => s.folder).join(", ") + " → " + target +
+      (kind === "inbox" ? "" : " · project “" + (name || "<naam>") + "” leest de clips daarvandaan") + " · foto's in dezelfde map gaan mee" : "De bestanden worden op de SSD verplaatst, niets wordt gekopieerd of verwijderd.";
+    $("#mvHint", v).className = "why" + (online() ? "" : " warn");
+    pcButtons(v);
+  }
+  $("#mvName", v).oninput = moveBar; $("#mvKind", v).onchange = moveBar;
+  $("#mvGo", v).onclick = (e) => {
+    const maps = [...S.ssdSel];
+    send(e.currentTarget, "ssd-verplaats", null, { name: $("#mvName", v).value, soort: $("#mvKind", v).value, maps }).then((ok) => {
+      if (ok) { S.ssdSel.clear(); $("#mvName", v).value = ""; listKey = null; refresh(); }
+    });
+  };
+  $("#ssdRefresh", v).onclick = (e) => send(e.currentTarget, "ssd-ververs", null, {});
+  function renderList() {
+    const shoots = list();
+    const key = shoots.map((s) => s.id + s.videos + s.project).join("|") + "#" + [...S.ssdSel].join("|") + "#" + cur;
+    if (key === listKey) return;
+    listKey = key;
+    const order = ["inbox", "koken", "kleding", "smoken", "reizen", "klanten"];
+    $("#sList", v).innerHTML = !S.ssdReady ? '<div class="loading">Laden…</div>' : !shoots.length
+      ? `<div class="muted">Nog geen lijst van de SSD. ${online() ? "Druk op <b>Lijst verversen</b>." : esc(offlineReason())}</div>`
+      : order.map((k) => [k, shoots.filter((s) => s.kind === k).sort((a, b) => a.folder.localeCompare(b.folder))]).filter(([, l]) => l.length)
+        .map(([k, l]) => `<h3>${esc(KIND_NL[k])} · ${l.length}</h3>` + l.map((s) => `<div class="ssd-row${s.id === cur ? " on" : ""}" data-id="${esc(s.id)}">
+          <input type="checkbox" aria-label="Selecteer ${esc(s.folder)}"${S.ssdSel.has(s.rel) ? " checked" : ""}>
+          <div class="nm"><b>${esc(s.name)}</b> <span class="muted small">${esc(s.date)}</span>
+          <div class="muted small">${s.videos} video · ${size(s.size)}${s.project ? ` · <span class="tag ok">${esc(s.project)}</span>` : ""}</div></div></div>`).join("")).join("");
+    $("#sList", v).querySelectorAll(".ssd-row").forEach((row) => {
+      const s = ssdShoot(row.dataset.id), cb = $("input", row);
+      cb.onclick = (ev) => { ev.stopPropagation(); cb.checked ? S.ssdSel.add(s.rel) : S.ssdSel.delete(s.rel); listKey = null; detailKey = null; refresh(); };
+      row.onclick = () => { location.hash = "#/ssd/" + enc(s.id); };
+    });
+  }
+  function renderDetail() {
+    const s = cur ? ssdShoot(cur) : null;
+    const key = s ? [s.id, s.sheet, s.clips.map((c) => c.name + c.preview).join(","), S.ssdSel.has(s.rel), playing, online()].join("|") : "none" + cur;
+    if (key === detailKey) { pcButtons(v); return; }
+    detailKey = key;
+    const box = $("#sDetail", v);
+    if (!s) { box.innerHTML = `<div class="empty">${cur ? "Deze map staat niet (meer) op de SSD." : "Kies links een map om de beelden te zien. Vink mappen aan om ze samen een naam te geven en te verplaatsen."}</div>`; return; }
+    const total = s.clips.reduce((a, c) => a + c.duration, 0), play = s.clips.find((c) => c.name === playing && c.preview);
+    box.innerHTML = `<div class="card stack">
+      <div class="row"><h2 style="margin:0">${esc(s.folder)}</h2><span class="spacer"></span>
+        <span class="tag">${s.videos} video${s.clips.length ? " · " + clipDur(total) : ""}</span><span class="tag">${size(s.size)}</span></div>
+      <div class="row"><button data-pc id="sLoad">${s.sheet ? "Opnieuw laden" : "Beelden laden"}</button>
+        <button class="dark" id="sPick">${S.ssdSel.has(s.rel) ? "✓ Geselecteerd" : "Selecteren"}</button></div>
+      <div class="why" id="sWhy">${s.sheet ? "Een beeld per clip, met nummer en lengte." : "Beelden laden maakt op je PC een overzicht van elke clip (duurt even bij veel clips)."}</div>
+      ${play ? `<div class="ssd-player"><div class="muted small" style="margin-bottom:6px">${play.n}. ${esc(play.name)} · preview van 20 s, zonder geluid</div><video controls autoplay muted playsinline src="${esc(play.preview)}"></video></div>` : ""}
+      ${s.sheet ? `<div class="review"><img src="${esc(s.sheet)}" alt="Overzicht van de clips in ${esc(s.folder)}"></div>` : ""}
+      ${s.clips.length ? `<div class="clips">${s.clips.map((c) => `<div class="clip"><span class="n">${c.n}.</span><span class="nm">${esc(c.name)}</span><span class="muted">${clipDur(c.duration)}</span>
+        ${c.preview ? `<button class="sm${c.name === playing ? "" : " dark"}" data-play="${esc(c.name)}">▶ Afspelen</button>` : `<button class="sm dark" data-pc data-clip="${esc(c.name)}">Preview maken</button>`}</div>`).join("")}</div>` : ""}
+    </div>`;
+    $("#sLoad", box).onclick = (e) => send(e.currentTarget, "ssd-bekijk", null, { map: s.rel });
+    $("#sPick", box).onclick = () => { S.ssdSel.has(s.rel) ? S.ssdSel.delete(s.rel) : S.ssdSel.add(s.rel); listKey = null; detailKey = null; refresh(); };
+    box.querySelectorAll("[data-clip]").forEach((b) => (b.onclick = (e) => { playing = b.dataset.clip; send(e.currentTarget, "ssd-clip", null, { map: s.rel, clip: b.dataset.clip }); }));
+    box.querySelectorAll("[data-play]").forEach((b) => (b.onclick = () => { playing = b.dataset.play; detailKey = null; refresh(); }));
+    pcButtons(v);
+  }
+  return {
+    update(id) {
+      const moved = (id || "") !== cur;
+      if (moved) { cur = id || ""; playing = ""; }
+      jobsStrip($("#jobs", v), "SSD");                            // the session writes SSD jobs with project "SSD"
+      renderList(); renderDetail(); moveBar();
+      if (moved && cur && innerWidth < 900) $("#sDetail", v).scrollIntoView({ block: "start" });   // phone: the folder is below the list
     },
   };
 }

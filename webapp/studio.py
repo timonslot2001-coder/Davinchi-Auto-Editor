@@ -408,7 +408,7 @@ def _stills(name: str) -> int:
 # ---------------------------------------------------------------- SSD page (autoedit/library.py)
 
 SSD_ASSETS = query.REPO / "data" / "studio_assets" / "ssd"
-LIST_KEYS = ("rel", "kind", "kind_folder", "folder", "name", "date", "videos", "photos", "size", "project")
+LIST_KEYS = ("rel", "kind", "kind_folder", "folder", "name", "date", "videos", "size", "project")
 
 
 def _lib():
@@ -419,12 +419,14 @@ def _lib():
 
 
 def ssd_docs() -> dict:
-    """{library connected, shoots: [ssd/<id> documents]}: listing fields only, so a merge keeps uploaded sheet URLs."""
+    """{library connected, shoots: [ssd/<id> documents]} for the folders with video; listing fields only, so a merge
+    keeps uploaded sheet URLs."""
     library, cfg = _lib()
     s = library.shoots(cfg)
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
-    return {"connected": s["connected"],
-            "shoots": [{"id": slug(r["rel"]), **{k: r[k] for k in LIST_KEYS}, "updated_at": now} for r in s["shoots"]]}
+    return {"connected": s["connected"],                         # folders with video only (photos: a later editor)
+            "shoots": [{"id": slug(r["rel"]), **{k: r[k] for k in LIST_KEYS}, "updated_at": now} for r in s["shoots"]
+                       if r["videos"]]}
 
 
 def _sheet(paths: list[Path], labels: list[str], out: Path, cols: int, w: int) -> None:
@@ -439,10 +441,19 @@ def _sheet(paths: list[Path], labels: list[str], out: Path, cols: int, w: int) -
         font = ImageFont.truetype("arialbd.ttf", 14)
     except OSError:
         font = ImageFont.load_default()
-    for i, (p, label) in enumerate(zip(paths, labels)):
+    from concurrent.futures import ThreadPoolExecutor
+
+    def thumb(p):                                                # made in parallel; cached ones return at once
+        try:
+            return library.thumb(cfg, str(p))
+        except Exception:
+            return None
+    with ThreadPoolExecutor(6) as ex:
+        thumbs = list(ex.map(thumb, paths))
+    for i, (t, label) in enumerate(zip(thumbs, labels)):
         x, y = (i % cols) * w, (i // cols) * (h + 20)
         try:
-            with Image.open(library.thumb(cfg, str(p))) as im:
+            with Image.open(t) as im:
                 im = im.convert("RGB")
                 im.thumbnail((w - 4, h - 4))
                 sheet.paste(im, (x + (w - im.width) // 2, y + (h - im.height) // 2))
@@ -479,7 +490,7 @@ def _ssd(req: dict, host=None, poll: float = 1.0) -> int:
         shoot = library.shoot(cfg, req["map"])
         sid = slug(req["map"])
         if act == "ssd-bekijk":
-            vids, photos = shoot["videos"], shoot["photos"][:60]
+            vids = shoot["videos"]                               # video only; photos get their own editor later
             out_dir = SSD_ASSETS / sid
             assets = {}
             if vids:
@@ -487,14 +498,10 @@ def _ssd(req: dict, host=None, poll: float = 1.0) -> int:
                        [f"{i}. {Path(v['name']).stem[:14]}  {_dur(v['duration'])}" for i, v in enumerate(vids, 1)],
                        out_dir / "clips.jpg", cols=6, w=260)
                 assets["sheet"] = (out_dir / "clips.jpg").relative_to(query.REPO).as_posix()
-            if photos:
-                _sheet([Path(p["path"]) for p in photos], [str(i) for i in range(1, len(photos) + 1)],
-                       out_dir / "photos.jpg", cols=8, w=200)
-                assets["photos"] = (out_dir / "photos.jpg").relative_to(query.REPO).as_posix()
             clips = [{"n": i, "name": v["name"], "duration": round(v["duration"], 1), "size": v["size"]}
                      for i, v in enumerate(vids, 1)]
-            _out({"ok": True, "action": act, "id": sid, "message": f"{req['map']}: {len(vids)} clips, "
-                  f"{len(shoot['photos'])} foto's", "clips": clips, "assets": assets})
+            _out({"ok": True, "action": act, "id": sid, "message": f"{req['map']}: {len(vids)} clips",
+                  "clips": clips, "assets": assets})
             return 0
         clip = next((v for v in shoot["videos"] if v["name"] == req["clip"]), None)
         if clip is None:

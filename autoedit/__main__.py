@@ -56,6 +56,7 @@ def main(argv=None):
                    help="kind of video → folder on the SSD (default: _Inbox, sort it later)")
     a.add_argument("--since", help="only files from this day on, YYYY-MM-DD")
     a.add_argument("--no-project", action="store_true", help="don't make/link the AutoEdit project")
+    sub.add_parser("thumbs", help="make the thumbnails of every clip on the SSD ahead of time (the SSD page opens at once)")
     a = sub.add_parser("sort", help="name shoot folders on the SSD and move them to a kind (e.g. out of _Inbox)")
     a.add_argument("name", help="name of the shoot, e.g. 'Ibiza'")
     a.add_argument("folders", nargs="+", help="shoot folders as '<Soort>/<datum naam>', e.g. '_Inbox/2026-10-09 SD-kaart'")
@@ -198,6 +199,9 @@ def main(argv=None):
     elif args.cmd == "offload":
         from . import offload
         offload.offload(cfg, args.name, args.soort, args.since, link=not args.no_project)
+    elif args.cmd == "thumbs":
+        from . import library
+        con.print(f"[green]{library.warm(cfg)} clip(s) ready[/] (thumbnails in {library.CACHE})")
     elif args.cmd == "sort":
         from . import library
         library.move(cfg, args.name, args.soort, args.folders, link=not args.no_project)

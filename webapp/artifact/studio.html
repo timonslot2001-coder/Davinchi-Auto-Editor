@@ -584,7 +584,8 @@ const stops = (e) => { const v = +e || 0; return (v > 0 ? "+" : v < 0 ? "−" : 
 const lookName = (l) => l || "onbekend";
 const obj = (v) => (v && typeof v === "object" && !Array.isArray(v) ? v : null);
 const str = (v) => (typeof v === "string" ? v : v == null ? "" : String(v));
-const safeUrl = (u) => (typeof u === "string" && /^(https?:|blob:|data:image\/)/i.test(u) ? u : "");
+// Uploaded assets come back as "/_blob/<id>" (resolves in every view of the artifact).
+const safeUrl = (u) => (typeof u === "string" && /^(https?:|blob:|data:image\/|\/_blob\/[0-9a-f]{8,64}$)/i.test(u) ? u : "");
 
 function toast(msg, kind = "") {
   const t = document.createElement("div");
@@ -1068,7 +1069,8 @@ function jobsView() {
 }
 
 // ------------------------------------------------------------------ SSD: look at the shoot folders, name + move them
-// The PC session writes ssd/<id> (one per folder) and, after Beelden laden / Preview, the uploaded sheet and clip URLs.
+// Video only (photos get their own editor later). The PC session writes ssd/<id> (one per folder with video) and,
+// after Beelden laden / Preview, the uploaded sheet and clip URLs.
 const KIND_NL = { inbox: "Weet ik nog niet (_Inbox)", koken: "Koken", kleding: "Kleding", smoken: "Smoken", reizen: "Reizen", klanten: "Klanten" };
 const size = (b) => { b = +b || 0; return b >= 1e9 ? (b / 1e9).toFixed(1).replace(".", ",") + " GB" : Math.round(b / 1e6) + " MB"; };
 const clipDur = (s) => { s = +s || 0; return s >= 3600 ? Math.floor(s / 3600) + "u" + String(Math.floor((s % 3600) / 60)).padStart(2, "0") : Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0"); };
@@ -1076,8 +1078,7 @@ function ssdShoot(id) {
   const d = S.ssd.get(id);
   if (!d || typeof d.rel !== "string") return null;
   return { id, rel: d.rel, kind: str(d.kind), folder: str(d.folder), name: str(d.name), date: str(d.date),
-    videos: +d.videos || 0, photos: +d.photos || 0, size: +d.size || 0, project: str(d.project),
-    sheet: safeUrl(d.sheet_url), photosSheet: safeUrl(d.photos_url), loaded_at: d.loaded_at,
+    videos: +d.videos || 0, size: +d.size || 0, project: str(d.project), sheet: safeUrl(d.sheet_url), loaded_at: d.loaded_at,
     clips: (Array.isArray(d.clips) ? d.clips : []).map(obj).filter((c) => c && typeof c.name === "string")
       .map((c) => ({ n: +c.n || 0, name: c.name, duration: +c.duration || 0, preview: safeUrl(c.preview_url) })) };
 }
@@ -1104,7 +1105,7 @@ function ssdView() {
     $("#mvGo", v).dataset.block = r.error ? "1" : "";
     const target = (kind === "inbox" ? "_Inbox" : KIND_NL[kind]) + "/" + (sel[0] ? sel[0].date : "<datum>") + " " + (name || "<naam>");
     $("#mvHint", v).textContent = !online() ? offlineReason() : sel.length ? sel.map((s) => s.folder).join(", ") + " → " + target +
-      (kind === "inbox" ? "" : " · project “" + (name || "<naam>") + "” leest de clips daarvandaan") : "De bestanden worden op de SSD verplaatst, niets wordt gekopieerd of verwijderd.";
+      (kind === "inbox" ? "" : " · project “" + (name || "<naam>") + "” leest de clips daarvandaan") + " · foto's in dezelfde map gaan mee" : "De bestanden worden op de SSD verplaatst, niets wordt gekopieerd of verwijderd.";
     $("#mvHint", v).className = "why" + (online() ? "" : " warn");
     pcButtons(v);
   }
@@ -1118,7 +1119,7 @@ function ssdView() {
   $("#ssdRefresh", v).onclick = (e) => send(e.currentTarget, "ssd-ververs", null, {});
   function renderList() {
     const shoots = list();
-    const key = shoots.map((s) => s.id + s.videos + s.photos + s.project).join("|") + "#" + [...S.ssdSel].join("|") + "#" + cur;
+    const key = shoots.map((s) => s.id + s.videos + s.project).join("|") + "#" + [...S.ssdSel].join("|") + "#" + cur;
     if (key === listKey) return;
     listKey = key;
     const order = ["inbox", "koken", "kleding", "smoken", "reizen", "klanten"];
@@ -1128,7 +1129,7 @@ function ssdView() {
         .map(([k, l]) => `<h3>${esc(KIND_NL[k])} · ${l.length}</h3>` + l.map((s) => `<div class="ssd-row${s.id === cur ? " on" : ""}" data-id="${esc(s.id)}">
           <input type="checkbox" aria-label="Selecteer ${esc(s.folder)}"${S.ssdSel.has(s.rel) ? " checked" : ""}>
           <div class="nm"><b>${esc(s.name)}</b> <span class="muted small">${esc(s.date)}</span>
-          <div class="muted small">${s.videos} video · ${s.photos} foto · ${size(s.size)}${s.project ? ` · <span class="tag ok">${esc(s.project)}</span>` : ""}</div></div></div>`).join("")).join("");
+          <div class="muted small">${s.videos} video · ${size(s.size)}${s.project ? ` · <span class="tag ok">${esc(s.project)}</span>` : ""}</div></div></div>`).join("")).join("");
     $("#sList", v).querySelectorAll(".ssd-row").forEach((row) => {
       const s = ssdShoot(row.dataset.id), cb = $("input", row);
       cb.onclick = (ev) => { ev.stopPropagation(); cb.checked ? S.ssdSel.add(s.rel) : S.ssdSel.delete(s.rel); listKey = null; detailKey = null; refresh(); };
@@ -1137,7 +1138,7 @@ function ssdView() {
   }
   function renderDetail() {
     const s = cur ? ssdShoot(cur) : null;
-    const key = s ? [s.id, s.sheet, s.photosSheet, s.clips.map((c) => c.name + c.preview).join(","), S.ssdSel.has(s.rel), playing, online()].join("|") : "none" + cur;
+    const key = s ? [s.id, s.sheet, s.clips.map((c) => c.name + c.preview).join(","), S.ssdSel.has(s.rel), playing, online()].join("|") : "none" + cur;
     if (key === detailKey) { pcButtons(v); return; }
     detailKey = key;
     const box = $("#sDetail", v);
@@ -1145,15 +1146,15 @@ function ssdView() {
     const total = s.clips.reduce((a, c) => a + c.duration, 0), play = s.clips.find((c) => c.name === playing && c.preview);
     box.innerHTML = `<div class="card stack">
       <div class="row"><h2 style="margin:0">${esc(s.folder)}</h2><span class="spacer"></span>
-        <span class="tag">${s.videos} video${s.clips.length ? " · " + clipDur(total) : ""}</span><span class="tag">${s.photos} foto</span><span class="tag">${size(s.size)}</span></div>
-      <div class="row"><button data-pc id="sLoad">${s.sheet || s.photosSheet ? "Opnieuw laden" : "Beelden laden"}</button>
+        <span class="tag">${s.videos} video${s.clips.length ? " · " + clipDur(total) : ""}</span><span class="tag">${size(s.size)}</span></div>
+      <div class="row"><button data-pc id="sLoad">${s.sheet ? "Opnieuw laden" : "Beelden laden"}</button>
         <button class="dark" id="sPick">${S.ssdSel.has(s.rel) ? "✓ Geselecteerd" : "Selecteren"}</button></div>
-      <div class="why" id="sWhy">${s.sheet || s.photosSheet ? "Een beeld per clip, met nummer en lengte." : "Beelden laden maakt op je PC een overzicht van elke clip en foto (duurt even bij veel clips)."}</div>
+      <div class="why" id="sWhy">${s.sheet ? "Een beeld per clip, met nummer en lengte." : "Beelden laden maakt op je PC een overzicht van elke clip (duurt even bij veel clips)."}</div>
       ${play ? `<div class="ssd-player"><div class="muted small" style="margin-bottom:6px">${play.n}. ${esc(play.name)} · preview van 20 s, zonder geluid</div><video controls autoplay muted playsinline src="${esc(play.preview)}"></video></div>` : ""}
       ${s.sheet ? `<div class="review"><img src="${esc(s.sheet)}" alt="Overzicht van de clips in ${esc(s.folder)}"></div>` : ""}
       ${s.clips.length ? `<div class="clips">${s.clips.map((c) => `<div class="clip"><span class="n">${c.n}.</span><span class="nm">${esc(c.name)}</span><span class="muted">${clipDur(c.duration)}</span>
         ${c.preview ? `<button class="sm${c.name === playing ? "" : " dark"}" data-play="${esc(c.name)}">▶ Afspelen</button>` : `<button class="sm dark" data-pc data-clip="${esc(c.name)}">Preview maken</button>`}</div>`).join("")}</div>` : ""}
-      ${s.photosSheet ? `<h2 style="margin:6px 0 0">Foto's</h2><div class="review"><img src="${esc(s.photosSheet)}" alt="Foto's in ${esc(s.folder)}"></div>` : ""}</div>`;
+    </div>`;
     $("#sLoad", box).onclick = (e) => send(e.currentTarget, "ssd-bekijk", null, { map: s.rel });
     $("#sPick", box).onclick = () => { S.ssdSel.has(s.rel) ? S.ssdSel.delete(s.rel) : S.ssdSel.add(s.rel); listKey = null; detailKey = null; refresh(); };
     box.querySelectorAll("[data-clip]").forEach((b) => (b.onclick = (e) => { playing = b.dataset.clip; send(e.currentTarget, "ssd-clip", null, { map: s.rel, clip: b.dataset.clip }); }));

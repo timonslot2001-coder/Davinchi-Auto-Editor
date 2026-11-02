@@ -58,6 +58,11 @@ pv = Path(library.preview(cfg, one["videos"][0]["path"]))
 assert pv.exists() and pv.suffix == ".mp4"
 assert library.thumb(cfg, one["videos"][0]["path"]) == str(t), "cached"
 
+# warm makes every thumbnail ahead of time (cached), for all folders with video
+for f in library.CACHE.glob("*.jpg"):
+    f.unlink()
+assert library.warm(cfg) == 3 and len(list(library.CACHE.glob("*.jpg"))) == 3
+
 # only shoot folders and files on the SSD
 for bad in ("..", "_Inbox/..", "Koken", "Nope/x", "_Inbox/2026-10-09 SD-kaart/1 Ruw"):
     try:

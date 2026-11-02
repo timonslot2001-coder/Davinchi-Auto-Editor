@@ -170,6 +170,28 @@ def thumb(cfg, path: str) -> str:
     return str(out)
 
 
+def warm(cfg, rels: list[str] | None = None, workers: int = 6) -> int:
+    """Make the lengths and thumbnails of every clip ahead of time (all folders with video, or just `rels`), so the SSD
+    page opens at once. Cached, so a second run only does what is new. Returns the number of clips."""
+    if rels is None:
+        rels = [r["rel"] for r in shoots(cfg)["shoots"] if r["videos"]]
+    clips = []
+    for rel in rels:
+        try:
+            clips += _media(resolve_shoot(cfg, rel))[0]
+        except (ValueError, FileNotFoundError):
+            continue
+    def one(f):
+        try:
+            duration(f)
+            thumb(cfg, str(f))
+        except Exception as e:                                    # one odd clip never stops the rest
+            con.print(f"[yellow]  thumbnail of {f.name} failed: {e}[/]")
+    with ThreadPoolExecutor(workers) as ex:
+        list(ex.map(one, clips))
+    return len(clips)
+
+
 def preview(cfg, path: str) -> str:
     """A small H.264 clip (20 s from 10 % in, 640 px, no sound) that every browser plays; cached; returns its path."""
     f = _inside_library(cfg, path)
@@ -274,7 +296,9 @@ def move(cfg, name: str, kind: str, sources: list[str], link: bool = True) -> di
     con.print(f"[green]{total} file(s) moved[/] → {target}")
     if relinked:
         con.print(f"  project(s) {', '.join(sorted(set(relinked)))} now read their clips from the new place")
-    if project:
+    if total:
+        warm(cfg, [f"{target.parent.name}/{target.name}"])       # thumbnails ready for the SSD page
+    if project and (project / "clips").resolve() == (target / "1 Ruw" / "Video").resolve():
         con.print(f"  AutoEdit project [bold]{project.name}[/] reads its clips from {target / '1 Ruw' / 'Video'}")
     return {"moved": total, "shoot": str(target), "project": str(project) if project else None,
             "relinked": sorted(set(relinked))}

@@ -46,8 +46,7 @@ browser), plan + storyboard, preview video, approve, render, QA, result.
 - **New version of the page:** publish `artifact/studio.html` again to the same link (Claude: Artifact publish with the
   same file), then stop watching it in that session.
 - **PC off:** the page shows *Studio-sessie op je PC is niet bereikbaar*; the grade preview still works.
-- **SSD** (also in the Studio): the shoot folders on the SSD. *Beelden laden* uploads a contact sheet of the clips and
-  photos, *Preview maken* a 20 s clip of 640 px, and *Verplaatsen* runs `autoedit sort` (`actie=ssd-...`, see the skill).
+- **SSD** (also in the Studio): the shoot folders with video on the SSD. *Beelden laden* uploads a contact sheet of the clips, *Preview maken* a 20 s clip of 640 px, and *Verplaatsen* runs `autoedit sort` (`actie=ssd-...`, see the skill).
 Decision: [0013](../docs/decisions/0013-studio-artifact-comment-route.md).
 
 ## Approval gates (unchanged)
@@ -74,8 +73,8 @@ the camera card go to the SSD (`<Soort>\<date> <name>\1 Ruw`), checked, card unt
 in the Resolve PC, because the worker does the copying. See the main [README](../README.md#offload-a-card-to-your-ssd).
 
 ## SSD
-The *SSD* page lists every shoot folder on the SSD (`_Inbox` first), shows a thumbnail per clip and photo and plays a
-clip (the original where the browser plays HEVC, else a 20 s H.264 preview made on demand). Tick folders, give a name
+The *SSD* page lists every shoot folder with video on the SSD (`_Inbox` first; photo-only folders are left out),
+shows a thumbnail per clip and plays a clip (the original where the browser plays HEVC, else a 20 s H.264 preview made on demand). Tick folders, give a name
 and a kind, and *Verplaatsen* runs `autoedit sort "<name>" <folders> --soort <soort>`: the files move on the SSD into
 `<Soort>\<date> <name>` and the project is linked. Thumbnails and previews are cached in `data/library_thumbs/`.
 

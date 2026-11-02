@@ -369,12 +369,13 @@ async function ssd(open) {
       <div class="empty">De SSD (${esc(lib.library)}) is niet aangesloten op de pc.</div>`;
     return;
   }
-  const byRel = Object.fromEntries(lib.shoots.map((s) => [s.rel, s]));
+  const shoots = lib.shoots.filter((s) => s.videos > 0);          // video only; photos get their own editor later
+  const byRel = Object.fromEntries(shoots.map((s) => [s.rel, s]));
   [...ssdSel].forEach((r) => byRel[r] || ssdSel.delete(r));
-  const groups = lib.kinds.map((k) => [k, lib.shoots.filter((s) => s.kind === k.kind)]).sort((a, b) => (a[0].kind !== "inbox") - (b[0].kind !== "inbox"));
+  const groups = lib.kinds.map((k) => [k, shoots.filter((s) => s.kind === k.kind)]).sort((a, b) => (a[0].kind !== "inbox") - (b[0].kind !== "inbox"));
   main.innerHTML = `
     <div class="head"><div><div class="crumb">AutoEdit</div><h1>SSD</h1></div><span class="spacer"></span>
-      <span class="muted small">${esc(lib.library)} · ${lib.shoots.length} mappen</span></div>
+      <span class="muted small">${esc(lib.library)} · ${shoots.length} mappen met video</span></div>
     <div class="card ssd-move"><div class="row">
       <b id="sdCount"></b><span class="spacer"></span>
       <input id="sdName" placeholder="Naam van de shoot, bijv. Ibiza" style="max-width:260px">
@@ -385,7 +386,7 @@ async function ssd(open) {
       <div class="card ssd-list">${groups.map(([k, list]) => `<h3>${esc(KIND_LABEL[k.kind] || k.folder)} <span class="muted small">${list.length}</span></h3>
         ${list.map((s) => `<div class="ssd-row" data-rel="${esc(s.rel)}"><input type="checkbox" ${ssdSel.has(s.rel) ? "checked" : ""}>
           <div class="nm"><b>${esc(s.name)}</b> <span class="muted small">${esc(s.date || "")}</span>
-          <div class="muted small">${s.videos} video · ${s.photos} foto · ${mb(s.size)}${s.project ? ` · <span class="tag ok">project: ${esc(s.project)}</span>` : ""}</div></div></div>`).join("") || '<div class="muted small" style="margin-bottom:10px">leeg</div>'}`).join("")}</div>
+          <div class="muted small">${s.videos} video · ${mb(s.size)}${s.project ? ` · <span class="tag ok">project: ${esc(s.project)}</span>` : ""}</div></div></div>`).join("") || '<div class="muted small" style="margin-bottom:10px">leeg</div>'}`).join("")}</div>
       <div id="sdShoot"><div class="empty">Klik links op een map om de beelden te zien. Vink mappen aan om ze samen een naam te geven en te verplaatsen.</div></div>
     </div>`;
   const update = () => {
@@ -394,7 +395,7 @@ async function ssd(open) {
     $("#sdCount").textContent = sel.length ? `${sel.length} map(pen) geselecteerd` : "Vink mappen aan om ze te verplaatsen";
     $("#sdGo").disabled = !sel.length || !name;
     $("#sdHint").textContent = sel.length ? `${sel.map((s) => s.folder).join(", ")} → ${kind.folder}/${sel[0].date || "<datum>"} ${name || "<naam>"}/`
-      + (kind.kind === "inbox" ? "" : `  · project "${name || "<naam>"}" leest de clips daarvandaan`) : "";
+      + (kind.kind === "inbox" ? "" : `  · project "${name || "<naam>"}" leest de clips daarvandaan`) + "  · foto's in dezelfde map gaan mee" : "";
   };
   document.querySelectorAll(".ssd-row").forEach((row) => {
     const cb = $("input", row), rel = row.dataset.rel;
@@ -419,29 +420,22 @@ async function showShoot(rel) {
   const s = await guard(() => api("/api/library/shoot?rel=" + enc(rel)));
   if (!s || !$("#sdShoot") || location.hash !== "#/ssd/" + enc(rel)) return;
   const total = s.videos.reduce((a, v) => a + v.duration, 0);
-  const SHOW = 60;
   box.innerHTML = `<div class="card stack">
     <div class="row"><h2 style="margin:0">${esc(rel.split("/")[1])}</h2><span class="spacer"></span>
-      <span class="tag">${s.videos.length} video · ${dur(total)}</span><span class="tag">${s.photos.length + s.raw} foto</span><span class="tag">${mb(s.size)}</span>
+      <span class="tag">${s.videos.length} video · ${dur(total)}</span><span class="tag">${mb(s.size)}</span>
       <button class="sm ${ssdSel.has(rel) ? "dark" : ""}" id="sdPick">${ssdSel.has(rel) ? "✓ geselecteerd" : "Selecteren"}</button></div>
     <div id="sdPlayer" hidden></div>
     ${s.videos.length ? `<div class="thumbs">${s.videos.map((v, i) => `<div class="th" data-i="${i}" title="${esc(v.name)}">
       <img loading="lazy" src="${thumbUrl(v.path)}" alt=""><span class="d">${dur(v.duration)}</span><span class="n">${esc(v.name.replace(/\.[^.]+$/, ""))}</span></div>`).join("")}</div>` : '<div class="muted">Geen video’s.</div>'}
-    ${s.photos.length ? `<h3 style="margin-top:6px">Foto’s <span class="muted small">${s.photos.length} jpg${s.raw ? ` + ${s.raw} raw` : ""}</span></h3>
-      <div class="thumbs photos" id="sdPhotos"></div>${s.photos.length > SHOW ? `<button class="dark sm" id="sdMore">Alle ${s.photos.length} foto’s tonen</button>` : ""}` : ""}
   </div>`;
-  const photos = (n) => ($("#sdPhotos").innerHTML = s.photos.slice(0, n).map((p) => `<a class="th" target="_blank" href="${fileUrl(p.path)}" title="${esc(p.name)}">
-    <img loading="lazy" src="${thumbUrl(p.path)}" alt=""></a>`).join(""));
-  if (s.photos.length) photos(SHOW);
   if (innerWidth < 900) box.scrollIntoView({ block: "start" });      // phone: the shoot is below the list
-  if ($("#sdMore")) $("#sdMore").onclick = () => { photos(s.photos.length); $("#sdMore").remove(); };
   $("#sdPick").onclick = () => {
     const row = document.querySelector(`.ssd-row[data-rel="${CSS.escape(rel)}"]`);
     if (row) $("input", row).click();
     $("#sdPick").textContent = ssdSel.has(rel) ? "✓ geselecteerd" : "Selecteren";
     $("#sdPick").classList.toggle("dark", ssdSel.has(rel));
   };
-  box.querySelectorAll(".thumbs:not(.photos) .th").forEach((th) => (th.onclick = () => {
+  box.querySelectorAll(".thumbs .th").forEach((th) => (th.onclick = () => {
     const v = s.videos[+th.dataset.i], pl = $("#sdPlayer");
     box.querySelectorAll(".th.on").forEach((x) => x.classList.remove("on")); th.classList.add("on");
     pl.hidden = false;

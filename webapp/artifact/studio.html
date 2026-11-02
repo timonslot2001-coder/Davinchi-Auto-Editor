@@ -584,7 +584,8 @@ const stops = (e) => { const v = +e || 0; return (v > 0 ? "+" : v < 0 ? "−" : 
 const lookName = (l) => l || "onbekend";
 const obj = (v) => (v && typeof v === "object" && !Array.isArray(v) ? v : null);
 const str = (v) => (typeof v === "string" ? v : v == null ? "" : String(v));
-const safeUrl = (u) => (typeof u === "string" && /^(https?:|blob:|data:image\/)/i.test(u) ? u : "");
+// Uploaded assets come back as "/_blob/<id>" (resolves in every view of the artifact).
+const safeUrl = (u) => (typeof u === "string" && /^(https?:|blob:|data:image\/|\/_blob\/[0-9a-f]{8,64}$)/i.test(u) ? u : "");
 
 function toast(msg, kind = "") {
   const t = document.createElement("div");

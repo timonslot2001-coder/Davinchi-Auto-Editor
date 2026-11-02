@@ -54,6 +54,8 @@ entry; the full list is in `git log`. Hard-to-reverse choices also get a record 
 - The Studio lives at https://claude.ai/artifact/4YCCLgHK4KozydqGCpjLQR (account timon@juict.nl, the account the
   Claude app on the PC uses); `start-studio-sessie.bat` points there. Every project with a cine montage shows up,
   client projects included.
+- Moving clips on the SSD page waits for nothing: while a plan, preview or render runs on the PC it is refused with a
+  short message, so footage never moves under a running job. Try again when the job is done.
 
 ## 2026-10-31 — Offload to your SSD
 - New `autoedit offload "<shoot>" --soort koken` (and *SD-kaart offloaden* on the website): copies photos and videos

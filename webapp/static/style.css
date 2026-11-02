@@ -140,6 +140,10 @@ dialog menu { display: flex; justify-content: flex-end; gap: 8px; padding: 0; ma
 .th.on, .th:hover { border-color: var(--accent); }
 .th .d, .th .n { position: absolute; bottom: 3px; background: rgba(0,0,0,.75); font-size: 11px; padding: 0 5px; border-radius: 4px; }
 .th .d { right: 3px; } .th .n { left: 3px; color: var(--muted); }
+.th .ck { position: absolute; top: 4px; right: 4px; width: 26px; height: 26px; padding: 0; border-radius: 50%; font-size: 14px;
+  background: rgba(0,0,0,.55); border: 1.5px solid rgba(255,255,255,.7); color: transparent; box-shadow: none; }
+.th.pk { border-color: var(--accent); box-shadow: inset 0 0 0 2px var(--accent); }
+.th.pk .ck { background: var(--accent); border-color: var(--accent); color: #fff; }
 #sdPlayer video { max-height: 50vh; }
 
 .empty { color: var(--muted); padding: 30px; text-align: center; border: 1px dashed var(--line); border-radius: var(--r); }

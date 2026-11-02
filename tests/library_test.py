@@ -93,6 +93,33 @@ c = day("2026-10-11 SD-kaart", videos=["C0254.MP4"])
 r = library.move(cfg, "ibiza", "reizen", ["_Inbox/2026-10-11 SD-kaart"])
 assert r["shoot"] == str(shoot) and (shoot / "1 Ruw" / "Video" / "C0254.MP4").exists() and not c.exists(), r
 
+# pick clips from two shoots into one edit: hard links in _Edits/<name>, the project reads from there
+d = day("2026-10-20 SD-kaart", videos=["C0300.MP4", "C0202.MP4"])
+kas = lib / "Koken" / "2026-10-20 Kas"
+kas.parent.mkdir(parents=True, exist_ok=True)
+os.replace(d, kas)
+r = library.pick(cfg, "Kort", ["Reizen/2026-10-09 Ibiza/C0230.MP4", "Koken/2026-10-20 Kas/C0300.MP4",
+                               "Reizen/2026-10-09 Ibiza/C0202.MP4", "Koken/2026-10-20 Kas/C0202.MP4"])
+edits = lib / "_Edits" / "Kort"
+assert r["added"] == 4 and r["clips"] == 4, r
+assert sorted(p.name for p in edits.iterdir()) == ["2026-10-20 Kas C0202.MP4", "C0202.MP4", "C0230.MP4", "C0300.MP4"]
+assert os.path.samefile(edits / "C0230.MP4", shoot / "1 Ruw" / "Video" / "C0230.MP4"), "a hard link, not a copy"
+assert (shoot / "1 Ruw" / "Video" / "C0230.MP4").exists(), "the original stays"
+assert (projects / "Kort" / "clips").resolve() == edits.resolve()
+r = library.pick(cfg, "Kort", ["Reizen/2026-10-09 Ibiza/C0230.MP4", "Reizen/2026-10-09 Ibiza/C0254.MP4"])
+assert r["added"] == 1 and r["already"] == 1 and r["clips"] == 5, r
+assert library.shoots(cfg)["shoots"] and not any(s["rel"].startswith("_Edits") for s in library.shoots(cfg)["shoots"])
+# picking into a project that read a whole shoot keeps its clips (linked into the edit too)
+r = library.pick(cfg, "Ibiza", ["Koken/2026-10-20 Kas/C0300.MP4"])
+assert r["clips"] == 5 and (projects / "Ibiza" / "clips").resolve() == (lib / "_Edits" / "Ibiza").resolve(), r
+assert len(list((shoot / "1 Ruw" / "Video").glob("*.MP4"))) == 4, "the shoot folder itself is untouched"
+for bad in (["Reizen/2026-10-09 Ibiza/nope.MP4"], ["Reizen/../C0230.MP4"], ["C:/Windows/x.mp4"], []):
+    try:
+        library.pick(cfg, "Kort", bad)
+        raise AssertionError(f"accepted {bad!r}")
+    except SystemExit:
+        pass
+
 # bad names / kinds are refused
 for args in (("..", "reizen", ["Reizen/2026-10-09 Ibiza"]), ("x", "nope", ["Reizen/2026-10-09 Ibiza"]),
              ("x", "reizen", ["Reizen/../.."]), ("x", "reizen", [])):

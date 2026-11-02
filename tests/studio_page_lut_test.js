@@ -64,6 +64,8 @@ const exact = [
     '[studio] actie=ssd-clip map="Reizen/2025-08-11 Mongolië" clip="C0203.MP4"'],
   [T("ssd-verplaats", "", { name: " Ibiza ", soort: "reizen", maps: ["_Inbox/2026-10-09 SD-kaart", "_Inbox/2026-10-10 SD-kaart"] }),
     '[studio] actie=ssd-verplaats naam="Ibiza" soort=reizen mappen="_Inbox/2026-10-09 SD-kaart|_Inbox/2026-10-10 SD-kaart"'],
+  [T("ssd-edit", "", { name: " Kort ", clips: ["Smoken/2026-07-25 Smoke Sesh/C0184.MP4", "Reizen/2025-08-11 Mongolië/C0203.MP4"] }),
+    '[studio] actie=ssd-edit naam="Kort" clips="Smoken/2026-07-25 Smoke Sesh/C0184.MP4|Reizen/2025-08-11 Mongolië/C0203.MP4"'],
 ];
 for (const [got, want] of exact) check(got.text === want, `request ${JSON.stringify(got)} != ${want}`);
 const bad = [
@@ -82,6 +84,9 @@ const bad = [
   T("ssd-bekijk", "", { map: "C:/Windows" }),
   T("ssd-clip", "", { map: "_Inbox/2026-10-09 SD-kaart", clip: "../../x.mp4" }),
   T("ssd-verplaats", "", { name: "a/b", soort: "reizen", maps: ["_Inbox/x"] }),
+  T("ssd-edit", "", { name: "Kort", clips: [] }),
+  T("ssd-edit", "", { name: "Kort", clips: ["_Inbox/../../x.mp4"] }),
+  T("ssd-edit", "", { name: "a/b", clips: ["_Inbox/x/C0001.MP4"] }),
   T("ssd-verplaats", "", { name: "Ibiza", soort: "vakantie", maps: ["_Inbox/x"] }),
   T("ssd-verplaats", "", { name: "Ibiza", soort: "reizen", maps: [] }),
   T("ssd-verplaats", "", { name: "Ibiza", soort: "reizen", maps: ['_Inbox/x" naam="y'] }),

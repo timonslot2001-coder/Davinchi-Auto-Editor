@@ -69,7 +69,7 @@ async function loadStatus() {
   const s = await api("/api/status").catch(() => null);
   const dot = (on, label) => `<div><span class="dot ${on ? "on" : on === false ? "off" : ""}"></span>${label}</div>`;
   $("#sideStatus").innerHTML = s
-    ? dot(true, s.mode === "docker" ? "Docker → Windows-worker" : "Lokaal op deze pc") + dot(s.resolve, "DaVinci Resolve") + dot(s.comfyui, "ComfyUI (lokale AI)")
+    ? dot(true, s.mode === "docker" ? "Docker → Windows-worker" : "Lokaal op deze pc") + dot(s.resolve, "DaVinci Resolve") + dot(s.ssd, "SSD aangesloten") + dot(s.comfyui, "ComfyUI (lokale AI)")
     : dot(false, "Geen verbinding met de worker");
 }
 
@@ -182,9 +182,13 @@ function tabCine() {
     ${step(3, c.has_plan, "Bekijken", c.has_plan
       ? `${c.sheet ? `<a class="tag blue" target="_blank" href="${fileUrl(c.sheet)}">storyboard ↗</a> ` : ""}${c.shots.length} shots · ${(+c.duration).toFixed(1)} s <button class="ghost sm" id="pPlan">Nieuw voorstel</button>`
       : `<button class="sm" id="pPlan" ${P.clips.length ? "" : "disabled"}>Maak voorstel</button>`)}
-    ${step(4, rendered, "Renderen", rendered ? `klaar: ${esc(cineExports[0].name)}`
+    ${step(4, rendered, "Renderen", rendered ? `klaar: ${esc(cineExports[0].name)} <button class="sm" id="pPost">Plannen</button>`
       : `<button class="sm" id="pGo" ${c.has_plan ? "" : "disabled"}>Ja, renderen</button>`)}
-  </ol><p class="muted small" style="margin:8px 0 0">Kleur: je huisstijl-look${c.grade.look !== "reference_film" ? ` (nu: ${esc(c.grade.look)})` : ""}. <b>Ja, renderen</b> is je goedkeuring van dit voorstel.</p></div>`;
+  </ol>
+  ${c.has_plan ? `<div class="row fb" style="margin-top:10px"><span class="muted small">Niet goed? Nieuw voorstel:</span>
+    <button class="ghost sm" data-fb="korter">Korter</button><button class="ghost sm" data-fb="langer">Langer</button>
+    <button class="ghost sm" data-fb="ander_nummer">Ander nummer</button><button class="ghost sm" data-fb="ander_voorstel">Ander voorstel</button>
+    <span class="muted small">· of tik bij een shot op <b>eruit</b></span></div>` : ""}<p class="muted small" style="margin:8px 0 0">Kleur: je huisstijl-look${c.grade.look !== "reference_film" ? ` (nu: ${esc(c.grade.look)})` : ""}. <b>Ja, renderen</b> is je goedkeuring van dit voorstel.</p></div>`;
   $("#tab").innerHTML = `
   ${pathCard}
   <div class="grid cols-2" style="margin-top:16px">
@@ -258,7 +262,8 @@ function tabCine() {
     const name = $("#pSong").value;
     if (!name) return;
     const line = `song: ${JSON.stringify(name)}`;
-    const yaml = /^song:.*$/m.test(P.yaml) ? P.yaml.replace(/^song:.*$/m, line) : P.yaml.trimEnd() + "\n" + line + "\n";
+    let yaml = /^song:.*$/m.test(P.yaml) ? P.yaml.replace(/^song:.*$/m, line) : P.yaml.trimEnd() + "\n" + line + "\n";
+    yaml = yaml.replace(/^song_start:.*\n?/m, "");                // the old start belongs to the old song
     await api(`/api/projects/${enc(P.name)}/settings`, { method: "PUT", body: { yaml } });
     toast("Nummer opgeslagen: " + name, "ok");
     reload();
@@ -267,6 +272,20 @@ function tabCine() {
     if (appr?.status === "approved" && !(await confirmDlg("Nieuw voorstel?", "Het huidige voorstel wordt vervangen.", "Nieuw voorstel"))) return;
     startJob(`/api/projects/${enc(P.name)}/cine/plan`, { title: (c.title || s.title || P.name).toUpperCase(), song: s.song || "" }, { onDone: reload });
   };
+  const fb = (kind, clip) => startJob(`/api/projects/${enc(P.name)}/cine/feedback`, { kind, clip }, { onDone: reload });
+  document.querySelectorAll("[data-fb]").forEach((b) => (b.onclick = () => fb(b.dataset.fb)));
+  document.querySelectorAll("[data-out]").forEach((b) => (b.onclick = () => fb("eruit", b.dataset.out)));
+  if ($("#pPost")) $("#pPost").onclick = () => startJob(`/api/projects/${enc(P.name)}/schedule`, {}, {
+    onDone: async (j) => {
+      if (j.status !== "done") return;
+      const q = await api("/api/queue");
+      const e = q.filter((x) => x.meta?.project === P.name && x.status === "pending_approval").pop();
+      if (!e) return;
+      const cap = Object.entries(e.options).map(([pf, o]) => `<p><b>${esc(pf)}</b> · ${esc(e.scheduled[pf] || "")}<br><span class="muted small">${esc((o[0] || {}).full || "")}</span></p>`).join("");
+      if (await confirmDlg("Plannen?", cap + '<p class="muted small">Plannen = goedkeuren: hij gaat op dit tijdstip online. Andere tekst kiezen kan in Wachtrij.</p>', "Plannen"))
+        startJob(`/api/queue/${e.id}/approve`, { caption: 0 }, { onDone: reload });
+    },
+  });
   if ($("#pGo")) $("#pGo").onclick = () =>                       // the button is the approval of this plan, then render
     startJob(`/api/projects/${enc(P.name)}/cine/approve`, { note: "Ja, renderen (knop in de website)" }, {
       onDone: (j) => (j.status === "done" ? startJob(`/api/projects/${enc(P.name)}/cine/render`, {}, { onDone: reload }) : reload()),
@@ -308,7 +327,8 @@ function shotCard(x, comment) {
   return `<div class="shot ${comment ? "has-comment" : ""}" title="${esc(x.why)}">
     <div class="frame" style="${x.frame ? `background-image:url('${fileUrl(x.frame)}')` : ""}"><span class="n">${x.n}</span></div>
     <div class="meta"><span>${x.start.toFixed(1)}–${x.end.toFixed(1)}s</span><span>· ${esc(x.clip)}</span>${x.role === "title" ? '<span class="tag red">titel</span>' : ""}${x.role === "final" ? '<span class="tag">slot</span>' : ""}${tr}${fx}</div>
-    <textarea data-n="${x.n}" placeholder="opmerking…">${esc(comment)}</textarea></div>`;
+    <div class="row" style="gap:6px"><textarea data-n="${x.n}" placeholder="opmerking…" style="flex:1">${esc(comment)}</textarea>
+    <button class="ghost sm" data-out="${esc(x.clip)}" title="Laat ${esc(x.clip)} weg en maak een nieuw voorstel">eruit</button></div></div>`;
 }
 function qaView(q) {
   if (!q) return "";

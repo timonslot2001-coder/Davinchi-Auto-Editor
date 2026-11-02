@@ -390,3 +390,36 @@ def pick(cfg, name: str, refs: list[str]) -> dict:
               + f" · {total} in total → {edits}")
     con.print(f"  AutoEdit project [bold]{name}[/] reads its clips from there; the originals stay where they are")
     return {"project": str(p), "edits": str(edits), "added": added, "already": there, "clips": total}
+
+
+# ---------------------------------------------------------------- camera card in -> proposal ready
+
+def card(cfg) -> list[dict]:
+    """What the website runs when a camera card goes in: offload everything new to _Inbox (one folder per day, checked,
+    card untouched), then per new day with video an edit '<date> voorstel' with all of that day's clips and a cine
+    montage plan (storyboard) for it. Nothing is rendered: that waits for "Ja, renderen"."""
+    import subprocess
+    import sys
+
+    res = offload.offload(cfg, "SD-kaart", "inbox")
+    out = []
+    for shoot_path in res.get("shoots") or []:
+        shoot_dir = Path(shoot_path)
+        rel = f"{shoot_dir.parent.name}/{shoot_dir.name}"
+        vids = _media(shoot_dir)[0]
+        if not vids:
+            continue
+        name = f"{shoot_dir.name[:10]} voorstel"
+        from . import projects
+        if (projects.root(cfg) / name / "cine_montage" / "edl.json").exists():
+            con.print(f"  {name} heeft al een voorstel; niets overschreven")
+            continue
+        r = pick(cfg, name, [f"{rel}/{v.name}" for v in vids])
+        engine = ROOT / "VIDEO_EDITING_SYSTEM"
+        con.print(f"[bold]Voorstel[/] {name}: plan maken ({len(vids)} clips)…")
+        done = subprocess.run([sys.executable, "-m", "engine", "plan", r["project"]], cwd=str(engine)).returncode == 0
+        out.append({"project": name, "clips": len(vids), "plan": done})
+        con.print(f"[green]Voorstel klaar:[/] {name}" if done else f"[yellow]Plan voor {name} lukte niet; maak hem op de website[/]")
+    if not out:
+        con.print("Geen nieuwe video's op de kaart.")
+    return out

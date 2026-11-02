@@ -3,6 +3,20 @@
 What changed, in words you would notice in an edit or on the PC. Newest first. Small fixes are folded into the day's
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
+## 2026-11-02 — The editor starts the work
+- **Card in = proposal ready.** While the website runs, putting a camera card in starts *Kaart gevonden*: everything new
+  goes to `_Inbox` (checked, card untouched), and every new day with video gets an edit `<date> voorstel` with all its
+  clips and a plan. Open it on the website and press *Ja, renderen*. Switch off with `card_auto: false` in config.yaml.
+- **Feedback buttons** under the 4 steps: *Korter*, *Langer*, *Ander nummer*, *Ander voorstel*, and *eruit* on every
+  shot. Each makes a new proposal right away (an *eruit* clip stays out via `skip:` in project.yaml) and is logged in
+  `cine_montage/feedback.json`, so Claude can turn repeated feedback into style rules.
+- **Plannen:** after the render, *Plannen* puts it in the posting queue with a caption and the next good time, shows
+  them, and one more tap schedules it.
+- The sidebar shows whether the SSD is connected, next to Resolve and ComfyUI.
+- Changing the song (step 2 or *Ander nummer*) forgets the old song's start point.
+- Snelle edits can tag clips themselves (close / subject / establish / detail) once the face model
+  `data/models/face_detection_yunet.onnx` is there; until then nothing is guessed.
+
 ## 2026-11-02 — The editor picks the song part; one kind of edit per project
 - No `song_start` set? The cine montage now picks the best part of the song itself: the strongest build-up with the
   drop about two thirds into the video (ESCAPE PLAN: 49.9 s, close to the TikTok sound's 48.1 s). The plan notes say

@@ -289,6 +289,16 @@ def create(host=None) -> Flask:
     def queue():
         return jsonify(host.call("queue"))
 
+    @app.post("/api/projects/<name>/cine/feedback")
+    def cine_feedback(name):
+        b = request.get_json() or {}
+        f = host.call("feedback", {"name": name, "kind": str(b.get("kind") or ""), "clip": b.get("clip")})
+        return job(["engine", "plan", f["path"], *f["args"]], f"Nieuw voorstel ({f['note']})", name)
+
+    @app.post("/api/projects/<name>/schedule")
+    def schedule(name):
+        return job(["autoedit", "schedule", proj(name)["name"]], "Plannen: in de wachtrij", name)
+
     @app.post("/api/queue/<eid>/choose")
     def queue_choose(eid):
         b = request.get_json()

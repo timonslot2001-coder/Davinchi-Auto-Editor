@@ -48,9 +48,14 @@ def main(argv=None):
         from .worker import serve
         serve(args.port or 5061, args.bind)
         return
-    from .app import create, run_server
+    from .app import create, make_host, run_server
     port = args.port or 5060
-    app = create()
+    host = make_host()
+    app = create(host)
+    if host.mode == "local":                                     # camera card in -> offload + proposal (cardwatch.py)
+        from . import cardwatch
+        if cardwatch.start(host):
+            print("Camera card: goes in -> offloaded to _Inbox and a proposal per day (card_auto: false to switch off)")
     bind = args.bind
     if args.phone:
         from . import phone

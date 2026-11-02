@@ -181,6 +181,10 @@ def main(argv=None):
     if args.cmd == "plan":
         p = dna_mod.load()
         inv = media.inventory(proj, work / "cache")
+        skip = {str(x).lower() for x in settings(proj).get("skip") or []}     # "dit shot eruit" (website feedback)
+        if skip:
+            inv["clips"] = [c for c in inv["clips"] if Path(c["path"]).stem.lower() not in skip]
+            print("skipped clips:", ", ".join(sorted(skip)))
         song, song_src = media.pick_song(proj, inv, args.song)
         mus = media.music_map(song, work / "cache") if song else None
         print(f"song: {song.name if song else 'none'} ({song_src})")

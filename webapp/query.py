@@ -3,6 +3,7 @@ worker), because the projects, footage, queue and Resolve live there. Heavy modu
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -59,6 +60,10 @@ def status() -> dict:
         out["resolve"] = "Resolve.exe" in tl
     except Exception:
         out["resolve"] = None
+    try:
+        out["ssd"] = Path(roots()["library"]).exists()
+    except OSError:
+        out["ssd"] = False
     url = (cfg.get("local_ai.url") or "http://127.0.0.1:8188").rstrip("/")
     try:
         import requests
@@ -169,6 +174,67 @@ def cine(p: Path) -> dict:
     return out
 
 
+def set_setting(text: str, key: str, value) -> str:
+    """project.yaml text with `key:` set to `value` (None removes the line); keeps every other line and comment."""
+    line = None if value is None else f"{key}: {json.dumps(value, ensure_ascii=False)}"
+    pat = re.compile(rf"^{re.escape(key)}:[^\r\n]*(\r?\n)?", re.M)
+    if pat.search(text):
+        text = pat.sub(lambda m: line + (m.group(1) or "") if line else "", text, count=1)
+    elif line:
+        text = text.rstrip("\n") + "\n" + line + "\n"
+    return text
+
+
+def feedback(name: str, kind: str, clip: str | None = None) -> dict:
+    """Website feedback on the current plan. Changes project.yaml where needed, logs it in
+    cine_montage/feedback.json (Claude folds repeated feedback into the style rules), and returns the plan arguments
+    for a new proposal."""
+    import random as _random
+    from datetime import datetime as _dt
+    p = project_dir(name)
+    c = cine(p)
+    if not c["has_plan"]:
+        raise ValueError("no plan yet")
+    s, text = _settings(p)
+    length = float(c.get("duration") or 18)
+    seed = None
+    note = kind
+    if kind == "korter":
+        length = max(8.0, length - 3)
+    elif kind == "langer":
+        length = min(30.0, length + 3)
+    elif kind == "ander_voorstel":
+        seed = _random.randint(2, 99999)
+    elif kind == "ander_nummer":
+        songs = [m["name"] for m in music()]
+        cur = (s.get("song") or c.get("music") or "").lower()
+        now = next((i for i, m in enumerate(songs) if cur and (cur == m.lower() or cur in m.lower())), -1)
+        if len(songs) < (2 if now >= 0 else 1):
+            raise ValueError("no other song in your music folder")
+        nxt = songs[(now + 1) % len(songs)]
+        text = set_setting(set_setting(text, "song", nxt), "song_start", None)    # the old start belongs to the old song
+        note = f"ander nummer: {nxt}"
+    elif kind == "eruit":
+        if not clip or not re.fullmatch(r"[\w.\- ]{1,120}", clip):
+            raise ValueError("which clip?")
+        stem = Path(clip).stem
+        skip = [str(x) for x in (s.get("skip") or [])]
+        if stem.lower() not in [x.lower() for x in skip]:
+            skip.append(stem)
+        text = set_setting(text, "skip", skip)
+        note = f"eruit: {stem}"
+    else:
+        raise ValueError("feedback: korter, langer, ander_voorstel, ander_nummer or eruit")
+    if text != _settings(p)[1]:
+        save_settings(name, text)
+    log = p / "cine_montage" / "feedback.json"
+    items = json.loads(log.read_text(encoding="utf-8")) if log.exists() else []
+    items.append({"at": _dt.now().isoformat(timespec="seconds"), "feedback": note, "plan_seconds": c.get("duration")})
+    log.write_text(json.dumps(items, indent=1, ensure_ascii=False), encoding="utf-8")
+    args = ["--length", f"{length:g}"] + (["--title", c["title"]] if c.get("title") else []) + (["--seed", str(seed)] if seed else [])
+    return {"path": str(p), "args": args, "note": note}
+
+
 def save_settings(name: str, text: str) -> dict:
     """Write project.yaml. The AI budget can not be raised from the web app (only Timon, by hand)."""
     p = project_dir(name)
@@ -258,6 +324,7 @@ def library_preview(path: str) -> str:
 
 
 CALLS = {"status": status, "roots": roots, "projects": projects, "project": project, "save_settings": save_settings,
+         "feedback": feedback,
          "save_comments": save_comments, "queue": queue, "queue_choose": queue_choose, "music": music,
          "report": report, "ai_models": ai_models, "library": library, "library_shoot": library_shoot,
          "library_thumb": library_thumb, "library_preview": library_preview}

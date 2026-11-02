@@ -482,7 +482,7 @@ nav a i svg { width: 16px; height: 16px; display: block; fill: none; stroke: cur
   }
 
   // Request text for the Studio session, exactly webapp/studio.py's format. Returns {text} or {error}.
-  const SSD = ["ssd-ververs", "ssd-bekijk", "ssd-clip", "ssd-verplaats"];
+  const SSD = ["ssd-ververs", "ssd-bekijk", "ssd-clip", "ssd-verplaats", "ssd-edit"];
   const ACTIONS = ["plan", "grade", "goedkeuren", "preview", "render", "qa", "stills"].concat(SSD);
   const LOOKS = ["reference_film", "clean_warm", "moody", "daylight", "blue_hour", "vintage"];
   const SOORTEN = ["koken", "kleding", "smoken", "reizen", "klanten", "inbox"];
@@ -509,6 +509,15 @@ nav a i svg { width: 16px; height: 16px; display: block; fill: none; stroke: cur
       if (!maps.length || maps.length > 60) return { error: "vink 1 tot 60 mappen aan" };
       if (!maps.every((m) => MAP_RE.test(String(m)))) return { error: "een map is onbekend" };
       t += " naam=" + quote(name) + " soort=" + extra.soort + " mappen=" + quote(maps.join("|"));
+    } else if (action === "ssd-edit") {
+      const name = String(extra.name == null ? "" : extra.name).trim(), clips = Array.isArray(extra.clips) ? extra.clips : [];
+      if (!name) return { error: "geef de edit een naam" };
+      if (!NAME_RE.test(name) || name[0] === "." || name[name.length - 1] === ".") return { error: "die naam kan geen mapnaam zijn (geen / \\ : * ? \" < > |)" };
+      if (!clips.length) return { error: "vink clips aan" };
+      if (clips.length > 60) return { error: "kies hoogstens 60 clips per keer (voeg de rest daarna toe)" };
+      const ok = (r) => { const i = String(r).lastIndexOf("/"); return i > 0 && MAP_RE.test(String(r).slice(0, i)) && CLIP_RE.test(String(r).slice(i + 1)); };
+      if (!clips.every(ok)) return { error: "een clip is onbekend" };
+      t += " naam=" + quote(name) + " clips=" + quote(clips.join("|"));
     }
     return { text: t };
   }
@@ -554,7 +563,7 @@ const LOOK_HINT = {
   daylight: "fris, natuurlijk", blue_hour: "koel, avond", vintage: "vaal, warm",
 };
 const ACT_NL = { plan: "Plan maken", grade: "Grade kiezen", goedkeuren: "Goedkeuren", preview: "Voorbeeld", render: "Renderen", qa: "QA", stills: "Stills verversen",
-  "ssd-ververs": "SSD verversen", "ssd-bekijk": "Beelden laden", "ssd-clip": "Clip-preview", "ssd-verplaats": "Verplaatsen" };
+  "ssd-ververs": "SSD verversen", "ssd-bekijk": "Beelden laden", "ssd-clip": "Clip-preview", "ssd-verplaats": "Verplaatsen", "ssd-edit": "Edit starten" };
 const JOB_NL = { bezig: "bezig", klaar: "klaar", fout: "fout", vast: "vastgelopen? start opnieuw" };
 const STALE_MS = 3 * 3600 * 1000;       // a job still "bezig" after 3 h has most likely died on the PC
 // "bezig" | "klaar" | "fout" | "vast" (bezig for more than 3 h); the CSS class for "vast" is the one for "fout"
@@ -605,7 +614,7 @@ function toast(msg, kind = "") {
 const S = {
   db: null, comments: null, user: null,
   projects: new Map(), projectsReady: false, jobs: [], pc: null, real: { projects: new Map(), jobs: [] },
-  ssd: new Map(), ssdReady: false, ssdSel: new Set(),
+  ssd: new Map(), ssdReady: false, ssdSel: new Map(), pendingEdit: "",   // ssdSel: "<Soort>/<map>/<clip>" -> {rel, folder, duration}
   dbNote: "", canSend: "onbekend", owner: null,
 };
 const drafts = new Map();               // per project id: grade draft, note, still index, split
@@ -926,38 +935,54 @@ function ssdView() {
       <button class="ghost sm" data-pc id="ssdRefresh">Lijst verversen</button></div>
     <div class="jobs" id="jobs"></div><div class="jobmsg" hidden></div>
     <div class="card ssd-move"><div class="row"><b id="mvCount"></b><span class="spacer"></span>
-      <input type="text" id="mvName" maxlength="80" autocomplete="off" placeholder="Naam van de shoot, bijv. Ibiza">
-      <select id="mvKind">${StudioMath.SOORTEN.map((k) => `<option value="${k}"${k === "reizen" ? " selected" : ""}>${esc(KIND_NL[k])}</option>`).join("")}</select>
-      <button data-pc id="mvGo">Verplaatsen</button></div>
+      <input type="text" id="mvName" maxlength="80" autocomplete="off" list="mvProjects" placeholder="Naam van de edit, of kies een project">
+      <datalist id="mvProjects"></datalist>
+      <button class="ghost sm" id="mvClear">Wissen</button>
+      <button data-pc id="mvGo">Start edit</button></div>
       <div class="why" id="mvHint" style="margin-top:8px"></div></div>
     <div class="grid ssd-grid"><div class="card ssd-list" id="sList"></div><div id="sDetail"></div></div>`;
   let cur = "", listKey = null, detailKey = null, playing = "";
   const list = () => [...S.ssd.keys()].map(ssdShoot).filter(Boolean);
+  // Sorting folders happens in Windows Explorer; this bar starts an edit from the clips you tick (one or more folders).
   function moveBar() {
-    const all = new Map(list().map((s) => [s.rel, s]));
-    [...S.ssdSel].forEach((r) => all.has(r) || S.ssdSel.delete(r));
-    const sel = [...S.ssdSel].map((r) => all.get(r)).sort((a, b) => a.date.localeCompare(b.date));
-    const name = $("#mvName", v).value.trim(), kind = $("#mvKind", v).value;
-    const r = requestText("ssd-verplaats", "", { name, soort: kind, maps: sel.map((s) => s.rel) });
-    $("#mvCount", v).textContent = sel.length ? sel.length + (sel.length === 1 ? " map geselecteerd" : " mappen geselecteerd") : "Vink mappen aan om ze een naam te geven";
+    const rels = new Set(list().map((s) => s.rel));
+    [...S.ssdSel.keys()].forEach((k) => rels.has(S.ssdSel.get(k).rel) || S.ssdSel.delete(k));
+    const sel = [...S.ssdSel.values()], name = $("#mvName", v).value.trim(), projects = projectList();
+    const existing = projects.find((p) => p.name.toLowerCase() === name.toLowerCase());
+    const opts = projects.map((p) => p.name).join("|");
+    if ($("#mvProjects", v).dataset.k !== opts) {
+      $("#mvProjects", v).dataset.k = opts;
+      $("#mvProjects", v).innerHTML = projects.map((p) => `<option value="${esc(p.name)}">`).join("");
+    }
+    const r = requestText("ssd-edit", "", { name, clips: [...S.ssdSel.keys()] });
+    const total = sel.reduce((a, c) => a + c.duration, 0);
+    $("#mvCount", v).textContent = sel.length ? sel.length + (sel.length === 1 ? " clip" : " clips") + " gekozen · " + clipDur(total) : "Vink clips aan om een edit te starten";
     $("#mvGo", v).dataset.block = r.error ? "1" : "";
-    const target = (kind === "inbox" ? "_Inbox" : KIND_NL[kind]) + "/" + (sel[0] ? sel[0].date : "<datum>") + " " + (name || "<naam>");
-    $("#mvHint", v).textContent = !online() ? offlineReason() : sel.length ? sel.map((s) => s.folder).join(", ") + " → " + target +
-      (kind === "inbox" ? "" : " · project “" + (name || "<naam>") + "” leest de clips daarvandaan") + " · foto's in dezelfde map gaan mee" : "De bestanden worden op de SSD verplaatst, niets wordt gekopieerd of verwijderd.";
+    $("#mvClear", v).style.display = sel.length ? "" : "none";
+    $("#mvHint", v).textContent = !online() ? offlineReason() : S.pendingEdit ? "Edit “" + S.pendingEdit + "” wordt gestart op je PC; het project opent vanzelf."
+      : sel.length ? [...new Set(sel.map((c) => c.folder))].join(", ") + " → " + (existing ? "toevoegen aan project “" + existing.name + "”" : "nieuw project “" + (name || "<naam>") + "”") +
+        (r.error && name ? " · " + r.error : "") + " · geen kopie: verwijzingen in _Edits op de SSD, geen extra ruimte"
+      : "Open een map en vink clips aan. Je originele mappen blijven zoals ze zijn; verplaatsen doe je in de Verkenner.";
     $("#mvHint", v).className = "why" + (online() ? "" : " warn");
+    if (S.pendingEdit) {                                          // the session wrote the project: open it
+      const p = projects.find((x) => x.name.toLowerCase() === S.pendingEdit.toLowerCase());
+      if (p) { S.pendingEdit = ""; location.hash = "#/p/" + enc(p.id); }
+    }
     pcButtons(v);
   }
-  $("#mvName", v).oninput = moveBar; $("#mvKind", v).onchange = moveBar;
+  $("#mvName", v).oninput = moveBar;
+  $("#mvClear", v).onclick = () => { S.ssdSel.clear(); listKey = null; detailKey = null; refresh(); };
   $("#mvGo", v).onclick = (e) => {
-    const maps = [...S.ssdSel];
-    send(e.currentTarget, "ssd-verplaats", null, { name: $("#mvName", v).value, soort: $("#mvKind", v).value, maps }).then((ok) => {
-      if (ok) { S.ssdSel.clear(); $("#mvName", v).value = ""; listKey = null; refresh(); }
+    const name = $("#mvName", v).value.trim();
+    send(e.currentTarget, "ssd-edit", null, { name, clips: [...S.ssdSel.keys()] }).then((ok) => {
+      if (ok) { S.ssdSel.clear(); S.pendingEdit = name; $("#mvName", v).value = ""; listKey = null; detailKey = null; refresh(); }
     });
   };
   $("#ssdRefresh", v).onclick = (e) => send(e.currentTarget, "ssd-ververs", null, {});
   function renderList() {
     const shoots = list();
-    const key = shoots.map((s) => s.id + s.videos + s.project).join("|") + "#" + [...S.ssdSel].join("|") + "#" + cur;
+    const key = shoots.map((s) => s.id + s.videos + s.project).join("|") + "#" + [...S.ssdSel.keys()].join("|") + "#" + cur;
+    const chosen = (rel) => [...S.ssdSel.values()].filter((c) => c.rel === rel).length;
     if (key === listKey) return;
     listKey = key;
     const order = ["inbox", "koken", "kleding", "smoken", "reizen", "klanten"];
@@ -965,36 +990,40 @@ function ssdView() {
       ? `<div class="muted">Nog geen lijst van de SSD. ${online() ? "Druk op <b>Lijst verversen</b>." : esc(offlineReason())}</div>`
       : order.map((k) => [k, shoots.filter((s) => s.kind === k).sort((a, b) => a.folder.localeCompare(b.folder))]).filter(([, l]) => l.length)
         .map(([k, l]) => `<h3>${esc(KIND_NL[k])} · ${l.length}</h3>` + l.map((s) => `<div class="ssd-row${s.id === cur ? " on" : ""}" data-id="${esc(s.id)}">
-          <input type="checkbox" aria-label="Selecteer ${esc(s.folder)}"${S.ssdSel.has(s.rel) ? " checked" : ""}>
-          <div class="nm"><b>${esc(s.name)}</b> <span class="muted small">${esc(s.date)}</span>
+          <div class="nm"><b>${esc(s.name)}</b> <span class="muted small">${esc(s.date)}</span>${chosen(s.rel) ? ` <span class="tag ok">${chosen(s.rel)} gekozen</span>` : ""}
           <div class="muted small">${s.videos} video · ${size(s.size)}${s.project ? ` · <span class="tag ok">${esc(s.project)}</span>` : ""}</div></div></div>`).join("")).join("");
     $("#sList", v).querySelectorAll(".ssd-row").forEach((row) => {
-      const s = ssdShoot(row.dataset.id), cb = $("input", row);
-      cb.onclick = (ev) => { ev.stopPropagation(); cb.checked ? S.ssdSel.add(s.rel) : S.ssdSel.delete(s.rel); listKey = null; detailKey = null; refresh(); };
+      const s = ssdShoot(row.dataset.id);
       row.onclick = () => { location.hash = "#/ssd/" + enc(s.id); };
     });
   }
   function renderDetail() {
     const s = cur ? ssdShoot(cur) : null;
-    const key = s ? [s.id, s.sheet, s.clips.map((c) => c.name + c.preview).join(","), S.ssdSel.has(s.rel), playing, online()].join("|") : "none" + cur;
+    const ref = (c) => s.rel + "/" + c.name;
+    const key = s ? [s.id, s.sheet, s.clips.map((c) => c.name + c.preview + S.ssdSel.has(ref(c))).join(","), playing, online()].join("|") : "none" + cur;
     if (key === detailKey) { pcButtons(v); return; }
     detailKey = key;
     const box = $("#sDetail", v);
-    if (!s) { box.innerHTML = `<div class="empty">${cur ? "Deze map staat niet (meer) op de SSD." : "Kies links een map om de beelden te zien. Vink mappen aan om ze samen een naam te geven en te verplaatsen."}</div>`; return; }
+    if (!s) { box.innerHTML = `<div class="empty">${cur ? "Deze map staat niet (meer) op de SSD." : "Kies links een map om de clips te zien. Vink clips aan (uit één of meer mappen) en druk op <b>Start edit</b>."}</div>`; return; }
+    const all = s.clips.length && s.clips.every((c) => S.ssdSel.has(ref(c)));
     const total = s.clips.reduce((a, c) => a + c.duration, 0), play = s.clips.find((c) => c.name === playing && c.preview);
     box.innerHTML = `<div class="card stack">
       <div class="row"><h2 style="margin:0">${esc(s.folder)}</h2><span class="spacer"></span>
         <span class="tag">${s.videos} video${s.clips.length ? " · " + clipDur(total) : ""}</span><span class="tag">${size(s.size)}</span></div>
       <div class="row"><button data-pc id="sLoad">${s.sheet ? "Opnieuw laden" : "Beelden laden"}</button>
-        <button class="dark" id="sPick">${S.ssdSel.has(s.rel) ? "✓ Geselecteerd" : "Selecteren"}</button></div>
+        ${s.clips.length ? `<button class="dark" id="sPick">${all ? "Niets kiezen" : "Alles kiezen"}</button>` : ""}</div>
       <div class="why" id="sWhy">${s.sheet ? "Een beeld per clip, met nummer en lengte." : "Beelden laden maakt op je PC een overzicht van elke clip (duurt even bij veel clips)."}</div>
       ${play ? `<div class="ssd-player"><div class="muted small" style="margin-bottom:6px">${play.n}. ${esc(play.name)} · preview van 20 s, zonder geluid</div><video controls autoplay muted playsinline src="${esc(play.preview)}"></video></div>` : ""}
       ${s.sheet ? `<div class="review"><img src="${esc(s.sheet)}" alt="Overzicht van de clips in ${esc(s.folder)}"></div>` : ""}
-      ${s.clips.length ? `<div class="clips">${s.clips.map((c) => `<div class="clip"><span class="n">${c.n}.</span><span class="nm">${esc(c.name)}</span><span class="muted">${clipDur(c.duration)}</span>
+      ${s.clips.length ? `<div class="clips">${s.clips.map((c) => `<div class="clip"><input type="checkbox" data-pick="${esc(c.name)}" aria-label="Kies ${esc(c.name)} voor de edit"${S.ssdSel.has(ref(c)) ? " checked" : ""}><span class="n">${c.n}.</span><span class="nm">${esc(c.name)}</span><span class="muted">${clipDur(c.duration)}</span>
         ${c.preview ? `<button class="sm${c.name === playing ? "" : " dark"}" data-play="${esc(c.name)}">▶ Afspelen</button>` : `<button class="sm dark" data-pc data-clip="${esc(c.name)}">Preview maken</button>`}</div>`).join("")}</div>` : ""}
     </div>`;
     $("#sLoad", box).onclick = (e) => send(e.currentTarget, "ssd-bekijk", null, { map: s.rel });
-    $("#sPick", box).onclick = () => { S.ssdSel.has(s.rel) ? S.ssdSel.delete(s.rel) : S.ssdSel.add(s.rel); listKey = null; detailKey = null; refresh(); };
+    const pick = (c, on) => (on ? S.ssdSel.set(ref(c), { rel: s.rel, folder: s.folder, duration: c.duration }) : S.ssdSel.delete(ref(c)));
+    if ($("#sPick", box)) $("#sPick", box).onclick = () => { s.clips.forEach((c) => pick(c, !all)); listKey = null; detailKey = null; refresh(); };
+    box.querySelectorAll("[data-pick]").forEach((cb) => (cb.onclick = () => {
+      pick(s.clips.find((c) => c.name === cb.dataset.pick), cb.checked); listKey = null; detailKey = null; refresh();
+    }));
     box.querySelectorAll("[data-clip]").forEach((b) => (b.onclick = (e) => { playing = b.dataset.clip; send(e.currentTarget, "ssd-clip", null, { map: s.rel, clip: b.dataset.clip }); }));
     box.querySelectorAll("[data-play]").forEach((b) => (b.onclick = () => { playing = b.dataset.play; detailKey = null; refresh(); }));
     pcButtons(v);

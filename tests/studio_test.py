@@ -563,4 +563,22 @@ assert code == 1 and len(h.runs) == n, "a folder that is not on the SSD never re
 with studio.file_lock(studio.LOCK):                                 # never move files while an engine job runs
     code, out = cli(["--thread", "s-6", '[studio] actie=ssd-verplaats naam="Ibiza" soort=reizen mappen="_Inbox/2026-10-09 SD-kaart"'], h)
 assert code == 1 and "bezig" in out["message"] and len(h.runs) == n, out
+code, out = cli(["--thread", "s-8", '[studio] actie=ssd-edit naam="Kort" clips="_Inbox/2026-10-09 SD-kaart/C0202.MP4"'], h)
+assert code == 0 and h.runs[-1] == ["autoedit", "pick", "Kort", "_Inbox/2026-10-09 SD-kaart/C0202.MP4"], (out, h.runs)
+assert out["slug"] == studio.slug("Kort") and "state" in out, out
+n = len(h.runs)
+code, out = cli(["--thread", "s-9", '[studio] actie=ssd-edit naam="Kort" clips="_Inbox/2026-10-09 SD-kaart/C9999.MP4"'], h)
+assert code == 1 and len(h.runs) == n, "a clip that is not on the SSD never reaches autoedit pick"
+for bad in ('[studio] actie=ssd-edit naam="a/b" clips="_Inbox/x/C0001.MP4"', '[studio] actie=ssd-edit naam="K" clips=""',
+            '[studio] actie=ssd-edit naam="K" clips="_Inbox/x/../../y.MP4"', '[studio] actie=ssd-edit naam="K" clips="C:/x/C0001.MP4"',
+            '[studio] actie=ssd-edit naam="K" clips="_Inbox/x/C0001.exe"', '[studio] actie=ssd-edit naam="K"'):
+    try:
+        studio.parse(bad)
+        raise AssertionError(f"accepted {bad}")
+    except ValueError:
+        pass
+n = len(h.runs)
+with studio.file_lock(studio.LOCK):                                 # never repoint clips while an engine job runs
+    code, out = cli(["--thread", "s-10", '[studio] actie=ssd-edit naam="Kort" clips="_Inbox/2026-10-09 SD-kaart/C0202.MP4"'], h)
+assert code == 1 and "bezig" in out["message"] and len(h.runs) == n, out
 print("studio test OK")

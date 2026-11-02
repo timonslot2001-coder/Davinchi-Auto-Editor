@@ -3,6 +3,13 @@
 What changed, in words you would notice in an edit or on the PC. Newest first. Small fixes are folded into the day's
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
+## 2026-11-02 — Pick clips and start an edit (page SSD)
+- The SSD page (website and Studio) no longer moves folders; you sort those in Windows Explorer. Instead you tick
+  clips, from one or more folders, give the edit a name (or pick an existing project) and press *Start edit*. The
+  project opens straight away, ready for plan, grade and render.
+- Nothing is copied: the clips get a hard link in `I:\_Edits\<name>` (no extra space) and the originals stay where
+  they are. Also from a terminal: `autoedit pick`.
+
 ## 2026-11-02 — Studio shows only your own projects
 - The sample projects are gone from the Studio (no *Bekijk met voorbeelddata*, no demo bar). With no projects yet,
   Projecten tells you to start `start-studio-sessie.bat` on the PC; your projects appear once that runs.
@@ -54,8 +61,9 @@ entry; the full list is in `git log`. Hard-to-reverse choices also get a record 
 - The Studio lives at https://claude.ai/artifact/4YCCLgHK4KozydqGCpjLQR (account timon@juict.nl, the account the
   Claude app on the PC uses); `start-studio-sessie.bat` points there. Every project with a cine montage shows up,
   client projects included.
-- Moving clips on the SSD page waits for nothing: while a plan, preview or render runs on the PC it is refused with a
-  short message, so footage never moves under a running job. Try again when the job is done.
+- *Start edit* (and *Verplaatsen*) on the SSD page wait for nothing: while a plan, preview or render runs on the PC
+  they are refused with a short message, so a project's clips never change under a running job. Try again when the
+  job is done.
 
 ## 2026-10-31 — Offload to your SSD
 - New `autoedit offload "<shoot>" --soort koken` (and *SD-kaart offloaden* on the website): copies photos and videos

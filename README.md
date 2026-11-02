@@ -44,10 +44,20 @@ it arrives sorted by day). Every shoot has `1 Ruw\Video`, `1 Ruw\Foto`,
   category set (koken → food, kleding → fashion, reizen → travel, smoken → lifestyle). No second copy on C:.
 - On the website: *SD-kaart offloaden* on the Projecten page.
 
-### Sort the SSD (name and move shoots)
+### Pick clips for an edit (page SSD)
 On the website, page **SSD**: every shoot folder with video (`_Inbox` first) with a thumbnail per clip; photos get
-their own editor later. Click a clip to play it (the original where the browser plays HEVC, else a 20 s preview). Tick folders, type a name, pick the kind and
-press *Verplaatsen*. Or from a terminal:
+their own editor later. Click a clip to play it (the original where the browser plays HEVC, else a 20 s preview).
+Tick clips (from one or more folders), type a name or pick a project, and press *Start edit*. Or from a terminal:
+```
+autoedit pick "Smoke Sesh kort" "Smoken/2026-07-25 Smoke Sesh/C0184.MP4" "Smoken/2026-08-16 Gesprek met Milan/C0191.MP4"
+```
+- The clips get a hard link in `<SSD>\_Edits\<name>`: no copy, no extra space, the originals stay where they are.
+  The AutoEdit project of that name reads its clips from there; picking again adds to it.
+- A hard link keeps the footage alive: deleting the original in Explorer frees no space while the edit still has it.
+
+### Sort the SSD (name and move shoots)
+Sort folders in Windows Explorer as `<Soort>\<datum naam>\1 Ruw\Video`. Moving a folder a project reads from breaks that
+project's link; `autoedit sort` moves and relinks in one go:
 ```
 autoedit sort "Ibiza" --soort reizen "_Inbox/2026-10-09 SD-kaart" "_Inbox/2026-10-10 SD-kaart"
 ```
@@ -164,6 +174,7 @@ Videos land in your TikTok inbox; paste the caption (it's in the dashboard) and 
 | `autoedit new <name>` | create a project folder with clips/, music/, exports/ and project.yaml |
 | `autoedit offload <name>` | camera card(s) → `<library>\<Soort>\<date> <name>\1 Ruw\` on the SSD, checked; links the project. `--soort koken\|kleding\|smoken\|reizen\|klanten\|inbox`, `--since YYYY-MM-DD`, `--no-project` |
 | `autoedit thumbs` | make the thumbnails of every clip on the SSD ahead of time (offload and sort do it for their own folders) |
+| `autoedit pick <name> <clips...>` | put clips from the SSD (`"<Soort>/<map>/<clip>"`) in one edit: hard links in `_Edits\<name>`, the project reads from there |
 | `autoedit sort <name> <folders...> --soort <soort>` | name shoot folders on the SSD (`"_Inbox/2026-10-09 SD-kaart"`) and move them into `<Soort>\<date> <name>`; links the project. `--no-project` |
 | `autoedit import <name>` | copy new clips from the camera SD card (`--since YYYY-MM-DD`) |
 | `autoedit project <name>` | edit a project by (partial) name; `--song`, `--title`, `--variants`, `--seed` |

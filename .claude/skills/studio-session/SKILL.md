@@ -92,19 +92,22 @@ thread again: Timon presses the button again, which is a new thread.
 
 ## SSD page (`actie=ssd-...`, no project)
 The SSD page shows the shoot folders on the SSD that have video (photos get their own editor later), lets Timon look at
-them and name + move them (`autoedit/library.py`).
+them and tick clips to start an edit (`autoedit/library.py`). He sorts folders himself in Windows Explorer.
 - **Start** (step 3 above, same batch or the next): `PY -m webapp studio-ssd` → `{connected, shoots: [...]}`. `update`
   (merge) each `ssd/<id>` with the listed fields, and `delete` every `ssd/<id>` that is no longer listed. Merging keeps
   `sheet_url` and `clips` that were uploaded before.
 - **Each SSD comment** runs through the same steps 1-4 (inbox file, `--text-file`). SSD actions never start a worker:
-  the CLI's first line is the final one (`ssd-verplaats` is refused while an engine job holds the lock). Its
+  the CLI's first line is the final one (`ssd-verplaats` and `ssd-edit` are refused while an engine job holds the lock). Its
   `jobs/<thread_id>` doc uses `project: "SSD"` and the action. Then, by action:
   - `ssd-ververs` / `ssd-verplaats`: the output has `ssd` (the same shape as `studio-ssd`). Merge and delete as at the start.
   - `ssd-bekijk`: upload `assets.sheet` (a repo-relative JPG), then update `ssd/<id>` (`id` from the output) with
     `sheet_url` and `clips` (the output's list, with no `preview_url` yet) and `loaded_at`.
   - `ssd-clip`: upload `local_files.video` (a 640 px preview of at most 20 s, under 2 MB), then set that clip's
     `preview_url` in `ssd/<id>.clips` (read the doc, change the one clip, write it back).
-- The CLI checks every folder (`<Soort>/<map>` on the SSD) and clip name. Moving only ever runs `autoedit sort`.
+  - `ssd-edit` (*Start edit*): the output has `slug` and `state`, like a project action. Write `projects/<slug>` from
+    `state` (create it if it is new); the page then opens that project.
+- The CLI checks every folder (`<Soort>/<map>` on the SSD) and clip name. Moving only ever runs `autoedit sort`, starting
+  an edit only `autoedit pick`.
 
 ## Never
 - Approve without Timon's own words (the CLI refuses too), render without a current approval, or retry a refused job.

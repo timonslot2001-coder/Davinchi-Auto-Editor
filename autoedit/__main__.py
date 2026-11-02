@@ -62,6 +62,9 @@ def main(argv=None):
     a.add_argument("folders", nargs="+", help="shoot folders as '<Soort>/<datum naam>', e.g. '_Inbox/2026-10-09 SD-kaart'")
     a.add_argument("--soort", required=True, choices=["koken", "kleding", "smoken", "reizen", "klanten", "inbox"])
     a.add_argument("--no-project", action="store_true", help="don't make/link the AutoEdit project")
+    a = sub.add_parser("pick", help="put chosen clips from the SSD in one edit (hard links in _Edits, no copy) + project")
+    a.add_argument("name", help="name of the edit / project, e.g. 'Smoke Sesh kort'")
+    a.add_argument("clips", nargs="+", help="clips as '<Soort>/<datum naam>/<clip>', e.g. 'Smoken/2026-07-25 Smoke Sesh/C0184.MP4'")
     a = sub.add_parser("project", help="edit a project by name (partial name is fine)")
     a.add_argument("name")
     a.add_argument("--song", help="override the project's song")
@@ -205,6 +208,9 @@ def main(argv=None):
     elif args.cmd == "sort":
         from . import library
         library.move(cfg, args.name, args.soort, args.folders, link=not args.no_project)
+    elif args.cmd == "pick":
+        from . import library
+        library.pick(cfg, args.name, args.clips)
     elif args.cmd == "project":
         from . import projects
         res = projects.run(cfg, args.name, song=args.song, title=args.title, variants=args.variants, seed=args.seed)

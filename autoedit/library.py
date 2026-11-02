@@ -1,4 +1,9 @@
-"""Your SSD library: see what is in each shoot folder, then name and move it.
+"""Your SSD library: see what is in each shoot folder, pick clips for an edit, or name and move a folder.
+
+  autoedit pick "Smoke Sesh kort" "Smoken/2026-07-25 Smoke Sesh/C0184.MP4" "Smoken/2026-08-16 Gesprek met Milan/C0191.MP4"
+
+hard-links those clips into `_Edits/Smoke Sesh kort/` on the SSD (no copy, no extra space) and the AutoEdit project of
+that name reads its clips from there.
 
   autoedit sort "Ibiza" --soort reizen "_Inbox/2026-10-09 SD-kaart" "_Inbox/2026-10-10 SD-kaart"
 
@@ -302,3 +307,86 @@ def move(cfg, name: str, kind: str, sources: list[str], link: bool = True) -> di
         con.print(f"  AutoEdit project [bold]{project.name}[/] reads its clips from {target / '1 Ruw' / 'Video'}")
     return {"moved": total, "shoot": str(target), "project": str(project) if project else None,
             "relinked": sorted(set(relinked))}
+
+
+# ---------------------------------------------------------------- picking clips for an edit
+
+EDITS = "_Edits"
+
+
+def _folder_name(name: str) -> str:
+    name = name.strip()
+    if not name or name[0] == "." or name[-1] == "." or any(c in name for c in '\\/:*?"<>|'):
+        raise SystemExit(f"'{name}' can not be a folder name (no \\ / : * ? \" < > |, no leading or trailing dot)")
+    return name
+
+
+def resolve_clip(cfg, ref: str) -> Path:
+    """'<Soort>/<datum naam>/<clip>' → that video file in the shoot folder; anything else is refused."""
+    parts = re.split(r"[\/]", str(ref).strip())
+    if len(parts) != 3:
+        raise ValueError(f"not a clip: {ref!r} (expected '<Soort>/<datum naam>/<clip>')")
+    shoot_dir = resolve_shoot(cfg, "/".join(parts[:2]))
+    hits = [f for f in _media(shoot_dir)[0] if f.name == parts[2]]
+    if not hits:
+        raise FileNotFoundError(f"{parts[2]} is not a clip in {parts[0]}/{parts[1]}")
+    return hits[0]
+
+
+def _link_into(edits: Path, src: Path) -> str:
+    """Hard link src into the edit folder; 'added', or 'there' when that clip is already in it."""
+    dst = edits / src.name
+    if dst.exists() and os.path.samefile(dst, src):
+        return "there"
+    if dst.exists():                                              # same clip name from another shoot: '<shoot> C0001.MP4'
+        shoot_dir = src.parent.parent.parent if src.parent.name == "Video" else src.parent
+        dst = offload._free_name(edits, f"{shoot_dir.name} {src.name}")
+    os.link(src, dst)
+    return "added"
+
+
+def pick(cfg, name: str, refs: list[str]) -> dict:
+    """Put the chosen clips in one edit: hard links in <SSD>/_Edits/<name> (no copy, no extra space, the originals stay
+    where they are) and the AutoEdit project <name> reads its clips from there. A second pick adds to the same edit."""
+    import _winapi
+    from . import projects
+
+    name = _folder_name(name)
+    if not refs:
+        raise SystemExit("pick at least one clip")
+    try:
+        srcs = [resolve_clip(cfg, r) for r in refs]
+    except (ValueError, FileNotFoundError) as e:
+        raise SystemExit(str(e))
+    edits = offload.library(cfg) / EDITS / name
+    edits.mkdir(parents=True, exist_ok=True)
+    p = projects.root(cfg) / name
+    if not p.exists():
+        projects.new(cfg, name)
+    clips = p / "clips"
+    keep = []                                                     # clips the project already had (on the SSD)
+    if clips.exists() and clips.resolve() != edits.resolve():
+        here = [f for f in clips.iterdir() if f.is_file() and f.suffix.lower() in offload.VIDEO]
+        if not clips.is_junction() and here:
+            raise SystemExit(f"Project '{name}' has its own clips on C: ({clips}); pick under another name")
+        if clips.is_junction():
+            if os.path.splitdrive(str(clips.resolve()))[0].lower() != os.path.splitdrive(str(edits))[0].lower():
+                raise SystemExit(f"Project '{name}' reads its clips from another drive; pick under another name")
+            keep = here
+        added_keep = [_link_into(edits, f) for f in keep]
+        os.rmdir(clips)                                           # junction or empty folder; never footage
+        _winapi.CreateJunction(str(edits), str(clips))
+        if keep:
+            con.print(f"  the {len(added_keep)} clip(s) the project already had are in the edit too")
+    elif not clips.exists():
+        _winapi.CreateJunction(str(edits), str(clips))
+    added = there = 0
+    for src in srcs:
+        r = _link_into(edits, src)
+        added += r == "added"
+        there += r == "there"
+    total = sum(1 for f in edits.iterdir() if f.suffix.lower() in offload.VIDEO)
+    con.print(f"[green]{added} clip(s) in edit {name}[/]" + (f", {there} were already in it" if there else "")
+              + f" · {total} in total → {edits}")
+    con.print(f"  AutoEdit project [bold]{name}[/] reads its clips from there; the originals stay where they are")
+    return {"project": str(p), "edits": str(edits), "added": added, "already": there, "clips": total}

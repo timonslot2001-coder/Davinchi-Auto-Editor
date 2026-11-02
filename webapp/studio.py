@@ -4,8 +4,9 @@ PC; the session writes the comment text to data/studio_inbox/<thread>.txt (no sh
 
     [studio] actie=<plan|grade|goedkeuren|preview|render|qa|stills> project="<name>"
              [look=.. strength=.. exposure=..] [plan=<edl_sha1> grade=<grade key> notitie="<own words>"]
-    [studio] actie=<ssd-ververs|ssd-bekijk|ssd-clip|ssd-verplaats> [map="<Soort>/<map>"] [clip="<file>"]
+    [studio] actie=<ssd-ververs|ssd-bekijk|ssd-clip|ssd-verplaats|ssd-edit> [map="<Soort>/<map>"] [clip="<file>"]
              [naam="<shoot>" soort=<soort> mappen="<map>|<map>"]          (the SSD page; no project)
+             [naam="<edit>" clips="<Soort>/<map>/<clip>|..."]             (ssd-edit: start an edit from picked clips)
 
 It comes from a comment, so nothing in it becomes command text: every key and value is checked here and mapped to
 exactly one allowed `engine ...` argv (host.ALLOWED + check_args). Each comment thread runs once (data/studio_handled.json).
@@ -42,15 +43,17 @@ ASSETS = query.REPO / "data" / "studio_assets"                 # per project slu
 MAX_UPLOAD = 20 * 1024 * 1024                                  # Artifact asset limit the session keeps to
 THREAD = re.compile(r"[A-Za-z0-9_-]{1,100}")
 KEEP = 500
-SSD_ACTIONS = ("ssd-ververs", "ssd-bekijk", "ssd-clip", "ssd-verplaats")
+SSD_ACTIONS = ("ssd-ververs", "ssd-bekijk", "ssd-clip", "ssd-verplaats", "ssd-edit")
 ACTIONS = ("plan", "grade", "goedkeuren", "preview", "render", "qa", "stills") + SSD_ACTIONS
 # keys allowed per action, besides actie and project (project required, except for the SSD actions)
 KEYS = {"grade": {"look", "strength", "exposure"}, "goedkeuren": {"plan", "grade", "notitie"},
-        "ssd-bekijk": {"map"}, "ssd-clip": {"map", "clip"}, "ssd-verplaats": {"naam", "soort", "mappen"}}
+        "ssd-bekijk": {"map"}, "ssd-clip": {"map", "clip"}, "ssd-verplaats": {"naam", "soort", "mappen"},
+        "ssd-edit": {"naam", "clips"}}
 SSD_REQUIRED = {"ssd-ververs": set(), "ssd-bekijk": {"map"}, "ssd-clip": {"map", "clip"},
-                "ssd-verplaats": {"naam", "soort", "mappen"}}
+                "ssd-verplaats": {"naam", "soort", "mappen"}, "ssd-edit": {"naam", "clips"}}
 ALL_KEYS = {"actie", "project", "look", "strength", "exposure", "plan", "grade", "notitie", "map", "clip", "naam",
-            "soort", "mappen"}
+            "soort", "mappen", "clips"}
+MAX_PICK = 60                                                    # clips per ssd-edit request (one comment)
 SOORTEN = ("koken", "kleding", "smoken", "reizen", "klanten", "inbox")
 DEFAULT_GRADE = ("reference_film", 1.0, -1.75)                   # engine gradechoice.Grade()
 LABELS = {"plan": "plan maken", "grade": "kleurlook instellen", "goedkeuren": "plan goedkeuren",
@@ -185,6 +188,21 @@ def _parse_ssd(req: dict) -> dict:
         if not 1 <= len(maps) <= 60:
             raise ValueError("kies 1 tot 60 mappen")
         req["mappen"] = [_map(m) for m in maps]
+    if act == "ssd-edit":
+        try:
+            req["naam"] = _name(req["naam"])
+        except ValueError:
+            raise ValueError("ongeldige naam voor de edit") from None
+        refs = [r.strip() for r in req["clips"].split("|") if r.strip()]
+        if not 1 <= len(refs) <= MAX_PICK:
+            raise ValueError(f"kies 1 tot {MAX_PICK} clips")
+        out = []
+        for r in refs:
+            folder, _, clip = r.rpartition("/")
+            if not CLIP_RE.fullmatch(clip):
+                raise ValueError(f"ongeldige clip: {r[:60]!r}")
+            out.append(f"{_map(folder)}/{clip}")
+        req["clips"] = out
     return req
 
 
@@ -762,6 +780,26 @@ def _ssd(req: dict, host=None, poll: float = 1.0) -> int:
             _out({"ok": ok, "action": act, "message": (f"verplaatst naar {req['naam']}" if ok else
                                                          f"verplaatsen: mislukt ({j['status']})") + (f"\n{log}" if log else ""),
                   "ssd": ssd_docs()})
+            return 0 if ok else 1
+        if act == "ssd-edit":
+            for r in req["clips"]:
+                library.resolve_clip(cfg, r)                     # refuse before anything runs
+            a = ["autoedit", "pick", req["naam"], *req["clips"]]
+            check_args(a)
+            if host is None:
+                from .host import LocalHost
+                host = LocalHost()
+            try:                                                 # never repoint a project's clips under a running job
+                with file_lock(LOCK, wait=False):
+                    j = _wait(host, host.run(a, f"Studio: edit starten ({req['naam']})", req["naam"])["id"], poll)
+            except Busy:
+                raise ValueError("edit starten: de PC is bezig met een andere taak, probeer het straks opnieuw") from None
+            ok = j["status"] == "done"
+            log = redact("\n".join(j.get("log", [])[-4:]))
+            _out({"ok": ok, "action": act, "slug": slug(req["naam"]),
+                  "message": (f"edit {req['naam']}: {len(req['clips'])} clip(s) gekozen" if ok else
+                              f"edit starten: mislukt ({j['status']})") + (f"\n{log}" if log else ""),
+                  "state": _state_or_none(req["naam"]) if ok else None})
             return 0 if ok else 1
         shoot = library.shoot(cfg, req["map"])
         sid = slug(req["map"])

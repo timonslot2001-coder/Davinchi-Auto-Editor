@@ -146,6 +146,17 @@ def create(host=None) -> Flask:
         return job(["autoedit", "sort", name, *folders, "--soort", kind], f"Verplaatsen: {name}",
                    None if kind == "inbox" else name)
 
+    @app.post("/api/library/pick")
+    def library_pick():
+        b = request.get_json() or {}
+        name = _name(b.get("name"))
+        clips = b.get("clips") or []
+        if not clips or len(clips) > 500 or not all(
+                isinstance(c, str) and re.fullmatch(r"_?[A-Za-z]+/[^/\\]{1,120}/[^/\\]{1,200}", c)
+                and not {".", ".."} & set(c.split("/")[1:]) for c in clips):
+            raise ValueError("clips as '<Soort>/<datum naam>/<clip>'")
+        return job(["autoedit", "pick", name, *clips], f"Edit starten: {name}", name)
+
     @app.get("/api/projects/<name>")
     def project(name):
         return proj(name)

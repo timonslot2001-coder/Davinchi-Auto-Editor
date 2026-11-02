@@ -3,6 +3,14 @@
 What changed, in words you would notice in an edit or on the PC. Newest first. Small fixes are folded into the day's
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
+## 2026-11-02 — One app
+- Double-click `autoedit.bat` and the website opens: that is now the one app (the old dashboard and
+  the separate website start file are no longer the way in). It costs no tokens.
+- On your phone: install Tailscale on the PC and the phone, and `autoedit.bat` shows the phone address. Only your own
+  devices get in.
+- New things are built in the website only. The Studio in the Claude app keeps working as it is, but gets no new
+  buttons (every click there costs tokens). Plan and baseline: `docs/simpler-plan.md`.
+
 ## 2026-11-02 — Pick clips and start an edit (page SSD)
 - The SSD page (website and Studio) no longer moves folders; you sort those in Windows Explorer. Instead you tick
   clips, from one or more folders, give the edit a name (or pick an existing project) and press *Start edit*. The
@@ -75,7 +83,7 @@ entry; the full list is in `git log`. Hard-to-reverse choices also get a record 
 ## 2026-10-30 — AutoEdit Studio (website, Docker)
 - New website for all functions: projects, cine montage (plan, numbered shots with comment boxes, approve, render,
   QA), AutoEdit builds in Resolve, AI shots (price first for paid models), posting queue, music, insights and tools,
-  with a live log per job. Works on a phone too. `start-studio.bat` runs it on this PC; `start-studio-docker.bat` runs
+  with a live log per job. Works on a phone too. `autoedit.bat` runs it on this PC; `start-studio-docker.bat` runs
   the website in Docker Desktop and the work on Windows through a worker, because Resolve, the GPU and the footage
   are there. See [webapp/README.md](webapp/README.md).
 - Cine montage render: `brighten` per shot for a dark shot (used on the Beef Tartaar ending).

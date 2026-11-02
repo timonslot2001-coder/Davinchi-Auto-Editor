@@ -44,7 +44,7 @@ A throwaway page (`Studio Koppeltest`, https://claude.ai/artifact/NP3749UxfT6drF
 
 ## Non-goals (for this version)
 - Music, posting queue, AI shots, SD-card offload, insights/tools. They come later, through the same route.
-- Replacing the local web app. `start-studio.bat` stays; the Artifact is an extra way in.
+- Replacing the local web app. The local web app (`autoedit.bat`) stays; the Artifact is an extra way in.
 - Tailscale or any other way to expose the PC to the internet.
 - Driving the Odyssey PowerGrade. It does nothing when applied by script (known; see CLAUDE.md), so grades are LUTs.
 

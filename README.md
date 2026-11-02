@@ -20,11 +20,16 @@ New PC? First run `setup\install.ps1`. It restores the skills, plugins, Comfy mo
 environment; see [setup/README.md](setup/README.md).
 
 1. Open **DaVinci Resolve Studio** (Preferences → System → General → *External scripting using: Local*, already set).
-2. Double-click **`autoedit.bat`** to open the dashboard in your browser.
-   - Or in a terminal: `autoedit project "smoke"` (a project by name) or `autoedit run "C:\Users\Timon\Videos\Shoot"`.
-3. Or use the website **AutoEdit Studio**: `start-studio.bat`, or `start-studio-docker.bat` for Docker Desktop
-   ([webapp/README.md](webapp/README.md)).
-4. Or just tell Claude: *"start project smoke"* or *"maak een cine montage van smoke"*.
+2. Double-click **`autoedit.bat`**: the website opens in your browser. That is the one app for everything
+   ([webapp/README.md](webapp/README.md)); it costs no tokens. Decision [0014](docs/decisions/0014-one-app-the-website.md).
+3. Creative work (a reference video, feedback on the style): tell Claude.
+
+### On your phone
+Install **Tailscale** (free) on this PC and on your phone and log in with the same account on both. Then
+`autoedit.bat` prints the address for the phone (`http://100.x.y.z:5060`). Only this PC and your own Tailscale devices
+get in; anyone else on the network gets *403*. Without Tailscale the website stays on this PC only.
+
+The terminal commands below still work (`autoedit project "smoke"`, `autoedit run "C:\Users\Timon\Videos\Shoot"`).
 
 ## Offload a card to your SSD
 Easiest: double-click **`offload.bat`**, type the shoot name and pick the kind (1 Koken … 6 Weet ik nog niet).

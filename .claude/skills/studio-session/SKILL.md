@@ -90,6 +90,8 @@ saying `bezig` for much longer than the job can take (a render is minutes), chec
 (the worker's output) and tell Timon; set `jobs/<thread_id>` to `fout` with a short reason. Never start the same
 thread again: Timon presses the button again, which is a new thread.
 
+Frozen (decision 0014): the Studio keeps working but gets no new buttons; new features go into the website.
+
 ## SSD page (`actie=ssd-...`, no project)
 The SSD page shows the shoot folders on the SSD that have video (photos get their own editor later), lets Timon look at
 them and tick clips to start an edit (`autoedit/library.py`). He sorts folders himself in Windows Explorer.

@@ -1,7 +1,8 @@
 """python -m webapp                 the web app on this PC, everything local   → http://127.0.0.1:5060
 python -m webapp worker          the Windows worker for the Docker container (port 5061, token from .env)
 python -m webapp laptop-info     address + token for a Docker container on another computer
-python -m webapp --bind 0.0.0.0  also reachable from other devices on your network (phone)
+python -m webapp --phone         also on your phone through Tailscale; only this PC and your tailnet get in (phone.py)
+python -m webapp --bind 0.0.0.0  reachable from every device on your network (no login: only on a network you trust)
 python -m webapp studio --thread <id> --text-file data/studio_inbox/<id>.txt
                                  one request from the claude.ai Artifact (see studio.py): validates and starts it
                                  detached, JSON out at once ({status: "bezig"} or the refusal)
@@ -29,6 +30,7 @@ def main(argv=None):
     ap.add_argument("--port", type=int)
     ap.add_argument("--bind", default="127.0.0.1")
     ap.add_argument("--no-browser", action="store_true")
+    ap.add_argument("--phone", action="store_true", help="also on your phone through Tailscale (only your devices)")
     args = ap.parse_args(argv)
     if args.role == "laptop-info":                     # shown only in this PC's own window, for the laptop's .env
         import socket
@@ -49,10 +51,21 @@ def main(argv=None):
     from .app import create, run_server
     port = args.port or 5060
     app = create()
+    bind = args.bind
+    if args.phone:
+        from . import phone
+        ts = phone.tailscale_ip()
+        if ts:
+            phone.guard(app)                                     # only this PC and your Tailscale devices
+            bind = "0.0.0.0"
+            print(f"On your phone (Tailscale on): http://{ts}:{port}")
+        else:
+            print("On your phone: install Tailscale on this PC and your phone (README, 'On your phone'). "
+                  "Until then the website is on this PC only.")
     if not args.no_browser:
         webbrowser.open(f"http://127.0.0.1:{port}")
-    print(f"AutoEdit Studio on http://{args.bind}:{port}")
-    run_server(app, args.bind, port)
+    print(f"AutoEdit on http://127.0.0.1:{port}")
+    run_server(app, bind, port)
 
 
 if __name__ == "__main__":

@@ -8,7 +8,7 @@ always do the same thing.
 ## Start
 | how | what runs where | open |
 |---|---|---|
-| `start-studio.bat` | everything on this PC | http://127.0.0.1:5060 |
+| `autoedit.bat` (double-click) | everything on this PC; on your phone too when Tailscale is on (`--phone`, only your devices) | http://127.0.0.1:5060 |
 | `start-studio-docker.bat` | the website in Docker Desktop on the Resolve PC, the work through the worker | http://localhost:5060 |
 | `start-worker-for-laptop.bat` + `docker compose up -d --build` | the website in Docker on your laptop, the work on the Resolve PC | http://localhost:5060 on the laptop |
 

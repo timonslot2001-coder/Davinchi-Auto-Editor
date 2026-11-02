@@ -3,6 +3,13 @@
 What changed, in words you would notice in an edit or on the PC. Newest first. Small fixes are folded into the day's
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
+## 2026-11-02 — Pick a look from finished pictures
+- No more sliders or half previews for the grade. The Studio's *Grade* step and the website's *Andere look* show six
+  finished pictures, one per look: four shots from your project, graded exactly like the render. Tap the one you like
+  and that is your grade (then approve again).
+- *Voorbeelden maken* in the Studio now uploads six pictures in one go instead of stills plus six LUT files, which
+  costs fewer tokens.
+
 ## 2026-11-02 — The editor starts the work
 - **Card in = proposal ready.** While the website runs, putting a camera card in starts *Kaart gevonden*: everything new
   goes to `_Inbox` (checked, card untouched), and every new day with video gets an edit `<date> voorstel` with all its

@@ -221,6 +221,12 @@ pre.out { background: rgb(0 0 0 / .4); border: 1px solid var(--line); border-rad
 .jobs-list { display: flex; flex-direction: column; gap: 10px; }
 
 /* grade: the monitor with viewfinder corners, the read-out under it */
+.lookgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
+.lookcard { display: flex; flex-direction: column; gap: 8px; padding: 8px; text-align: left; background: var(--panel2);
+  border: 1.5px solid var(--line); border-radius: 12px; color: inherit; box-shadow: none; }
+.lookcard img, .lookcard .ph { width: 100%; aspect-ratio: 16 / 3.2; object-fit: cover; border-radius: 8px; background: #000; display: block; }
+.lookcard.on { border-color: var(--a1); box-shadow: 0 0 0 1px var(--a1); }
+.lookcard .nm small { color: var(--muted); }
 .stage { position: relative; background: #000; border-radius: 12px; overflow: hidden; touch-action: pan-y; user-select: none;
   aspect-ratio: 16/9; max-width: 100%; cursor: ew-resize; box-shadow: 0 0 0 1px var(--line2), 0 24px 60px -30px rgb(var(--a1-rgb) / .5); }
 .stage::before { content: ""; position: absolute; inset: 12px; z-index: 2; pointer-events: none; opacity: .9;
@@ -638,6 +644,7 @@ function project(id) {
     id, name: str(raw.name), plan, approval, grade,
     stills: (Array.isArray(raw.stills) ? raw.stills : []).map(obj).filter((s) => s && safeUrl(s.url)),
     luts: { conv: safeUrl(luts.conv) || null, looks: obj(luts.looks) || {} },
+    previews: Object.fromEntries(Object.entries(obj(raw.previews) || {}).filter(([l, u]) => StudioMath.LOOKS.includes(l) && safeUrl(u))),
     render: obj(raw.render), made_with: obj(raw.made_with) || {}, updated_at: raw.updated_at,
   };
 }
@@ -1095,286 +1102,36 @@ const pcButtons = (root) => root.querySelectorAll("[data-pc]").forEach((b) => { 
 
 // ---------------------------------------------------------- tab: grade
 function gradeTab(el, id) {
-  el.innerHTML = `<div class="grid cols-grade">
-    <div class="stack">
-      <div class="stage" id="stage" aria-label="Voor en na: sleep om te vergelijken">
-        <canvas id="cv"></canvas><img class="orig" id="orig" alt="">
-        <div class="split" id="split"></div><span class="lbl l">Voor</span><span class="lbl r">Na</span>
-        <div class="msg" id="smsg">Nog geen stills.</div>
-      </div>
-      <div class="readout" id="readout"></div>
-      <label class="slider"><span class="top"><span>Voor / na</span><span id="splitv"></span></span>
-        <input type="range" id="splitr" min="0" max="100" step="1" aria-label="Voor en na vergelijken"></label>
-      <div class="thumbs" id="thumbs"></div>
-      <div class="why" id="gnote"></div>
-    </div>
-    <div class="card stack">
-      <h2 style="margin:0">Kleurlook</h2>
-      <div class="chips" id="chips">${StudioMath.LOOKS.map((l) => `<button class="chip" data-look="${l}" aria-pressed="false"><i class="sw look-${l}" aria-hidden="true"></i><span><b class="lut">${esc(l)}</b><small>${esc(LOOK_HINT[l])}</small></span></button>`).join("")}</div>
-      <label class="slider"><span class="top"><span>Sterkte</span><b id="sv"></b></span>
-        <input type="range" id="sr" min="0" max="100" step="1"></label>
-      <label class="slider"><span class="top"><span>Belichting (alleen S-Log3-beelden)</span><b id="ev"></b></span>
-        <input type="range" id="er" min="-3" max="0.5" step="0.05"></label>
-      <div class="banner" id="saved"></div>
-      <div class="row"><button data-pc id="choose">Kies deze grade</button>
-        <button class="ghost" id="reset">Terug naar opgeslagen</button></div>
-      <div class="row"><button class="dark" data-pc id="stillsBtn">Stills verversen</button></div>
-      <div class="why" id="gwhy"></div>
-    </div></div>`;
-  const D = () => draft(id, project(id));
-  const fill = (inp) => inp.style.setProperty("--p", ((inp.value - inp.min) / (inp.max - inp.min)) * 100 + "%");
-  const cv = $("#cv", el), orig = $("#orig", el), stage = $("#stage", el);
-  const preview = makePreview(cv);
-  let P = null, stillUrl = "", lutKey = "";
-
-  function setSplit(x) {
-    const d = D(); d.split = Math.max(0, Math.min(100, Math.round(x)));
-    orig.style.clipPath = `inset(0 ${100 - d.split}% 0 0)`;
-    $("#split", el).style.left = d.split + "%";
-    $("#splitr", el).value = d.split; $("#splitv", el).textContent = d.split === 0 ? "alleen na" : d.split === 100 ? "alleen voor" : "";
-    fill($("#splitr", el));
-  }
-  const fromPointer = (e) => { const r = stage.getBoundingClientRect(); setSplit(((e.clientX - r.left) / r.width) * 100); };
-  stage.addEventListener("pointerdown", (e) => { stage.setPointerCapture(e.pointerId); fromPointer(e); });
-  stage.addEventListener("pointermove", (e) => { if (stage.hasPointerCapture(e.pointerId)) fromPointer(e); });
-  $("#splitr", el).oninput = (e) => setSplit(+e.target.value);
-
-  function controls() {
-    const d = D();
-    el.querySelectorAll(".chip").forEach((c) => {
-      c.classList.toggle("on", c.dataset.look === d.look); c.setAttribute("aria-pressed", String(c.dataset.look === d.look));
-    });
-    $("#sr", el).value = Math.round(d.strength * 100); $("#sv", el).textContent = pct(d.strength);
-    $("#er", el).value = d.exposure; $("#ev", el).textContent = stops(d.exposure);
-    fill($("#sr", el)); fill($("#er", el));
-    readout();
-  }
-  // What the monitor shows right now, in the units of the grade itself.
-  function readout() {
-    const d = D(), s = P && P.stills[d.still], n = luts.look && luts.look.n;
-    $("#readout", el).innerHTML = `<span>LOOK <b>${esc(lookName(d.look))}</b></span><span>STERKTE <b>${esc(pct(d.strength))}</b></span>` +
-      (s && s.is_log ? `<span>BELICHTING <b>${esc(stops(d.exposure))}</b></span><span><b>S-LOG3 → REC.709</b></span>`
-        : s ? "<span><b>REC.709</b></span>" : "") +
-      (n ? `<span>LUT <b>${n}³</b></span>` : "");
-  }
-  el.querySelectorAll(".chip").forEach((c) => (c.onclick = () => { D().look = c.dataset.look; controls(); loadLuts(); savedLine(); }));
-  $("#sr", el).oninput = (e) => { D().strength = +e.target.value / 100; controls(); draw(); savedLine(); };
-  $("#er", el).oninput = (e) => { D().exposure = +e.target.value; controls(); draw(); savedLine(); };
-  $("#reset", el).onclick = () => { drafts.delete(id); D(); controls(); loadLuts(); savedLine(); setSplit(D().split); };
-  $("#choose", el).onclick = (e) => { const d = D(); send(e.currentTarget, "grade", P, { look: d.look, strength: d.strength, exposure: d.exposure }); };
+  // Finished pictures per look, made on the PC exactly like the render: tap the one you like and that is the grade.
+  el.innerHTML = `<div class="card stack"><div class="row"><h2 style="margin:0">Kies een look</h2><span class="spacer"></span>
+      <button class="ghost sm" data-pc id="stillsBtn">Voorbeelden maken</button></div>
+    <div class="why" id="gwhy"></div><div class="lookgrid" id="looks"></div></div>`;
+  let P = null;
   $("#stillsBtn", el).onclick = (e) => send(e.currentTarget, "stills", P);
-
-  const differs = () => { const g = P.grade || {}, d = D(); return g.look !== d.look || Math.abs((+g.strength) - d.strength) > 0.004 || Math.abs((+g.exposure) - d.exposure) > 0.004; };
-  function savedLine() {
-    if (!P) return;
-    const g = P.grade || {};
-    const has = gradeChosen(P);
-    $("#saved", el).className = "banner " + (has && !differs() ? "ok" : "");
-    $("#saved", el).innerHTML = has
-      ? `Opgeslagen: <b>${esc(lookName(g.look))}</b> · ${esc(pct(g.strength))} · ${esc(stops(g.exposure))}` +
-        (differs() ? '<br><span class="muted">Je probeert nu een andere grade. Druk op Kies deze grade om hem op te slaan.</span>' : "")
-      : `Nog geen grade gekozen${g.look != null ? ` (nu de standaard: <b>${esc(lookName(g.look))}</b>)` : ""}. Druk op Kies deze grade.`;
-    $("#choose", el).dataset.block = has && !differs() ? "1" : "";
-    pcButtons(el);
-  }
-
-  function setStill(i) {
-    const s = P.stills[i];
-    D().still = i;
-    el.querySelectorAll(".thumb").forEach((t, k) => t.classList.toggle("on", k === i));
-    if (!s) { stillUrl = ""; orig.removeAttribute("src"); preview.clear(); msg("Nog geen stills. Druk op Stills verversen."); return; }
-    if (s.url === stillUrl) return;
-    stillUrl = s.url;
-    orig.src = s.url;
-    msg("Still laden…");
-    preview.setImage(s.url).then((ok) => { if (stillUrl !== s.url) return; msg(""); draw(); note(); })
-      .catch(() => { if (stillUrl === s.url) { msg("Still niet te laden."); } });
-  }
-  const msg = (t) => { const m = $("#smsg", el); m.hidden = !t; m.textContent = t; };
-  const lutCache = (window.__lutCache = window.__lutCache || new Map());
-  function getLut(url) {
-    if (!url) return Promise.resolve(null);
-    if (!lutCache.has(url)) lutCache.set(url, fetch(url).then((r) => { if (!r.ok) throw new Error("http " + r.status); return r.text(); }).then(parseCube)
-      .catch((e) => { lutCache.delete(url); throw e; }));
-    return lutCache.get(url);
-  }
-  let luts = { conv: null, look: null, err: "" };
-  function loadLuts() {
-    const d = D(), convUrl = P.luts.conv, lookUrl = safeUrl(P.luts.looks[d.look]);
-    const key = convUrl + "|" + lookUrl;
-    if (key === lutKey) { draw(); return; }
-    lutKey = key;
-    Promise.all([getLut(convUrl).catch(() => "err"), getLut(lookUrl).catch(() => "err")]).then(([c, l]) => {
-      if (lutKey !== key) return;
-      luts = { conv: c === "err" ? null : c, look: l === "err" ? null : l, err: c === "err" || l === "err" ? "LUT niet te laden." : "" };
-      if (!lookUrl) luts.err = "De LUT voor " + lookName(d.look) + " ontbreekt: druk op Stills verversen.";
-      preview.setLuts(luts.conv, luts.look);
-      draw(); note();
-    });
-  }
-  function draw() {
-    const d = D(), s = P && P.stills[d.still];
-    preview.draw({ exposure: d.exposure, strength: d.strength, isLog: !!(s && s.is_log) });
-  }
-  function note() {
-    const s = P && P.stills[D().still];
-    const parts = [];
-    if (s) parts.push((s.label ? esc(s.label) + " · " : "") + (s.is_log ? "S-Log3" : "Rec.709 (belichting doet hier niets)"));
-    if (s && s.is_log && !P.luts.conv) parts.push('<span class="warn">Sony-omzetting ontbreekt: voorbeeld zonder omzetting.</span>');
-    if (luts.err) parts.push(`<span class="fail">${esc(luts.err)}</span>`);
-    if (preview.note) parts.push(esc(preview.note));
-    $("#gnote", el).innerHTML = parts.join(" · ");
-    readout();
-  }
-
-  controls(); setSplit(D().split);
   return {
     update(p) {
       P = p;
-      const urls = p.stills.map((s) => s.url).join("|");
-      if (el.dataset.stills !== urls) {
-        el.dataset.stills = urls;
-        $("#thumbs", el).innerHTML = p.stills.map((s, i) => `<button class="thumb" data-i="${i}" title="${esc(s.label || "")}">` +
-          `<img src="${esc(s.url)}" alt="${esc(s.label || "still " + (i + 1))}" loading="lazy">${s.is_log ? "<i>S-Log3</i>" : ""}</button>`).join("");
-        el.querySelectorAll(".thumb").forEach((t) => (t.onclick = () => setStill(+t.dataset.i)));
-        stillUrl = "";
-        setStill(Math.min(D().still, Math.max(0, p.stills.length - 1)));
+      const g = p.grade || {}, chosen = gradeChosen(p), has = StudioMath.LOOKS.some((l) => p.previews[l]);
+      const key = JSON.stringify([p.previews, g.look, chosen, online()]);
+      if (el.dataset.k !== key) {
+        el.dataset.k = key;
+        $("#looks", el).innerHTML = has ? StudioMath.LOOKS.map((l) => {
+          const on = chosen && g.look === l;
+          return `<button class="lookcard${on ? " on" : ""}" data-pc data-look="${l}" aria-pressed="${on}">` +
+            (p.previews[l] ? `<img src="${esc(p.previews[l])}" alt="Voorbeeld van ${esc(lookName(l))}" loading="lazy">` : '<div class="ph"></div>') +
+            `<span class="nm"><b>${esc(lookName(l))}</b> <small>${esc(LOOK_HINT[l])}</small>${on ? ' <i class="tag ok">gekozen</i>' : ""}</span></button>`;
+        }).join("") : `<div class="empty">Nog geen voorbeelden. Druk op <b>Voorbeelden maken</b>: je PC laat vier shots uit dit project in elke look zien.</div>`;
+        el.querySelectorAll("[data-look]").forEach((b) => (b.onclick = (e) =>
+          send(e.currentTarget, "grade", P, { look: b.dataset.look, strength: 1, exposure: -1.75 })));
+        $("#stillsBtn", el).textContent = has ? "Voorbeelden verversen" : "Voorbeelden maken";
       }
-      loadLuts();
-      savedLine();
-      const why = !online() ? offlineReason() : "Kies deze grade bewaart hem op je PC. Een gekozen grade vraagt om nieuwe goedkeuring.";
-      $("#gwhy", el).textContent = why;
+      $("#gwhy", el).textContent = !online() ? offlineReason()
+        : has ? "Tik op de look die je mooi vindt: dat is meteen je grade (daarna opnieuw goedkeuren)." : "";
       $("#gwhy", el).className = "why" + (online() ? "" : " warn");
       pcButtons(el);
-      note();
     },
-    destroy() { preview.destroy(); },
+    destroy() {},
   };
-}
-
-// WebGL preview: still + two LUTs (33 slices side by side in a 2D texture), trilinear lookup in the fragment shader.
-// Falls back to the same maths on the CPU (2D canvas) when WebGL is missing.
-function makePreview(canvas) {
-  const self = { note: "" };
-  let gl = null, prog = null, tex = {}, img = null, sizes = { conv: 0, look: 0 }, has = { conv: false, look: false }, floatTex = false;
-  let cpu = null, cpuLuts = { conv: null, look: null }, last = null, pending = false, readable = true;
-  try { gl = canvas.getContext("webgl", { preserveDrawingBuffer: true, premultipliedAlpha: false }); } catch (e) { gl = null; }
-  const VS = "attribute vec2 p; varying vec2 uv; void main(){ uv = vec2(p.x*.5+.5, .5-p.y*.5); gl_Position = vec4(p,0.,1.); }";
-  const FS = `#ifdef GL_FRAGMENT_PRECISION_HIGH
-precision highp float;
-#else
-precision mediump float;
-#endif
-varying vec2 uv; uniform sampler2D img, convT, lookT; uniform float nConv, nLook, expo, strength, isLog, hasConv, hasLook;
-vec3 at(sampler2D t, float n, float r, float g, float b){ return texture2D(t, vec2((b*n + r + .5)/(n*n), (g + .5)/n)).rgb; }
-vec3 lut(sampler2D t, float n, vec3 c){
-  vec3 x = clamp(c, 0., 1.) * (n - 1.); vec3 i0 = floor(x); vec3 i1 = min(i0 + 1., n - 1.); vec3 f = x - i0;
-  vec3 c00 = mix(at(t,n,i0.r,i0.g,i0.b), at(t,n,i1.r,i0.g,i0.b), f.r);
-  vec3 c01 = mix(at(t,n,i0.r,i1.g,i0.b), at(t,n,i1.r,i1.g,i0.b), f.r);
-  vec3 c10 = mix(at(t,n,i0.r,i0.g,i1.b), at(t,n,i1.r,i0.g,i1.b), f.r);
-  vec3 c11 = mix(at(t,n,i0.r,i1.g,i1.b), at(t,n,i1.r,i1.g,i1.b), f.r);
-  return mix(mix(c00, c01, f.g), mix(c10, c11, f.g), f.b);
-}
-void main(){
-  vec3 c = texture2D(img, uv).rgb;
-  if (isLog > .5) { c = clamp(c + expo * .0769, 0., 1.); if (hasConv > .5) c = lut(convT, nConv, c); }
-  vec3 o = hasLook > .5 ? lut(lookT, nLook, c) : c;
-  gl_FragColor = vec4(clamp(c + (o - c) * strength, 0., 1.), 1.);
-}`;
-  function initGL() {
-    const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
-      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
-    prog = gl.createProgram();
-    gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(prog);
-    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
-    gl.useProgram(prog);
-    const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
-    const loc = gl.getAttribLocation(prog, "p"); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-    floatTex = !!gl.getExtension("OES_texture_float");
-    ["img", "convT", "lookT"].forEach((name, unit) => {
-      const t = gl.createTexture(); gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, t);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-      const filt = name === "img" ? gl.LINEAR : gl.NEAREST;
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filt); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filt);
-      gl.uniform1i(gl.getUniformLocation(prog, name), unit); tex[name] = t;
-    });
-  }
-  if (gl) { try { initGL(); } catch (e) { gl = null; } }
-  if (!gl) self.note = "Voorbeeld via de processor (geen WebGL): wat trager.";
-
-  function lutTexture(unit, name, cube) {
-    has[name.replace("T", "")] = !!cube;
-    if (!cube) return;
-    const n = cube.n, w = n * n, src = cube.data;
-    const data = floatTex ? new Float32Array(w * n * 4) : new Uint8Array(w * n * 4);
-    for (let b = 0; b < n; b++) for (let g = 0; g < n; g++) for (let r = 0; r < n; r++) {
-      const s = ((b * n + g) * n + r) * 3, o = (g * w + b * n + r) * 4;
-      for (let ch = 0; ch < 3; ch++) data[o + ch] = floatTex ? src[s + ch] : Math.round(Math.min(1, Math.max(0, src[s + ch])) * 255);
-      data[o + 3] = floatTex ? 1 : 255;
-    }
-    gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, tex[name]);
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false); gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, n, 0, gl.RGBA, floatTex ? gl.FLOAT : gl.UNSIGNED_BYTE, data);
-    sizes[name.replace("T", "")] = n;
-  }
-  function loadImage(url, cors) {
-    return new Promise((res, rej) => {
-      const im = new Image();
-      if (cors) im.crossOrigin = "anonymous";
-      im.onload = () => res(im); im.onerror = () => rej(new Error("laden mislukt"));
-      im.src = url;
-    });
-  }
-  self.setImage = async (url) => {
-    let im = null;
-    try { im = await loadImage(url, true); } catch (e) { im = await loadImage(url, false); }
-    img = im; readable = true;
-    canvas.width = im.naturalWidth || 1280; canvas.height = im.naturalHeight || 720;
-    if (gl) {
-      try {
-        gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tex.img);
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false); gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, im);
-      } catch (e) { readable = false; }
-    } else {
-      const k = Math.min(1, 960 / canvas.width);
-      canvas.width = Math.round(canvas.width * k); canvas.height = Math.round(canvas.height * k);
-      const ctx = canvas.getContext("2d"); ctx.drawImage(im, 0, 0, canvas.width, canvas.height);
-      try { cpu = ctx.getImageData(0, 0, canvas.width, canvas.height); } catch (e) { cpu = null; readable = false; }
-    }
-    self.note = readable ? (gl ? "" : self.note) : "Dit beeld kan niet ingekleurd worden in de browser; je ziet het origineel.";
-    canvas.style.visibility = readable ? "visible" : "hidden";
-    return readable;
-  };
-  self.setLuts = (conv, look) => {
-    cpuLuts = { conv, look };
-    if (gl) { lutTexture(1, "convT", conv); lutTexture(2, "lookT", look); }
-  };
-  self.clear = () => { img = null; cpu = null; canvas.style.visibility = "hidden"; };
-  function paint() {
-    pending = false;
-    if (!img || !readable || !last) return;
-    canvas.style.visibility = "visible";
-    if (gl) {
-      gl.viewport(0, 0, canvas.width, canvas.height);
-      const u = (n, v) => gl.uniform1f(gl.getUniformLocation(prog, n), v);
-      u("nConv", sizes.conv || 2); u("nLook", sizes.look || 2); u("expo", last.exposure); u("strength", last.strength);
-      u("isLog", last.isLog ? 1 : 0); u("hasConv", has.conv ? 1 : 0); u("hasLook", has.look ? 1 : 0);
-      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    } else if (cpu) {
-      const ctx = canvas.getContext("2d"), out = new ImageData(cpu.width, cpu.height), s = cpu.data, o = out.data;
-      for (let i = 0; i < s.length; i += 4) {
-        const g = gradePixel([s[i] / 255, s[i + 1] / 255, s[i + 2] / 255], cpuLuts.conv, cpuLuts.look, last.exposure, last.strength, last.isLog);
-        o[i] = g[0] * 255 + 0.5; o[i + 1] = g[1] * 255 + 0.5; o[i + 2] = g[2] * 255 + 0.5; o[i + 3] = 255;
-      }
-      ctx.putImageData(out, 0, 0);
-    }
-  }
-  self.draw = (params) => { last = params; if (!pending) { pending = true; requestAnimationFrame(paint); } };
-  self.destroy = () => { const ext = gl && gl.getExtension("WEBGL_lose_context"); if (ext) ext.loseContext(); gl = null; };
-  self.mode = () => (gl ? (floatTex ? "webgl-float" : "webgl-byte") : "cpu");
-  return self;
 }
 
 // ---------------------------------------------------------- tab: plan

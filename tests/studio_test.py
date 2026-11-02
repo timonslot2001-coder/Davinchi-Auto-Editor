@@ -228,12 +228,14 @@ assert out["ok"] is False and out["action"] == "stills" and "geen beeld" in out[
 # stills run studio_assets.export directly (no engine job); assets paths are repo-relative, state stays path-free
 from webapp import studio_assets   # noqa: E402
 studio_assets.export = lambda p, o: {"stills": [{"file": "still_0.png", "is_log": True, "label": "A.mp4 0:01.0"}],
-                                     "conv": "conv.cube", "looks": {"moody": "look_moody.cube"}}
+                                     "conv": "conv.cube", "looks": {"moody": "look_moody.cube"},
+                                     "previews": {"moody": "preview_moody.jpg"}}
 code, out = cli(["--thread", "c-102b", '[studio] actie=stills project="Zomer Shoot"'], h)
 d = f"data/studio_assets/{studio.slug('Zomer Shoot')}"
 assert code == 0 and out["ok"] and len(h.runs) == 1, out
 assert out["assets"] == {"stills": [{"file": f"{d}/still_0.png", "is_log": True, "label": "A.mp4 0:01.0"}],
-                         "conv": f"{d}/conv.cube", "looks": {"moody": f"{d}/look_moody.cube"}}, out["assets"]
+                         "conv": f"{d}/conv.cube", "looks": {"moody": f"{d}/look_moody.cube"},
+                         "previews": {"moody": f"{d}/preview_moody.jpg"}}, out["assets"]
 assert "assets" not in out["state"] and d not in json.dumps(out["state"])
 code, out = cli(["--thread", "c-103", '[studio] actie=render project="Zomer Shoot"'], FakeHost("failed"))
 assert code == 1 and out["ok"] is False and out["action"] == "render", out

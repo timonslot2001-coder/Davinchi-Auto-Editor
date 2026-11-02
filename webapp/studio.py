@@ -382,7 +382,7 @@ def state(name: str) -> dict:
     made_with = {"sheet": _made_with(work / "storyboard" / "made_with.json", work / "storyboard" / "storyboard_sheet.jpg"),
                  "preview": _made_with(work / "preview_made_with.json", work / "preview.mp4")}
     return {"name": p.name, "plan": plan, "approval": approval, "grade": grade, "made_with": made_with, "stills": [],
-            "luts": {"conv": None, "looks": {}}, "render": None,
+            "luts": {"conv": None, "looks": {}}, "previews": {}, "render": None,
             "updated_at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
 
 
@@ -689,7 +689,8 @@ def _stills(name: str) -> int:
         return 1
     rel = lambda f: (out_dir / f).relative_to(query.REPO).as_posix() if f else None   # noqa: E731
     assets = {"stills": [{**s, "file": rel(s["file"])} for s in res["stills"]], "conv": rel(res["conv"]),
-              "looks": {k: rel(v) for k, v in res["looks"].items()}}
+              "looks": {k: rel(v) for k, v in res["looks"].items()},
+              "previews": {k: rel(v) for k, v in res.get("previews", {}).items()}}
     _out({"ok": True, "action": "stills", "slug": slug(name), "message": f"voorbeelden: klaar ({len(assets['stills'])} stills)",
           "assets": assets, "state": _state_or_none(name)})
     return 0

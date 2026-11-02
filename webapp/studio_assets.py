@@ -100,4 +100,37 @@ def export(project: Path, out_dir: Path, n: int = 4) -> dict:
     for look in gradechoice.LOOKS:
         grade.write_cube(out_dir / f"look_{look}.cube", grade.look_lut(look, 33), f"AutoEdit {look}")
         looks[look] = f"look_{look}.cube"
-    return {"stills": stills, "conv": conv, "looks": looks}
+    return {"stills": stills, "conv": conv, "looks": looks,
+            "previews": previews(out_dir, [(out_dir / s["file"], s["is_log"]) for s in stills])}
+
+
+def previews(out_dir: Path, stills: list[tuple[Path, bool]], width: int = 480) -> dict[str, str]:
+    """One finished picture per look: the stills side by side, graded exactly like the render (house exposure -1.75
+    stops and the Sony conversion for S-Log3 stills, the look at full strength). Timon taps the one he likes; nothing
+    is computed in the browser. Returns {look: file name in out_dir}."""
+    import cv2
+    import numpy as np
+    grade, gradechoice, _, _ = _imports()
+    src = []
+    for f, is_log in stills:
+        img = cv2.imread(str(f), cv2.IMREAD_COLOR)
+        if img is None:
+            continue
+        h = round(img.shape[0] * width / img.shape[1])
+        src.append((cv2.resize(img, (width, h), interpolation=cv2.INTER_AREA)[:, :, ::-1] / 255.0, is_log))
+    if not src:
+        return {}
+    h = min(i.shape[0] for i, _ in src)
+    out = {}
+    for look in gradechoice.LOOKS:
+        lut_log = grade.read_cube(grade.build_lut(look, 1.0, -1.75))[0] if any(l for _, l in src) else None
+        lut_709 = grade.read_cube(grade.build_lut(look, 1.0, 0.0, conversion=None))[0]
+        tiles = []
+        for img, is_log in src:
+            g = grade.apply_cube(lut_log if is_log else lut_709, img[:h])
+            tiles += [g, np.zeros((h, 6, 3))]
+        strip = (np.clip(np.hstack(tiles[:-1]), 0, 1) * 255).astype(np.uint8)[:, :, ::-1]
+        name = f"preview_{look}.jpg"
+        cv2.imwrite(str(out_dir / name), strip, [cv2.IMWRITE_JPEG_QUALITY, 85])
+        out[look] = name
+    return out

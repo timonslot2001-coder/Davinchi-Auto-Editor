@@ -227,14 +227,10 @@ function tabCine() {
           <button class="ghost" id="cQa">QA</button></div>
         <p class="muted small">Renderen gebruikt de opgeslagen kleurlook (grade.json).</p>`}
       </div>
-      ${c.has_plan ? `<div class="card"><h2>Andere look <span class="muted small">(standaard: huisstijl)</span></h2>
-        <div class="form">
-          <label>Look<select id="gLook">${lookOptions}</select></label>
-          <label>Sterkte <span id="gSV">${c.grade.strength}</span><input id="gStr" type="range" min="0" max="1" step="0.05" value="${c.grade.strength}"></label>
-          <label>Belichting (stops) <span id="gEV">${c.grade.exposure}</span><input id="gExp" type="range" min="-3" max="0.5" step="0.25" value="${c.grade.exposure}"></label>
-        </div>
-        <div class="row" style="margin-top:10px"><button id="gSave">Look opslaan</button>
-          <span class="muted small">Schrijft cine_montage/grade.json. Renderen gebruikt die look.</span></div></div>` : ""}
+      ${c.has_plan ? `<div class="card"><div class="row"><h2 style="margin:0">Andere look</h2><span class="spacer"></span>
+        <button class="ghost sm" id="gLoad">Voorbeelden laden</button></div>
+        <p class="muted small">Vier shots uit dit project in elke look, precies zoals de render. Tik op een look: dat is meteen je grade.</p>
+        <div class="lookgrid" id="gLooks"></div></div>` : ""}
       </div></details>
       ${c.qa ? `<div class="card"><h2>Laatste QA</h2>${qaView(c.qa.qa)}</div>` : ""}
     </div>
@@ -254,7 +250,7 @@ function tabCine() {
     </div>
   </div>`;
   $("#cLook").value = c.grade.look;
-  if ($("#gLook")) $("#gLook").value = c.grade.look;
+
   api("/api/music").then((list) => {                             // step 2: the songs in your music folder
     $("#pSong").insertAdjacentHTML("beforeend", list.map((m) => `<option value="${esc(m.name)}">${esc(m.name)}</option>`).join(""));
   }).catch(() => {});
@@ -309,10 +305,17 @@ function tabCine() {
   $("#cRender").onclick = () => startJob(`/api/projects/${enc(P.name)}/cine/render`, {}, { onDone: reload });
   $("#cPreview").onclick = () => startJob(`/api/projects/${enc(P.name)}/cine/preview`, grade(), { onDone: reload });
   $("#cQa").onclick = () => startJob(`/api/projects/${enc(P.name)}/cine/qa`, grade(), { onDone: reload });
-  $("#gStr").oninput = () => ($("#gSV").textContent = $("#gStr").value);
-  $("#gExp").oninput = () => ($("#gEV").textContent = $("#gExp").value);
-  $("#gSave").onclick = () => startJob(`/api/projects/${enc(P.name)}/cine/grade`, {
-    look: $("#gLook").value, strength: $("#gStr").value, exposure: $("#gExp").value }, { onDone: reload });
+  const LOOK_NL = { reference_film: "Film (huisstijl)", clean_warm: "Warm en helder", moody: "Moody", daylight: "Daglicht", blue_hour: "Blauw uur", vintage: "Vintage" };
+  $("#gLoad").onclick = (ev) => guard(async () => {
+    const fresh = $("#gLooks").children.length ? "?fresh=1" : "";
+    $("#gLooks").innerHTML = '<div class="loading">Voorbeelden maken… (± 15 s)</div>';
+    const looks = await api(`/api/projects/${enc(P.name)}/looks${fresh}`);
+    $("#gLooks").innerHTML = Object.keys(LOOK_NL).filter((l) => looks[l]).map((l) => `<button class="lookcard${c.grade.look === l ? " on" : ""}" data-look="${l}">
+      <img src="${fileUrl(looks[l])}&t=${Date.now()}" alt=""><span><b>${LOOK_NL[l]}</b>${c.grade.look === l ? ' <span class="tag ok">nu</span>' : ""}</span></button>`).join("");
+    $("#gLoad").textContent = "Opnieuw maken";
+    document.querySelectorAll("[data-look]").forEach((b) => (b.onclick = () => startJob(`/api/projects/${enc(P.name)}/cine/grade`,
+      { look: b.dataset.look, strength: 1, exposure: -1.75 }, { onDone: reload })));
+  });
   $("#cSaveComments").onclick = () => guard(async () => {
     const comments = {};
     document.querySelectorAll(".shot textarea").forEach((t) => (comments[t.dataset.n] = t.value));

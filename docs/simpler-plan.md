@@ -25,7 +25,7 @@ against the baseline below; what does not save time, clicks or tokens is removed
    app picks the editor once per project; the editor picks the best part of the song; the home page shows the next
    step per project.
 4. **The editor starts the work** (done 2026-11-02: card in -> proposal, feedback buttons, *Plannen*, SSD in the status
-   light; shot tags need the YuNet face model first; on purpose not done: projects on the SSD, because `_Edits` and
+   light; automatic shot tags built but off (4/12 right on Smoke Sesh, worse than none); on purpose not done: projects on the SSD, because `_Edits` and
    the junctions already keep footage in one place, and a project on a disconnected SSD would vanish): card in → offload, day sorted and a first rough edit ready, with a phone message;
    feedback buttons on the result (*korter*, *rustiger*, *ander nummer*, *dit shot eruit*) that also become taste
    rules; shots recognised automatically instead of `tags.json`; a project lives on the SSD next to its footage;

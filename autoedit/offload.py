@@ -253,5 +253,8 @@ def offload(cfg, name: str, kind: str = "inbox", since: str | None = None, cards
     if project:
         con.print(f"  AutoEdit project [bold]{project.name}[/] reads its clips from {shoot / '1 Ruw' / 'Video'}")
     con.print("  The card is untouched; format it in the camera once you are happy.")
+    if copied:
+        from . import library as shelf                    # thumbnails ready for the SSD page
+        shelf.warm(cfg, [f"{s.parent.name}/{s.name}" for s in shoots.values()])
     return {"copied": copied, "skipped": skipped, "shoot": str(shoot), "shoots": sorted(str(s) for s in shoots.values()),
             "project": str(project) if project else None}

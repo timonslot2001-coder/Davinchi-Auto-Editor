@@ -7,7 +7,8 @@ python -m webapp studio --thread <id> --text-file data/studio_inbox/<id>.txt
                                  detached, JSON out at once ({status: "bezig"} or the refusal)
 python -m webapp studio-result --thread <id>     that request's result line ({status: "bezig"} while it runs)
 python -m webapp studio-projects                 every Studio project with its state document, JSON out
-python -m webapp studio-state "<name>"           the project's state document for the Artifact db, JSON out"""
+python -m webapp studio-state "<name>"           the project's state document for the Artifact db, JSON out
+python -m webapp studio-ssd                      the SSD shoot folders for the Artifact db (ssd/<id>), JSON out"""
 from __future__ import annotations
 
 import argparse
@@ -17,11 +18,12 @@ import webbrowser
 
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
-    studio_cmds = ("studio", "studio-result", "studio-worker", "studio-state", "studio-projects")
+    studio_cmds = ("studio", "studio-result", "studio-worker", "studio-state", "studio-projects", "studio-ssd")
     if argv and argv[0] in studio_cmds:                                      # own arguments; no Flask needed
         from . import studio
         return {"studio": studio.cli, "studio-result": studio.result_cli, "studio-worker": studio.worker_cli,
-                "studio-state": studio.state_cli, "studio-projects": studio.projects_cli}[argv[0]](argv[1:])
+                "studio-state": studio.state_cli, "studio-projects": studio.projects_cli,
+                "studio-ssd": studio.ssd_cli}[argv[0]](argv[1:])
     ap = argparse.ArgumentParser(prog="webapp")
     ap.add_argument("role", nargs="?", choices=["app", "worker", "laptop-info"], default="app")
     ap.add_argument("--port", type=int)

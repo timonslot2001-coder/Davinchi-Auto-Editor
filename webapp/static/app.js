@@ -74,7 +74,7 @@ async function loadStatus() {
 }
 
 // ------------------------------------------------------------------ router
-const routes = { "": home, queue, music, tools, jobs, p: project };
+const routes = { "": home, ssd, queue, music, tools, jobs, p: project };
 async function route() {
   const [, top = "", ...rest] = location.hash.split("/");
   document.querySelectorAll("nav a").forEach((a) => a.classList.toggle("on", a.dataset.nav === (top || "home") || (top === "p" && a.dataset.nav === "home")));
@@ -354,6 +354,106 @@ function tabSettings() {
     await api(`/api/projects/${enc(P.name)}/settings`, { method: "PUT", body: { yaml: $("#sYaml").value } });
     toast("Opgeslagen", "ok");
   });
+}
+
+// ------------------------------------------------------------------ SSD: look at the shoots, name them, move them
+const KIND_LABEL = { inbox: "Weet ik nog niet (_Inbox)", koken: "Koken", kleding: "Kleding", smoken: "Smoken", reizen: "Reizen", klanten: "Klanten" };
+const ssdSel = new Set();
+const dur = (s) => (s >= 3600 ? `${Math.floor(s / 3600)}u${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}` : `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`);
+const thumbUrl = (p) => "/api/library/thumb?path=" + enc(p);
+
+async function ssd(open) {
+  const lib = await api("/api/library");
+  if (!lib.connected) {
+    main.innerHTML = `<div class="head"><div><div class="crumb">AutoEdit</div><h1>SSD</h1></div></div>
+      <div class="empty">De SSD (${esc(lib.library)}) is niet aangesloten op de pc.</div>`;
+    return;
+  }
+  const shoots = lib.shoots.filter((s) => s.videos > 0);          // video only; photos get their own editor later
+  const byRel = Object.fromEntries(shoots.map((s) => [s.rel, s]));
+  [...ssdSel].forEach((r) => byRel[r] || ssdSel.delete(r));
+  const groups = lib.kinds.map((k) => [k, shoots.filter((s) => s.kind === k.kind)]).sort((a, b) => (a[0].kind !== "inbox") - (b[0].kind !== "inbox"));
+  main.innerHTML = `
+    <div class="head"><div><div class="crumb">AutoEdit</div><h1>SSD</h1></div><span class="spacer"></span>
+      <span class="muted small">${esc(lib.library)} · ${shoots.length} mappen met video</span></div>
+    <div class="card ssd-move"><div class="row">
+      <b id="sdCount"></b><span class="spacer"></span>
+      <input id="sdName" placeholder="Naam van de shoot, bijv. Ibiza" style="max-width:260px">
+      <select id="sdKind" style="max-width:220px">${lib.kinds.map((k) => `<option value="${k.kind}" ${k.kind === "reizen" ? "selected" : ""}>${esc(KIND_LABEL[k.kind] || k.folder)}</option>`).join("")}</select>
+      <button id="sdGo" disabled>Verplaatsen</button></div>
+      <div class="muted small" id="sdHint" style="margin-top:6px"></div></div>
+    <div class="grid cols-2 ssd-grid" style="margin-top:16px">
+      <div class="card ssd-list">${groups.map(([k, list]) => `<h3>${esc(KIND_LABEL[k.kind] || k.folder)} <span class="muted small">${list.length}</span></h3>
+        ${list.map((s) => `<div class="ssd-row" data-rel="${esc(s.rel)}"><input type="checkbox" ${ssdSel.has(s.rel) ? "checked" : ""}>
+          <div class="nm"><b>${esc(s.name)}</b> <span class="muted small">${esc(s.date || "")}</span>
+          <div class="muted small">${s.videos} video · ${mb(s.size)}${s.project ? ` · <span class="tag ok">project: ${esc(s.project)}</span>` : ""}</div></div></div>`).join("") || '<div class="muted small" style="margin-bottom:10px">leeg</div>'}`).join("")}</div>
+      <div id="sdShoot"><div class="empty">Klik links op een map om de beelden te zien. Vink mappen aan om ze samen een naam te geven en te verplaatsen.</div></div>
+    </div>`;
+  const update = () => {
+    const sel = [...ssdSel].map((r) => byRel[r]).sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+    const name = $("#sdName").value.trim(), kind = lib.kinds.find((k) => k.kind === $("#sdKind").value);
+    $("#sdCount").textContent = sel.length ? `${sel.length} map(pen) geselecteerd` : "Vink mappen aan om ze te verplaatsen";
+    $("#sdGo").disabled = !sel.length || !name;
+    $("#sdHint").textContent = sel.length ? `${sel.map((s) => s.folder).join(", ")} → ${kind.folder}/${sel[0].date || "<datum>"} ${name || "<naam>"}/`
+      + (kind.kind === "inbox" ? "" : `  · project "${name || "<naam>"}" leest de clips daarvandaan`) + "  · foto's in dezelfde map gaan mee" : "";
+  };
+  document.querySelectorAll(".ssd-row").forEach((row) => {
+    const cb = $("input", row), rel = row.dataset.rel;
+    cb.onclick = (ev) => { ev.stopPropagation(); cb.checked ? ssdSel.add(rel) : ssdSel.delete(rel); update(); };
+    row.onclick = () => showShoot(rel);
+  });
+  $("#sdName").oninput = update; $("#sdKind").onchange = update; update();
+  $("#sdGo").onclick = async () => {
+    const folders = [...ssdSel], name = $("#sdName").value.trim(), soort = $("#sdKind").value;
+    if (!(await confirmDlg("Verplaatsen?", `<p>${folders.length} map(pen) naar <b>${esc(KIND_LABEL[soort])}</b> als <b>${esc(name)}</b>.</p>
+      <p class="muted small">De bestanden worden op de SSD verplaatst (niets wordt gekopieerd of verwijderd, alleen lege mappen).</p>`, "Verplaatsen"))) return;
+    startJob("/api/library/move", { name, soort, folders }, { onDone: (j) => { if (j.status === "done") { ssdSel.clear(); $("#sdName").value = ""; ssd(); } } });
+  };
+  if (open && byRel[open]) showShoot(open);
+}
+
+async function showShoot(rel) {
+  history.replaceState(null, "", "#/ssd/" + enc(rel));
+  document.querySelectorAll(".ssd-row").forEach((r) => r.classList.toggle("on", r.dataset.rel === rel));
+  const box = $("#sdShoot");
+  box.innerHTML = '<div class="loading">Laden…</div>';
+  const s = await guard(() => api("/api/library/shoot?rel=" + enc(rel)));
+  if (!s || !$("#sdShoot") || location.hash !== "#/ssd/" + enc(rel)) return;
+  const total = s.videos.reduce((a, v) => a + v.duration, 0);
+  box.innerHTML = `<div class="card stack">
+    <div class="row"><h2 style="margin:0">${esc(rel.split("/")[1])}</h2><span class="spacer"></span>
+      <span class="tag">${s.videos.length} video · ${dur(total)}</span><span class="tag">${mb(s.size)}</span>
+      <button class="sm ${ssdSel.has(rel) ? "dark" : ""}" id="sdPick">${ssdSel.has(rel) ? "✓ geselecteerd" : "Selecteren"}</button></div>
+    <div id="sdPlayer" hidden></div>
+    ${s.videos.length ? `<div class="thumbs">${s.videos.map((v, i) => `<div class="th" data-i="${i}" title="${esc(v.name)}">
+      <img loading="lazy" src="${thumbUrl(v.path)}" alt=""><span class="d">${dur(v.duration)}</span><span class="n">${esc(v.name.replace(/\.[^.]+$/, ""))}</span></div>`).join("")}</div>` : '<div class="muted">Geen video’s.</div>'}
+  </div>`;
+  if (innerWidth < 900) box.scrollIntoView({ block: "start" });      // phone: the shoot is below the list
+  $("#sdPick").onclick = () => {
+    const row = document.querySelector(`.ssd-row[data-rel="${CSS.escape(rel)}"]`);
+    if (row) $("input", row).click();
+    $("#sdPick").textContent = ssdSel.has(rel) ? "✓ geselecteerd" : "Selecteren";
+    $("#sdPick").classList.toggle("dark", ssdSel.has(rel));
+  };
+  box.querySelectorAll(".thumbs .th").forEach((th) => (th.onclick = () => {
+    const v = s.videos[+th.dataset.i], pl = $("#sdPlayer");
+    box.querySelectorAll(".th.on").forEach((x) => x.classList.remove("on")); th.classList.add("on");
+    pl.hidden = false;
+    const info = `${esc(v.name)} · ${dur(v.duration)} · ${mb(v.size)}`;
+    pl.innerHTML = `<div class="row small" style="margin-bottom:6px"><span class="muted" id="sdInfo"></span><span class="spacer"></span>
+      <a class="tag blue" href="#" id="sdSwap"></a></div><video controls autoplay muted playsinline></video>`;
+    const video = $("video", pl);
+    const play = (original) => {          // the original (full clip, sound) where the browser plays HEVC, else a 20 s H.264 preview
+      video.src = original ? fileUrl(v.path) : `/api/library/preview?path=${enc(v.path)}`;
+      $("#sdInfo").innerHTML = `${info} — ${original ? "origineel laden…" : "korte preview (20 s) wordt gemaakt…"}`;
+      $("#sdSwap").textContent = original ? "kleine preview" : "origineel";
+      $("#sdSwap").onclick = (ev) => { ev.preventDefault(); play(!original); };
+      video.onloadeddata = () => ($("#sdInfo").innerHTML = `${info} — ${original ? "origineel" : "preview van 20 s, zonder geluid"}`);
+      video.onerror = () => (original ? play(false) : ($("#sdInfo").innerHTML = `${info} — preview maken lukte niet`));
+    };
+    play(!!video.canPlayType('video/mp4; codecs="hvc1.2.4.L153.B0"'));
+    pl.scrollIntoView({ block: "nearest" });
+  }));
 }
 
 // ------------------------------------------------------------------ queue

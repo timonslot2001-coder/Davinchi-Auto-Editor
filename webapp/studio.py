@@ -4,6 +4,8 @@ PC; the session writes the comment text to data/studio_inbox/<thread>.txt (no sh
 
     [studio] actie=<plan|grade|goedkeuren|preview|render|qa|stills> project="<name>"
              [look=.. strength=.. exposure=..] [plan=<edl_sha1> grade=<grade key> notitie="<own words>"]
+    [studio] actie=<ssd-ververs|ssd-bekijk|ssd-clip|ssd-verplaats> [map="<Soort>/<map>"] [clip="<file>"]
+             [naam="<shoot>" soort=<soort> mappen="<map>|<map>"]          (the SSD page; no project)
 
 It comes from a comment, so nothing in it becomes command text: every key and value is checked here and mapped to
 exactly one allowed `engine ...` argv (host.ALLOWED + check_args). Each comment thread runs once (data/studio_handled.json).
@@ -40,10 +42,16 @@ ASSETS = query.REPO / "data" / "studio_assets"                 # per project slu
 MAX_UPLOAD = 20 * 1024 * 1024                                  # Artifact asset limit the session keeps to
 THREAD = re.compile(r"[A-Za-z0-9_-]{1,100}")
 KEEP = 500
-ACTIONS = ("plan", "grade", "goedkeuren", "preview", "render", "qa", "stills")
-# keys allowed per action, besides actie and project (both required)
-KEYS = {"grade": {"look", "strength", "exposure"}, "goedkeuren": {"plan", "grade", "notitie"}}
-ALL_KEYS = {"actie", "project", "look", "strength", "exposure", "plan", "grade", "notitie"}
+SSD_ACTIONS = ("ssd-ververs", "ssd-bekijk", "ssd-clip", "ssd-verplaats")
+ACTIONS = ("plan", "grade", "goedkeuren", "preview", "render", "qa", "stills") + SSD_ACTIONS
+# keys allowed per action, besides actie and project (project required, except for the SSD actions)
+KEYS = {"grade": {"look", "strength", "exposure"}, "goedkeuren": {"plan", "grade", "notitie"},
+        "ssd-bekijk": {"map"}, "ssd-clip": {"map", "clip"}, "ssd-verplaats": {"naam", "soort", "mappen"}}
+SSD_REQUIRED = {"ssd-ververs": set(), "ssd-bekijk": {"map"}, "ssd-clip": {"map", "clip"},
+                "ssd-verplaats": {"naam", "soort", "mappen"}}
+ALL_KEYS = {"actie", "project", "look", "strength", "exposure", "plan", "grade", "notitie", "map", "clip", "naam",
+            "soort", "mappen"}
+SOORTEN = ("koken", "kleding", "smoken", "reizen", "klanten", "inbox")
 DEFAULT_GRADE = ("reference_film", 1.0, -1.75)                   # engine gradechoice.Grade()
 LABELS = {"plan": "plan maken", "grade": "kleurlook instellen", "goedkeuren": "plan goedkeuren",
           "preview": "voorbeeld", "render": "renderen", "qa": "QA"}
@@ -111,9 +119,11 @@ def parse(text: str) -> dict:
     act = req.get("actie")
     if act not in ACTIONS:
         raise ValueError(f"onbekende actie: {str(act)[:40]!r} (kies uit {', '.join(ACTIONS)})")
-    extra = set(req) - {"actie", "project"} - KEYS.get(act, set())
+    extra = set(req) - ({"actie"} if act in SSD_ACTIONS else {"actie", "project"}) - KEYS.get(act, set())
     if extra:
         raise ValueError(f"onbekende sleutel voor {act}: {', '.join(sorted(extra))}")
+    if act in SSD_ACTIONS:
+        return _parse_ssd(req)
     if "project" not in req:
         raise ValueError("project ontbreekt")
     try:
@@ -141,6 +151,40 @@ def parse(text: str) -> dict:
             raise ValueError("notitie te lang of met regeleindes") from None
         if req["notitie"].startswith("-"):                       # never looks like an option to the engine's argparse
             raise ValueError("notitie mag niet met - beginnen")
+    return req
+
+
+MAP_RE = re.compile(r"_?[A-Za-z]+/[\w .,'&()\-]{1,120}")
+CLIP_RE = re.compile(r"[\w.\- ]{1,120}\.(?:mp4|mov|mxf|avi)", re.IGNORECASE)
+
+
+def _map(v: str) -> str:
+    v = str(v).strip()
+    if not MAP_RE.fullmatch(v) or v.split("/", 1)[1].strip(" .") == "":
+        raise ValueError(f"ongeldige map: {v[:60]!r} (verwacht '<Soort>/<datum naam>')")
+    return v
+
+
+def _parse_ssd(req: dict) -> dict:
+    act = req["actie"]
+    missing = SSD_REQUIRED[act] - set(req)
+    if missing:
+        raise ValueError(f"{', '.join(sorted(missing))} ontbreekt")
+    if "map" in req:
+        req["map"] = _map(req["map"])
+    if "clip" in req and not CLIP_RE.fullmatch(req["clip"]):
+        raise ValueError("ongeldige clipnaam")
+    if act == "ssd-verplaats":
+        try:
+            req["naam"] = _name(req["naam"])
+        except ValueError:
+            raise ValueError("ongeldige naam voor de shoot") from None
+        if req["soort"] not in SOORTEN:
+            raise ValueError(f"soort: kies uit {', '.join(SOORTEN)}")
+        maps = [m for m in req["mappen"].split("|") if m.strip()]
+        if not 1 <= len(maps) <= 60:
+            raise ValueError("kies 1 tot 60 mappen")
+        req["mappen"] = [_map(m) for m in maps]
     return req
 
 
@@ -388,9 +432,9 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
-def cli(argv=None, spawn=None) -> int:
+def cli(argv=None, spawn=None, host=None, poll: float = 1.0) -> int:
     """Validate, mark handled, start the work detached and answer at once (one JSON line). `spawn(thread)` starts the
-    worker; tests pass their own."""
+    worker; tests pass their own. `host`/`poll` are for the SSD actions, which run right here (tests pass a fake host)."""
     ap = argparse.ArgumentParser(prog="webapp studio")
     ap.add_argument("--thread", required=True)
     src = ap.add_mutually_exclusive_group(required=True)
@@ -415,6 +459,9 @@ def cli(argv=None, spawn=None) -> int:
     act, name = None, None
     try:
         req = parse(args.text)
+        if req["actie"] in SSD_ACTIONS:
+            act = req["actie"]
+            return _ssd(req, host, poll)
         act, name = req["actie"], req["project"]
         if act == "stills":                                      # quick and no engine job: answered right here
             return _stills(name)
@@ -627,6 +674,132 @@ def _stills(name: str) -> int:
               "looks": {k: rel(v) for k, v in res["looks"].items()}}
     _out({"ok": True, "action": "stills", "slug": slug(name), "message": f"voorbeelden: klaar ({len(assets['stills'])} stills)",
           "assets": assets, "state": _state_or_none(name)})
+    return 0
+
+
+# ---------------------------------------------------------------- SSD page (autoedit/library.py)
+
+SSD_ASSETS = query.REPO / "data" / "studio_assets" / "ssd"
+LIST_KEYS = ("rel", "kind", "kind_folder", "folder", "name", "date", "videos", "size", "project")
+
+
+def _lib():
+    sys.path.insert(0, str(query.REPO))
+    from autoedit import library
+    from autoedit.config import load
+    return library, load()
+
+
+def ssd_docs() -> dict:
+    """{library connected, shoots: [ssd/<id> documents]} for the folders with video; listing fields only, so a merge
+    keeps uploaded sheet URLs."""
+    library, cfg = _lib()
+    s = library.shoots(cfg)
+    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    return {"connected": s["connected"],                         # folders with video only (photos: a later editor)
+            "shoots": [{"id": slug(r["rel"]), **{k: r[k] for k in LIST_KEYS}, "updated_at": now} for r in s["shoots"]
+                       if r["videos"]]}
+
+
+def _sheet(paths: list[Path], labels: list[str], out: Path, cols: int, w: int) -> None:
+    """Numbered contact sheet of cached thumbnails (library.thumb)."""
+    from PIL import Image, ImageDraw, ImageFont
+    library, cfg = _lib()
+    h = w * 9 // 16
+    rows = (len(paths) + cols - 1) // cols
+    sheet = Image.new("RGB", (cols * w, rows * (h + 20)), (10, 14, 22))
+    d = ImageDraw.Draw(sheet)
+    try:
+        font = ImageFont.truetype("arialbd.ttf", 14)
+    except OSError:
+        font = ImageFont.load_default()
+    from concurrent.futures import ThreadPoolExecutor
+
+    def thumb(p):                                                # made in parallel; cached ones return at once
+        try:
+            return library.thumb(cfg, str(p))
+        except Exception:
+            return None
+    with ThreadPoolExecutor(6) as ex:
+        thumbs = list(ex.map(thumb, paths))
+    for i, (t, label) in enumerate(zip(thumbs, labels)):
+        x, y = (i % cols) * w, (i // cols) * (h + 20)
+        try:
+            with Image.open(t) as im:
+                im = im.convert("RGB")
+                im.thumbnail((w - 4, h - 4))
+                sheet.paste(im, (x + (w - im.width) // 2, y + (h - im.height) // 2))
+        except Exception:
+            d.text((x + 8, y + h // 2), "?", fill=(140, 150, 170), font=font)
+        d.text((x + 4, y + h + 2), label, fill=(159, 220, 255), font=font)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    sheet.save(out, quality=82)
+
+
+def _ssd(req: dict, host=None, poll: float = 1.0) -> int:
+    act = req["actie"]
+    try:
+        library, cfg = _lib()
+        if act == "ssd-ververs":
+            docs = ssd_docs()
+            _out({"ok": True, "action": act, "message": f"SSD: {len(docs['shoots'])} mappen", "ssd": docs})
+            return 0
+        if act == "ssd-verplaats":
+            for m in req["mappen"]:
+                library.resolve_shoot(cfg, m)                    # refuse before anything runs
+            a = ["autoedit", "sort", req["naam"], *req["mappen"], "--soort", req["soort"]]
+            check_args(a)
+            if host is None:
+                from .host import LocalHost
+                host = LocalHost()
+            try:                                                 # never move files while an engine job runs
+                with file_lock(LOCK, wait=False):
+                    j = _wait(host, host.run(a, f"Studio: verplaatsen ({req['naam']})", None)["id"], poll)
+            except Busy:
+                raise ValueError("verplaatsen: de PC is bezig met een andere taak, probeer het straks opnieuw") from None
+            ok = j["status"] == "done"
+            log = redact("\n".join(j.get("log", [])[-6:]))
+            _out({"ok": ok, "action": act, "message": (f"verplaatst naar {req['naam']}" if ok else
+                                                         f"verplaatsen: mislukt ({j['status']})") + (f"\n{log}" if log else ""),
+                  "ssd": ssd_docs()})
+            return 0 if ok else 1
+        shoot = library.shoot(cfg, req["map"])
+        sid = slug(req["map"])
+        if act == "ssd-bekijk":
+            vids = shoot["videos"]                               # video only; photos get their own editor later
+            out_dir = SSD_ASSETS / sid
+            assets = {}
+            if vids:
+                _sheet([Path(v["path"]) for v in vids],
+                       [f"{i}. {Path(v['name']).stem[:14]}  {_dur(v['duration'])}" for i, v in enumerate(vids, 1)],
+                       out_dir / "clips.jpg", cols=6, w=260)
+                assets["sheet"] = (out_dir / "clips.jpg").relative_to(query.REPO).as_posix()
+            clips = [{"n": i, "name": v["name"], "duration": round(v["duration"], 1), "size": v["size"]}
+                     for i, v in enumerate(vids, 1)]
+            _out({"ok": True, "action": act, "id": sid, "message": f"{req['map']}: {len(vids)} clips",
+                  "clips": clips, "assets": assets})
+            return 0
+        clip = next((v for v in shoot["videos"] if v["name"] == req["clip"]), None)
+        if clip is None:
+            raise ValueError(f"{req['clip']} staat niet in {req['map']}")
+        video = library.preview(cfg, clip["path"])
+        _out({"ok": True, "action": act, "id": sid, "clip": clip["name"], "message": f"preview van {clip['name']} klaar",
+              "local_files": {"video": video}})
+        return 0
+    except Exception as e:
+        msg = str(e) if isinstance(e, (ValueError, FileNotFoundError, PermissionError)) else f"fout: {type(e).__name__}: {e}"
+        _out({"ok": False, "action": act, "message": redact(msg)})
+        return 1
+
+
+def _dur(s: float) -> str:
+    s = float(s or 0)
+    return f"{int(s // 3600)}u{int(s % 3600 // 60):02d}" if s >= 3600 else f"{int(s // 60)}:{int(s % 60):02d}"
+
+
+def ssd_cli(argv=None) -> int:
+    argparse.ArgumentParser(prog="webapp studio-ssd").parse_args(argv)
+    _out(ssd_docs())
     return 0
 
 

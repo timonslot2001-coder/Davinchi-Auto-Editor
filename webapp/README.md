@@ -49,6 +49,7 @@ browser), plan + storyboard, preview video, approve, render, QA, result.
 - **New version of the page:** publish `artifact/studio.html` again to the same link (Claude: Artifact publish with the
   same file), then stop watching it in that session.
 - **PC off:** the page shows *Studio-sessie op je PC is niet bereikbaar*; the grade preview still works.
+- **SSD** (also in the Studio): the shoot folders with video on the SSD. *Beelden laden* uploads a contact sheet of the clips, *Preview maken* a 20 s clip of 640 px, and *Verplaatsen* runs `autoedit sort` (`actie=ssd-...`, see the skill).
 Decision: [0013](../docs/decisions/0013-studio-artifact-comment-route.md).
 
 ## Approval gates (unchanged)
@@ -61,7 +62,7 @@ Decision: [0013](../docs/decisions/0013-studio-artifact-comment-route.md).
 
 ## Safety
 - The worker only runs the commands in `host.ALLOWED` and only serves files inside the AutoEdit folders (projects,
-  music, output, `data/`, and project `clips` links). It writes only `<project>/project.yaml`, `<project>/cine_montage/comments.json` and uploaded songs.
+  music, output, `data/`, the SSD library and project `clips` links). It writes only `<project>/project.yaml`, `<project>/cine_montage/comments.json` and uploaded songs.
 - Every worker request needs `AEV_WORKER_TOKEN`. The worker makes it once and stores it in `.env` (never committed);
   `docker compose` reads it from there. The container gets only this token, no other secrets.
 - `start-worker-for-laptop.bat` opens the worker to your home network (needed for the laptop); every request still
@@ -74,6 +75,12 @@ Decision: [0013](../docs/decisions/0013-studio-artifact-comment-route.md).
 the camera card go to the SSD (`<Soort>\<date> <name>\1 Ruw`), checked, card untouched. The card and the SSD must be
 in the Resolve PC, because the worker does the copying. See the main [README](../README.md#offload-a-card-to-your-ssd).
 
+## SSD
+The *SSD* page lists every shoot folder with video on the SSD (`_Inbox` first; photo-only folders are left out),
+shows a thumbnail per clip and plays a clip (the original where the browser plays HEVC, else a 20 s H.264 preview made on demand). Tick folders, give a name
+and a kind, and *Verplaatsen* runs `autoedit sort "<name>" <folders> --soort <soort>`: the files move on the SSD into
+`<Soort>\<date> <name>` and the project is linked. Thumbnails and previews are cached in `data/library_thumbs/`.
+
 ## Shot comments
 On the cine montage tab every shot has a number and a comment box. *Opmerkingen opslaan* writes
 `<project>/cine_montage/comments.json` (`{"12": "eruit", ...}`); tell Claude to "verwerk de opmerkingen".
@@ -84,7 +91,7 @@ On the cine montage tab every shot has a number and a comment box. *Opmerkingen 
 | `app.py` | website + JSON API; turns form fields into commands (validated, never raw text) |
 | `host.py` | `LocalHost` (run jobs, read files on this PC) and `RemoteHost` (the same through the worker) |
 | `validate.py` | the form-field checks and the render `--grade` rule, shared by `app.py` and `studio.py` |
-| `studio.py` | requests from the claude.ai Artifact: `python -m webapp studio --thread <id> --text-file data/studio_inbox/<id>.txt` checks the fixed `[studio] actie=...` text (from a file, never on the command line) and starts one `engine` command in a detached worker (`studio-worker`, lock `data/studio.lock`), which makes the 720p video copy for the page and writes `data/studio_results/<id>.json`; `python -m webapp studio-result --thread <id>` prints that result; `python -m webapp studio-state "<name>"` prints the project's state for the Artifact; `python -m webapp studio-projects` prints every cine montage project with its state |
+| `studio.py` | requests from the claude.ai Artifact: `python -m webapp studio --thread <id> --text-file data/studio_inbox/<id>.txt` checks the fixed `[studio] actie=...` text (from a file, never on the command line) and starts one `engine` command in a detached worker (`studio-worker`, lock `data/studio.lock`), which makes the 720p video copy for the page and writes `data/studio_results/<id>.json`; `python -m webapp studio-result --thread <id>` prints that result; `python -m webapp studio-state "<name>"` prints the project's state for the Artifact; `python -m webapp studio-projects` prints every cine montage project with its state; `python -m webapp studio-ssd` lists the SSD shoot folders |
 | `worker.py` | the Windows worker for Docker (token, allowlist) |
 | `query.py` | what the pages show: projects, cine montage state, queue, music, status |
 | `static/` | the interface (HTML, CSS, JS; no build step) |

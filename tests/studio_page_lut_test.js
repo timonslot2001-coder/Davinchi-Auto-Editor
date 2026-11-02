@@ -58,6 +58,12 @@ const exact = [
   [T("grade", "P", { look: "vintage", strength: 1, exposure: 0 }), '[studio] actie=grade project="P" look=vintage strength=1 exposure=0'],
   [T("goedkeuren", "Porto 2026", { plan: "0123456789ab", grade: "ba9876543210", note: '  ja, "B" met \\ erin  ' }),
     '[studio] actie=goedkeuren project="Porto 2026" plan=0123456789ab grade=ba9876543210 notitie="ja, \\"B\\" met \\\\ erin"'],
+  [T("ssd-ververs", ""), "[studio] actie=ssd-ververs"],
+  [T("ssd-bekijk", "", { map: "_Inbox/2026-10-09 SD-kaart" }), '[studio] actie=ssd-bekijk map="_Inbox/2026-10-09 SD-kaart"'],
+  [T("ssd-clip", "", { map: "Reizen/2025-08-11 Mongolië", clip: "C0203.MP4" }),
+    '[studio] actie=ssd-clip map="Reizen/2025-08-11 Mongolië" clip="C0203.MP4"'],
+  [T("ssd-verplaats", "", { name: " Ibiza ", soort: "reizen", maps: ["_Inbox/2026-10-09 SD-kaart", "_Inbox/2026-10-10 SD-kaart"] }),
+    '[studio] actie=ssd-verplaats naam="Ibiza" soort=reizen mappen="_Inbox/2026-10-09 SD-kaart|_Inbox/2026-10-10 SD-kaart"'],
 ];
 for (const [got, want] of exact) check(got.text === want, `request ${JSON.stringify(got)} != ${want}`);
 const bad = [
@@ -72,6 +78,13 @@ const bad = [
   T("grade", "P", { look: "moody", strength: 1, exposure: -4 }),
   T("wis", "P"),
   T("plan", ""),
+  T("ssd-bekijk", "", { map: "_Inbox/../.." }),
+  T("ssd-bekijk", "", { map: "C:/Windows" }),
+  T("ssd-clip", "", { map: "_Inbox/2026-10-09 SD-kaart", clip: "../../x.mp4" }),
+  T("ssd-verplaats", "", { name: "a/b", soort: "reizen", maps: ["_Inbox/x"] }),
+  T("ssd-verplaats", "", { name: "Ibiza", soort: "vakantie", maps: ["_Inbox/x"] }),
+  T("ssd-verplaats", "", { name: "Ibiza", soort: "reizen", maps: [] }),
+  T("ssd-verplaats", "", { name: "Ibiza", soort: "reizen", maps: ['_Inbox/x" naam="y'] }),
 ];
 bad.forEach((r, i) => check(r.error && !r.text, `bad request ${i} accepted: ${JSON.stringify(r)}`));
 
@@ -86,6 +99,8 @@ if (py) {
     const parsed = JSON.parse(r.stdout);
     check(parsed[5].notitie === 'ja, "B" met \\ erin', "note round trip: " + parsed[5].notitie);
     check(parsed[3].look === "moody" && parsed[3].project === "Porto 2026", "grade round trip");
+    check(parsed[8].clip === "C0203.MP4" && parsed[8].map === "Reizen/2025-08-11 Mongolië", "ssd-clip round trip");
+    check(parsed[9].mappen.length === 2 && parsed[9].naam === "Ibiza" && parsed[9].soort === "reizen", "ssd-verplaats round trip");
     console.log("python parse: " + parsed.length + " request texts accepted");
   }
 } else {

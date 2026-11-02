@@ -116,6 +116,9 @@ or the artifact shared with that account with edit rights. Otherwise the PC sess
 button presses arrive) and cannot write its `db`. When the Studio is published under another account, change
 `STUDIO_URL` in `start-studio-sessie.bat`.
 
+**All projects (Timon's decision, 2026-11-02).** "Alles moet in de Studio": every project with a `cine_montage/`
+folder shows up, client projects (e.g. JUICT) included. Their stills go into the private Studio artifact only.
+
 ### A click, end to end
 1. Timon presses a button (e.g. *Plan maken*, *Kies deze grade*, *Goedkeuren*).
 2. The page writes nothing itself to start work; it calls `comments.sendToClaude` with a short, fixed-format request

@@ -36,6 +36,9 @@ entry; the full list is in `git log`. Hard-to-reverse choices also get a record 
 - The storyboard and preview say which look they were made with, and warn when the grade changed since. The Grade step
   counts as done only after you picked a grade. Preview uses the plan's grade mode, like render.
 - When the page loses its connection it says *Verbinding kwijt* and reconnects once by itself.
+- The Studio lives at https://claude.ai/artifact/4YCCLgHK4KozydqGCpjLQR (account timon@juict.nl, the account the
+  Claude app on the PC uses); `start-studio-sessie.bat` points there. Every project with a cine montage shows up,
+  client projects included.
 
 ## 2026-10-31 — Offload to your SSD
 - New `autoedit offload "<shoot>" --soort koken` (and *SD-kaart offloaden* on the website): copies photos and videos

@@ -153,7 +153,7 @@ def run(cfg, name: str, **overrides) -> list[dict]:
     music = overrides.get("song") or s.get("song") or (str(songs[0]) if songs else None)
     try:                                                         # rough tags for clips nobody tagged (autotag.py)
         from . import autotag
-        n = autotag.tag_missing(p)
+        n = autotag.tag_missing(p) if cfg.get("auto_tags", False) else 0   # off: 4/12 right on Smoke Sesh
         if n:
             con.print(f"  {n} clip(s) tagged automatically (tags.json, auto: true)")
     except Exception as e:

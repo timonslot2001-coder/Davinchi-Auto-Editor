@@ -4,7 +4,9 @@
 
 Only clips without a tag get one (marked "auto": true); tags you or Claude wrote in tags.json always win.
 OpenCV's YuNet face detector on a 320 px frame at 40 % of the clip: cheap and local, and wrong now and then. It needs
-the model file data/models/face_detection_yunet.onnx (OpenCV model zoo); without it nothing is tagged."""
+the model file data/models/face_detection_yunet.onnx (OpenCV model zoo); without it nothing is tagged.
+Off unless `auto_tags: true` in config.yaml: on Smoke Sesh only 4 of 12 clips matched the hand tags (people seen from
+behind have no face, drone shots read as detail), which is worse for the story order than no tag (2026-11-02)."""
 from __future__ import annotations
 
 import json

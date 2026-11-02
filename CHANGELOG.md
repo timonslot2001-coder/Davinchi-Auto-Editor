@@ -14,8 +14,8 @@ entry; the full list is in `git log`. Hard-to-reverse choices also get a record 
   them, and one more tap schedules it.
 - The sidebar shows whether the SSD is connected, next to Resolve and ComfyUI.
 - Changing the song (step 2 or *Ander nummer*) forgets the old song's start point.
-- Snelle edits can tag clips themselves (close / subject / establish / detail) once the face model
-  `data/models/face_detection_yunet.onnx` is there; until then nothing is guessed.
+- Automatic shot tags for snelle edits exist but are off: with the face model (`data/models/`) only 4 of 12 Smoke Sesh
+  clips matched the hand tags, which is worse than no tag. Turn on with `auto_tags: true` in config.yaml.
 
 ## 2026-11-02 — The editor picks the song part; one kind of edit per project
 - No `song_start` set? The cine montage now picks the best part of the song itself: the strongest build-up with the

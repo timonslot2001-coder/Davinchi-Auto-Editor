@@ -18,9 +18,9 @@ against the baseline below; what does not save time, clicks or tokens is removed
 1. **Measure** (this page). Time the next video end to end; count clicks.
 2. **Tidy up** (done 2026-11-02, decision [0014](decisions/0014-one-app-the-website.md)): one app (the website,
    `autoedit.bat`), on the phone through Tailscale, no more building everything twice; the Studio is frozen.
-3. **Shorter path** (first part done 2026-11-02, decision [0015](decisions/0015-render-button-is-the-approval.md):
-   the 4-step path, *Ja, renderen* as approval, no grade step, next step per project on the home page; still to do:
-   the editor picks the best part of the song, the app picks the editor once): no grade step (house look by default, *andere look* with example pictures for the exception);
+3. **Shorter path** (done 2026-11-02, decision [0015](decisions/0015-render-button-is-the-approval.md): the 4-step
+   path, *Ja, renderen* as approval, no grade step, next step per project on the home page, the editor picks the song
+   section, `editor:` per project chosen once): no grade step (house look by default, *andere look* with example pictures for the exception);
    one path *Nieuwe video* in 4 steps (Clips → Muziek → Bekijken → *Ja, renderen*, that button is the approval); the
    app picks the editor once per project; the editor picks the best part of the song; the home page shows the next
    step per project.

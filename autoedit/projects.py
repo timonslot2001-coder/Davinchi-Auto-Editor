@@ -24,6 +24,7 @@ con = Console()
 
 TEMPLATE = """# Project settings — all optional. Edit and save; the next run uses them.
 title: "{title}"          # small spaced title over the intro (empty = none)
+editor: {editor}            # cine = cine montage (default) / snel = AutoEdit in Resolve / klant = client film / anders = explainer, intro (both via Claude)
 label: "BUDTHENCINEMATIC" # tiny corner label (empty = none)
 category: null            # fitness / travel / fashion / lifestyle → captions + hashtags only
 aspect: null              # null = house style default (16:9), or "9:16"
@@ -57,13 +58,18 @@ def find(cfg, name: str) -> Path:
     raise SystemExit(f"'{name}' matches several projects: {[p.name for p in hits]} — be more specific.")
 
 
-def new(cfg, name: str, title: str | None = None) -> Path:
+EDITORS = ("cine", "snel", "klant", "anders")
+
+
+def new(cfg, name: str, title: str | None = None, editor: str = "cine") -> Path:
+    if editor not in EDITORS:
+        raise SystemExit(f"--editor must be one of: {', '.join(EDITORS)}")
     p = root(cfg) / name
     for sub in ("clips", "music", "exports"):
         (p / sub).mkdir(parents=True, exist_ok=True)
     y = p / "project.yaml"
     if not y.exists():
-        y.write_text(TEMPLATE.format(title=title if title is not None else name,
+        y.write_text(TEMPLATE.format(title=title if title is not None else name, editor=editor,
                                      created=datetime.now().strftime("%Y-%m-%d")), encoding="utf-8")
     con.print(f"[green]Project ready:[/] {p}\n  put footage in the [bold]clips[/] folder, optional song in the [bold]music[/] folder")
     return p

@@ -53,7 +53,9 @@ paced, not beat-locked (snapped to a strong onset only within 2 frames).
   `--pacing music` (or `pacing: music` in project.yaml) cuts on the felt beat (>= 135 BPM counts half-time), gives
   calm/breakdown parts 3-4 beats per shot without flashes or whips, cuts exactly on a drop and puts the white card
   series there as a burst. `--song-start` / `song_start:` starts the song mid-track (ESCAPE PLAN: 48.1 s, where the
-  official TikTok sound starts; drop 14 s in). The accent budget warns low on purpose: a breakdown flows. Watch the
+  official TikTok sound starts; drop 14 s in). Without either, the planner picks the section itself
+  (`planner.best_song_start`: the bar with the biggest build-up -> drop, the drop about two thirds in; ESCAPE PLAN
+  -> 49.9 s) and says so in the plan notes. The accent budget warns low on purpose: a breakdown flows. Watch the
   long breakdown shots on the sheet: the score still likes static frames (bare potatoes), which hold 3 s there.
 - 2026-10-29 (Mongolie 2025, 69 clips): with many clips the planner put one clip in 11 of 34 shots, because it only
   avoided reusing the same *segment*. It now prefers clips that are not yet in the edit (34 clips in 34 shots). Title

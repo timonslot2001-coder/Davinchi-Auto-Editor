@@ -102,6 +102,10 @@ def create(host=None) -> Flask:
         b = request.get_json()
         name = _name(b.get("name"))
         args = ["autoedit", "new", name] + (["--title", _text(b["title"], 80)] if b.get("title") else [])
+        if b.get("editor"):
+            if b["editor"] not in ("cine", "snel"):                  # klant / anders are set up by Claude
+                raise ValueError("editor: cine or snel")
+            args += ["--editor", b["editor"]]
         return job(args, f"Nieuw project: {name}", name)
 
     @app.post("/api/offload")

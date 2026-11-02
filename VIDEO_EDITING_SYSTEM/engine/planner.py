@@ -111,6 +111,28 @@ def _music_slots(L: float, title_in: float, title_hold: float, music: dict, star
     return slots, notes, drops
 
 
+def best_song_start(music: dict, length: float) -> float:
+    """Where the song starts when nobody set it (Timon 2026-11-02: 'de editor kiest zelf het beste stuk'): the bar
+    (every 4th beat) whose window has the biggest build-up -> drop, with the drop about two thirds into the edit
+    (build-up first, burst on the drop, calm end), slightly preferring louder windows. Heuristic on the 10 Hz energy."""
+    e = np.array(music.get("energy_10hz") or [], float)
+    beats = np.array(music.get("beats") or [], float)
+    if len(e) < 20 or len(beats) < 8:
+        return 0.0
+    e = e / (e.max() or 1.0)
+    mean = lambda a, b: float(e[max(0, int(a * 10)):max(int(a * 10) + 1, int(b * 10))].mean()) if a < len(e) / 10 else 0.0
+    best, best_score = 0.0, -1.0
+    for s in beats[::4]:
+        if s + length > music["duration"] - 0.5:
+            break
+        drop = max(((mean(t, t + 1.0) - mean(t - 2.0, t - 0.2)) * max(0.0, 1 - 1.5 * abs((t - s) / length - 0.65))
+                    for t in np.arange(s + 0.3 * length, s + 0.9 * length, 0.25)), default=0.0)
+        score = max(drop, 0.0) + 0.2 * mean(s, s + length)
+        if score > best_score + 1e-6:
+            best, best_score = float(s), score
+    return round(best, 3)
+
+
 def _snap(times: list[float], onsets: list[float], fps: float) -> list[float]:
     """Optional: move a cut onto a strong onset only if it is within 2 frames (DNA: sync allowed, not required)."""
     out, keep = [], []
@@ -138,7 +160,7 @@ def plan(p: Profile, inv: dict, music: dict | None, title: str | None, length: f
          accent: str | None = None, fps: float = 25.0, size=(1920, 1080), seed: int = 1, card: str = "auto",
          bw: str = "auto", title_variant: str | None = None, grid_flow: str = "auto",
          pinned: dict | None = None, order: list | str | None = None, category: str | None = None,
-         pacing: str = "curve", song_start: float = 0.0) -> EDL:
+         pacing: str = "curve", song_start: float | None = 0.0) -> EDL:
     rng = random.Random(seed)
     segs = [s for c in inv["clips"] if c["kind"] == "video" for s in c["segments"] if "soft" not in s["tags"]]
     notes, questions = [], []
@@ -155,7 +177,10 @@ def plan(p: Profile, inv: dict, music: dict | None, title: str | None, length: f
     if not segs:
         raise ValueError("no usable video segments in the project")
     L = length or 18.0
-    song_start = song_start if music else 0.0
+    if music and song_start is None:                               # not set: the editor picks the best part
+        song_start = best_song_start(music, float(np.clip(L, 8.0, 30.0)))
+        notes.append(f"song section picked automatically: from {song_start:.1f} s (loudest part with a build-up)")
+    song_start = (song_start or 0.0) if music else 0.0
     if music:
         L = min(L, music["duration"] - song_start - 0.5)
     L = float(np.clip(L, 8.0, 30.0))

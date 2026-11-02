@@ -78,6 +78,22 @@ def _thumb(p: Path) -> str | None:
     return str(covers[-1]) if covers else None
 
 
+def editor(p: Path, s: dict) -> str:
+    """Which editor a project uses: `editor:` in project.yaml, else 'klant' for a client film (edit_v*.py in the folder,
+    or clips under Klanten on the SSD), 'anders' for an explainer (script.yaml), else 'cine' (the cine montage)."""
+    if s.get("editor") in ("cine", "snel", "klant", "anders"):
+        return s["editor"]
+    if any(p.glob("edit_v*.py")):
+        return "klant"
+    if (p / "script.yaml").exists():
+        return "anders"
+    try:
+        clips = str((p / "clips").resolve()).replace("\\", "/").lower()
+    except OSError:
+        clips = ""
+    return "klant" if "/klanten/" in clips + "/" else "cine"
+
+
 def projects() -> list[dict]:
     root = Path(roots()["projects"])
     out = []
@@ -89,7 +105,7 @@ def projects() -> list[dict]:
         exports = [f for f in (p / "exports").glob("*.mp4")] if (p / "exports").exists() else []
         appr = p / "cine_montage/APPROVAL.json"
         out.append({"name": p.name, "title": s.get("title"), "category": s.get("category"), "clips": len(clips),
-                    "exports": len(exports), "thumb": _thumb(p), "mtime": p.stat().st_mtime,
+                    "exports": len(exports), "thumb": _thumb(p), "mtime": p.stat().st_mtime, "editor": editor(p, s),
                     "cine": json.loads(appr.read_text(encoding="utf-8")).get("status") if appr.exists() else None})
     return out
 
@@ -105,6 +121,7 @@ def project(name: str) -> dict:
     exports = sorted((_file(f) for f in (p / "exports").glob("*") if f.suffix.lower() in {".mp4", ".mov", ".jpg", ".png"}),
                      key=lambda f: -f["mtime"]) if (p / "exports").exists() else []
     return {"name": p.name, "path": str(p), "settings": s, "yaml": text, "clips": clips, "music": music,
+            "editor": editor(p, s),
             "exports": exports, "clips_link": str(clips_dir.resolve()) if clips_dir.exists() else None,
             "cine": cine(p)}
 

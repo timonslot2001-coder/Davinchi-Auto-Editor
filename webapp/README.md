@@ -88,7 +88,9 @@ A project's *Cine montage* tab starts with the path Clips → Muziek → Bekijke
 your music folder (saved as `song:` in `project.yaml`); *Maak voorstel* runs `engine plan` with the title and song;
 *Ja, renderen* runs `engine approve --note "Ja, renderen (knop in de website)"` and then `engine render` (decision
 [0015](../docs/decisions/0015-render-button-is-the-approval.md)). Plan options, another look, preview and QA are under
-*Zelf bijsturen*. The home page shows each project's next step.
+*Zelf bijsturen*. The home page shows each project's next step. *Andere look* there shows one finished picture per look
+(`GET /api/projects/<name>/looks`, made by `studio_assets.previews` and kept until the plan changes); a tap saves it
+as the grade.
 
 Each project has one kind of edit (`editor:` in `project.yaml`, chosen in *Nieuw project*): `cine` (the 4 steps),
 `snel` (AutoEdit in Resolve), `klant` or `anders` (client film, explainer, intro: made via Claude). Without the line

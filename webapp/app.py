@@ -289,6 +289,10 @@ def create(host=None) -> Flask:
     def queue():
         return jsonify(host.call("queue"))
 
+    @app.get("/api/projects/<name>/looks")
+    def cine_looks(name):
+        return host.call("looks", {"name": name, "fresh": request.args.get("fresh") == "1"})
+
     @app.post("/api/projects/<name>/cine/feedback")
     def cine_feedback(name):
         b = request.get_json() or {}

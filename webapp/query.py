@@ -235,6 +235,22 @@ def feedback(name: str, kind: str, clip: str | None = None) -> dict:
     return {"path": str(p), "args": args, "note": note}
 
 
+def looks(name: str, fresh: bool = False) -> dict:
+    """One finished picture per look for this project (webapp/studio_assets.previews), made once and kept in
+    data/studio_assets/<slug>/ until the plan changes or `fresh`. {look: path}."""
+    from . import studio_assets
+    from .studio import slug
+    p = project_dir(name)
+    out = REPO / "data" / "studio_assets" / slug(p.name)
+    edl = p / "cine_montage" / "edl.json"
+    have = {f.stem[len("preview_"):]: f for f in out.glob("preview_*.jpg")} if out.exists() else {}
+    newest = edl.stat().st_mtime if edl.exists() else 0
+    if fresh or len(have) < 6 or min(f.stat().st_mtime for f in have.values()) < newest:
+        res = studio_assets.export(p, out)
+        have = {k: out / v for k, v in res["previews"].items()}
+    return {k: str(v) for k, v in have.items()}
+
+
 def save_settings(name: str, text: str) -> dict:
     """Write project.yaml. The AI budget can not be raised from the web app (only Timon, by hand)."""
     p = project_dir(name)
@@ -324,7 +340,7 @@ def library_preview(path: str) -> str:
 
 
 CALLS = {"status": status, "roots": roots, "projects": projects, "project": project, "save_settings": save_settings,
-         "feedback": feedback,
+         "feedback": feedback, "looks": looks,
          "save_comments": save_comments, "queue": queue, "queue_choose": queue_choose, "music": music,
          "report": report, "ai_models": ai_models, "library": library, "library_shoot": library_shoot,
          "library_thumb": library_thumb, "library_preview": library_preview}

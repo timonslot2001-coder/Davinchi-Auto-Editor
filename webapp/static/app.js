@@ -118,8 +118,15 @@ async function home() {
     startJob("/api/projects", { name, title: $("#npTitle").value }, { onDone: (j) => j.status === "done" && (location.hash = "#/p/" + enc(name)) });
   };
 }
+function nextStep(p) {                                          // the one thing to do next for this project
+  if (!p.clips) return ["Clips kiezen", "warn"];
+  if (!p.cine) return ["Voorstel maken", "warn"];
+  if (p.cine !== "approved") return ["Bekijken → Ja, renderen", "warn"];
+  return p.exports ? ["Klaar", "ok"] : ["Renderen", "warn"];
+}
 function pcard(p) {
-  const cine = p.cine === "approved" ? '<span class="tag ok">cine: goedgekeurd</span>' : p.cine === "pending" ? '<span class="tag warn">cine: plan wacht</span>' : "";
+  const [next, cls] = nextStep(p);
+  const cine = `<span class="tag ${cls}">${cls === "ok" ? "✓ " : "→ "}${esc(next)}</span>`;
   return `<a class="pcard" href="#/p/${enc(p.name)}">
     <div class="img" style="${p.thumb ? `background-image:url('${fileUrl(p.thumb)}')` : ""}">${p.thumb ? "" : "▶"}</div>
     <div class="body"><div class="name">${esc(p.name)}</div>
@@ -150,9 +157,25 @@ function tabCine() {
   const lookOptions = '<option value="reference_film">B · film-look</option><option value="clean_warm">C · clean warm (eten)</option><option value="moody">moody</option><option value="daylight">daylight</option><option value="blue_hour">blue hour</option><option value="vintage">vintage</option>';
   const cineExports = P.exports.filter((f) => /cine_montage_.*\.mp4$/.test(f.name));
   const counts = c.checks.reduce((a, x) => ((a[x.status] = (a[x.status] || 0) + 1), a), {});
+  // The short path: Clips → Muziek → Bekijken → Ja, renderen. Everything else is under "Zelf bijsturen".
+  const song = s.song || (P.music[0] && P.music[0].name) || c.music || "";
+  const rendered = approved && cineExports.length && cineExports[0].mtime * 1000 >= Date.parse(appr.at || 0);
+  const step = (n, done, title, body) => `<li class="${done ? "done" : ""}"><span class="no">${done ? "✓" : n}</span>
+    <div><b>${title}</b><div class="small">${body}</div></div></li>`;
+  const pathCard = `<div class="card path"><h2>Nieuwe video</h2><ol class="steps4">
+    ${step(1, P.clips.length > 0, "Clips", P.clips.length ? `${P.clips.length} clips` : '<a class="tag blue" href="#/ssd">Clips kiezen →</a>')}
+    ${step(2, !!song, "Muziek", `<select id="pSong"><option value="">${song ? esc(song) : "kies een nummer…"}</option></select>`)}
+    ${step(3, c.has_plan, "Bekijken", c.has_plan
+      ? `${c.sheet ? `<a class="tag blue" target="_blank" href="${fileUrl(c.sheet)}">storyboard ↗</a> ` : ""}${c.shots.length} shots · ${(+c.duration).toFixed(1)} s <button class="ghost sm" id="pPlan">Nieuw voorstel</button>`
+      : `<button class="sm" id="pPlan" ${P.clips.length ? "" : "disabled"}>Maak voorstel</button>`)}
+    ${step(4, rendered, "Renderen", rendered ? `klaar: ${esc(cineExports[0].name)}`
+      : `<button class="sm" id="pGo" ${c.has_plan ? "" : "disabled"}>Ja, renderen</button>`)}
+  </ol><p class="muted small" style="margin:8px 0 0">Kleur: je huisstijl-look${c.grade.look !== "reference_film" ? ` (nu: ${esc(c.grade.look)})` : ""}. <b>Ja, renderen</b> is je goedkeuring van dit voorstel.</p></div>`;
   $("#tab").innerHTML = `
-  <div class="grid cols-2">
+  ${pathCard}
+  <div class="grid cols-2" style="margin-top:16px">
     <div class="stack">
+      <details class="more"><summary><b>Zelf bijsturen</b> <span class="muted small">plan, andere look, voorbeeld, QA</span></summary><div class="stack" style="margin-top:10px">
       <div class="card"><h2>Plan maken</h2>
         <div class="form">
           <label class="full">Titel (één poster-titel)<input id="cTitle" value="${esc(c.title || (s.title || "").toUpperCase())}"></label>
@@ -186,7 +209,7 @@ function tabCine() {
           <button class="ghost" id="cQa">QA</button></div>
         <p class="muted small">Renderen gebruikt de opgeslagen kleurlook (grade.json).</p>`}
       </div>
-      ${c.has_plan ? `<div class="card"><h2>Kleurlook (grade)</h2>
+      ${c.has_plan ? `<div class="card"><h2>Andere look <span class="muted small">(standaard: huisstijl)</span></h2>
         <div class="form">
           <label>Look<select id="gLook">${lookOptions}</select></label>
           <label>Sterkte <span id="gSV">${c.grade.strength}</span><input id="gStr" type="range" min="0" max="1" step="0.05" value="${c.grade.strength}"></label>
@@ -194,6 +217,7 @@ function tabCine() {
         </div>
         <div class="row" style="margin-top:10px"><button id="gSave">Look opslaan</button>
           <span class="muted small">Schrijft cine_montage/grade.json. Renderen gebruikt die look.</span></div></div>` : ""}
+      </div></details>
       ${c.qa ? `<div class="card"><h2>Laatste QA</h2>${qaView(c.qa.qa)}</div>` : ""}
     </div>
     <div class="stack">
@@ -207,12 +231,32 @@ function tabCine() {
       </div>
       <div class="card"><div class="row" style="margin-bottom:12px"><h2 style="margin:0">Shots</h2><span class="spacer"></span>
         <span class="muted small">Schrijf per shot wat anders moet</span><button class="sm" id="cSaveComments">Opmerkingen opslaan</button></div>
-        <div class="shots">${c.shots.map((x) => shotCard(x, c.comments[x.n] || "")).join("")}</div></div>` : '<div class="empty">Maak links een plan om de shots te zien.</div>'}
+        <div class="shots">${c.shots.map((x) => shotCard(x, c.comments[x.n] || "")).join("")}</div></div>` : '<div class="empty">Druk op <b>Maak voorstel</b> om de shots te zien.</div>'}
       ${cineExports.length ? `<div class="card"><h2>Renders</h2><div class="media-grid">${cineExports.slice(0, 4).map(videoCard).join("")}</div></div>` : ""}
     </div>
   </div>`;
   $("#cLook").value = c.grade.look;
   if ($("#gLook")) $("#gLook").value = c.grade.look;
+  api("/api/music").then((list) => {                             // step 2: the songs in your music folder
+    $("#pSong").insertAdjacentHTML("beforeend", list.map((m) => `<option value="${esc(m.name)}">${esc(m.name)}</option>`).join(""));
+  }).catch(() => {});
+  $("#pSong").onchange = () => guard(async () => {
+    const name = $("#pSong").value;
+    if (!name) return;
+    const line = `song: ${JSON.stringify(name)}`;
+    const yaml = /^song:.*$/m.test(P.yaml) ? P.yaml.replace(/^song:.*$/m, line) : P.yaml.trimEnd() + "\n" + line + "\n";
+    await api(`/api/projects/${enc(P.name)}/settings`, { method: "PUT", body: { yaml } });
+    toast("Nummer opgeslagen: " + name, "ok");
+    reload();
+  });
+  $("#pPlan").onclick = async () => {
+    if (appr?.status === "approved" && !(await confirmDlg("Nieuw voorstel?", "Het huidige voorstel wordt vervangen.", "Nieuw voorstel"))) return;
+    startJob(`/api/projects/${enc(P.name)}/cine/plan`, { title: (c.title || s.title || P.name).toUpperCase(), song: s.song || "" }, { onDone: reload });
+  };
+  if ($("#pGo")) $("#pGo").onclick = () =>                       // the button is the approval of this plan, then render
+    startJob(`/api/projects/${enc(P.name)}/cine/approve`, { note: "Ja, renderen (knop in de website)" }, {
+      onDone: (j) => (j.status === "done" ? startJob(`/api/projects/${enc(P.name)}/cine/render`, {}, { onDone: reload }) : reload()),
+    });
   $("#cPlan").onclick = async () => {
     if (c.has_plan && appr?.status === "approved" && !(await confirmDlg("Nieuw plan maken?", "Het huidige goedgekeurde plan wordt vervangen. Je moet het nieuwe plan opnieuw goedkeuren.", "Nieuw plan")))
       return;

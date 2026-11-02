@@ -151,6 +151,13 @@ def run(cfg, name: str, **overrides) -> list[dict]:
     songs = sorted(f for f in (p / "music").glob("*") if f.suffix.lower() in AUDIO_EXT)
     # explicit choice wins: --song, then song: in project.yaml, then the first file in music/
     music = overrides.get("song") or s.get("song") or (str(songs[0]) if songs else None)
+    try:                                                         # rough tags for clips nobody tagged (autotag.py)
+        from . import autotag
+        n = autotag.tag_missing(p)
+        if n:
+            con.print(f"  {n} clip(s) tagged automatically (tags.json, auto: true)")
+    except Exception as e:
+        con.print(f"[yellow]  automatic tags skipped: {e}[/]")
     planner.EXTRA_TAGS = p / "tags.json"
     con.print(f"[bold]Project[/] {p.name} · {sum(1 for f in clips_dir.glob('*') if f.suffix.lower() in VIDEO_EXT)} clips"
               f" · song: {Path(music).name if music and Path(music).exists() else music or 'none'}")
@@ -158,3 +165,38 @@ def run(cfg, name: str, **overrides) -> list[dict]:
                         title=s.get("title") or None, label=s.get("label") or None,
                         category=s.get("category"), aspect=s.get("aspect"), location=s.get("location"),
                         out_dir=p / "exports", seed=s.get("seed"))
+
+
+# ---------------------------------------------------------------- schedule
+
+def schedule(cfg, name: str) -> dict:
+    """The project's newest cine montage render into the posting queue, caption and time filled in (status
+    pending_approval: nothing posts until it is approved, decision 0003)."""
+    import json as _json
+    from . import publish, social
+
+    p = find(cfg, name)
+    s = settings(p)
+    renders = sorted((p / "exports").glob("cine_montage_*.mp4"), key=lambda f: f.stat().st_mtime)
+    if not renders:
+        raise SystemExit(f"Project '{p.name}' has no cine montage render yet")
+    video = renders[-1]
+    if any(e.get("video") == str(video) and e["status"] != "failed" for e in publish.entries()):
+        raise SystemExit(f"{video.name} is already in the posting queue")
+    work = p / "cine_montage"
+    title = s.get("title") or p.name
+    edl = work / "edl.json"
+    if edl.exists():
+        d = _json.loads(edl.read_text(encoding="utf-8"))
+        title = next((o["params"].get("text") for o in d.get("overlays", []) if o.get("component") == "title_slam"),
+                     None) or title
+    cover = next((str(c) for c in (work / "storyboard/frames/E03.jpg", work / "storyboard/frames/E00.jpg") if c.exists()),
+                 None)
+    style = s.get("category") or "lifestyle"
+    hook = str(title).strip().title()
+    caps = {pf: social.suggest(style, hook, pf, s.get("location")) for pf in cfg.get("posting.platforms", ["instagram", "tiktok"])}
+    when = {pf: publish.next_slot(cfg, pf) for pf in caps}
+    entry = publish.enqueue(str(video), cover, style, caps, when,
+                            meta={"hook": hook, "project": p.name, "edit_style": "cine_montage", "files": {"16:9": str(video)}})
+    con.print(f"[green]In de wachtrij:[/] {entry['id']} · {video.name} · " + ", ".join(f"{k} {v}" for k, v in when.items()))
+    return entry

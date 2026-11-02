@@ -59,6 +59,7 @@ def main(argv=None):
                    help="kind of video → folder on the SSD (default: _Inbox, sort it later)")
     a.add_argument("--since", help="only files from this day on, YYYY-MM-DD")
     a.add_argument("--no-project", action="store_true", help="don't make/link the AutoEdit project")
+    sub.add_parser("card", help="camera card in: offload to _Inbox, then per new day an edit '<date> voorstel' with a plan")
     sub.add_parser("thumbs", help="make the thumbnails of every clip on the SSD ahead of time (the SSD page opens at once)")
     a = sub.add_parser("sort", help="name shoot folders on the SSD and move them to a kind (e.g. out of _Inbox)")
     a.add_argument("name", help="name of the shoot, e.g. 'Ibiza'")
@@ -78,6 +79,8 @@ def main(argv=None):
     a.add_argument("--port", type=int, default=5055)
 
     sub.add_parser("queue", help="list videos waiting for approval / scheduled / posted")
+    a = sub.add_parser("schedule", help="put a project's newest cine montage render in the posting queue (caption + time filled in)")
+    a.add_argument("name")
     a = sub.add_parser("approve", help="approve a queued video (it posts at its scheduled time)")
     a.add_argument("id")
     a.add_argument("--caption", type=int, default=0, help="which suggestion (0-2) for all platforms")
@@ -146,6 +149,9 @@ def main(argv=None):
         from .dashboard import serve
         webbrowser.open(f"http://127.0.0.1:{args.port}")
         serve(args.port)
+    elif args.cmd == "schedule":
+        from . import projects
+        projects.schedule(cfg, args.name)
     elif args.cmd == "queue":
         from . import publish
         t = Table("id", "style", "hook", "status", "instagram", "tiktok")
@@ -205,6 +211,9 @@ def main(argv=None):
     elif args.cmd == "offload":
         from . import offload
         offload.offload(cfg, args.name, args.soort, args.since, link=not args.no_project)
+    elif args.cmd == "card":
+        from . import library
+        library.card(cfg)
     elif args.cmd == "thumbs":
         from . import library
         con.print(f"[green]{library.warm(cfg)} clip(s) ready[/] (thumbnails in {library.CACHE})")

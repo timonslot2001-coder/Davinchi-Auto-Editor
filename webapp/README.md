@@ -95,6 +95,16 @@ Each project has one kind of edit (`editor:` in `project.yaml`, chosen in *Nieuw
 the website recognises it: `edit_v*.py` in the folder or clips under *Klanten* on the SSD = `klant`, a `script.yaml`
 = `anders`, else `cine`.
 
+## The editor starts the work
+- **Camera card:** while the website runs on the Resolve PC, `cardwatch.py` looks for a card every 10 s; a new card
+  starts one job `autoedit card` (offload to `_Inbox`, then per new day an edit `<date> voorstel` with a plan). An
+  existing proposal is never overwritten. Off: `card_auto: false` in config.yaml.
+- **Feedback:** *Korter* / *Langer* (±3 s), *Ander nummer* (next song in the music folder, old start dropped),
+  *Ander voorstel* (new seed), *eruit* per shot (`skip:` in project.yaml). Each runs `engine plan` again and is logged
+  in `cine_montage/feedback.json`.
+- **Plannen:** `autoedit schedule <project>` queues the newest render with caption and time; the dialog shows them and
+  *Plannen* approves the queue entry (it posts at that time, decision 0003).
+
 ## Shot comments
 On the cine montage tab every shot has a number and a comment box. *Opmerkingen opslaan* writes
 `<project>/cine_montage/comments.json` (`{"12": "eruit", ...}`); tell Claude to "verwerk de opmerkingen".

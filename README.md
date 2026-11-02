@@ -179,6 +179,8 @@ Videos land in your TikTok inbox; paste the caption (it's in the dashboard) and 
 | `autoedit new <name>` | create a project folder with clips/, music/, exports/ and project.yaml |
 | `autoedit offload <name>` | camera card(s) → `<library>\<Soort>\<date> <name>\1 Ruw\` on the SSD, checked; links the project. `--soort koken\|kleding\|smoken\|reizen\|klanten\|inbox`, `--since YYYY-MM-DD`, `--no-project` |
 | `autoedit thumbs` | make the thumbnails of every clip on the SSD ahead of time (offload and sort do it for their own folders) |
+| `autoedit card` | what a camera card going in starts (the website does it by itself): offload to `_Inbox`, then per new day an edit `<date> voorstel` with a plan |
+| `autoedit schedule <name>` | the project's newest cine montage render into the posting queue, caption and time filled in (approve to post) |
 | `autoedit pick <name> <clips...>` | put clips from the SSD (`"<Soort>/<map>/<clip>"`) in one edit: hard links in `_Edits\<name>`, the project reads from there |
 | `autoedit sort <name> <folders...> --soort <soort>` | name shoot folders on the SSD (`"_Inbox/2026-10-09 SD-kaart"`) and move them into `<Soort>\<date> <name>`; links the project. `--no-project` |
 | `autoedit import <name>` | copy new clips from the camera SD card (`--since YYYY-MM-DD`) |

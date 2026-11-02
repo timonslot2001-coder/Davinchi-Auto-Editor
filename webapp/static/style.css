@@ -134,6 +134,10 @@ dialog menu { display: flex; justify-content: flex-end; gap: 8px; padding: 0; ma
 .steps4 li.done .no { background: var(--accent); border-color: var(--accent); color: #fff; }
 .steps4 select { width: 100%; margin-top: 4px; }
 details.more > summary { cursor: pointer; padding: 10px 2px; }
+.editors { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.ed { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; padding: 12px;
+  background: var(--panel2); border: 1.5px solid transparent; color: inherit; box-shadow: none; }
+.ed.on { border-color: var(--accent); } .ed small { color: var(--muted); font-weight: 400; }
 .ssd-grid { grid-template-columns: minmax(240px, 320px) 1fr; }
 .ssd-list { max-height: calc(100vh - 220px); overflow: auto; }
 .ssd-list h3 { margin: 10px 0 6px; } .ssd-list h3:first-child { margin-top: 0; }

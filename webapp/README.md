@@ -90,6 +90,11 @@ your music folder (saved as `song:` in `project.yaml`); *Maak voorstel* runs `en
 [0015](../docs/decisions/0015-render-button-is-the-approval.md)). Plan options, another look, preview and QA are under
 *Zelf bijsturen*. The home page shows each project's next step.
 
+Each project has one kind of edit (`editor:` in `project.yaml`, chosen in *Nieuw project*): `cine` (the 4 steps),
+`snel` (AutoEdit in Resolve), `klant` or `anders` (client film, explainer, intro: made via Claude). Without the line
+the website recognises it: `edit_v*.py` in the folder or clips under *Klanten* on the SSD = `klant`, a `script.yaml`
+= `anders`, else `cine`.
+
 ## Shot comments
 On the cine montage tab every shot has a number and a comment box. *Opmerkingen opslaan* writes
 `<project>/cine_montage/comments.json` (`{"12": "eruit", ...}`); tell Claude to "verwerk de opmerkingen".

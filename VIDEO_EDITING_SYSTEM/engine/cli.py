@@ -124,7 +124,8 @@ def main(argv=None):
     a.add_argument("--grid-flow", choices=["auto", "off"], default="auto")
     a.add_argument("--pacing", choices=["curve", "music"], default="curve",
                    help="curve = measured deceleration (default); music = cuts on the felt beat, long shots in calm parts, burst on a drop")
-    a.add_argument("--song-start", type=float, default=None, help="start the song at this second (e.g. where the TikTok sound starts)")
+    a.add_argument("--song-start", type=float, default=None, help="start the song at this second (e.g. where the TikTok sound starts); "
+                                                                  "default: song_start in project.yaml, else the editor picks the best part")
     a.add_argument("--grade", choices=["auto", "slog3", "rec709", "none"], default="auto")
     a.add_argument("--title-shot", help="clip for the title, CLIP[:seconds], e.g. C0086:7")
     a.add_argument("--final-shot", help="clip for the last shot, CLIP[:seconds]")
@@ -189,8 +190,8 @@ def main(argv=None):
                            order=story_order(proj) if args.order == "story" else None,
                            category=settings(proj).get("category"),
                            pacing=args.pacing if args.pacing != "curve" else (settings(proj).get("pacing") or "curve"),
-                           song_start=float(args.song_start if args.song_start is not None
-                                            else settings(proj).get("song_start") or 0))
+                           song_start=(args.song_start if args.song_start is not None       # None: best part
+                                       else settings(proj).get("song_start")))
         fixed = style_checks.fix(edl)
         errs = edl.validate()
         if errs:

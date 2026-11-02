@@ -3,6 +3,14 @@
 What changed, in words you would notice in an edit or on the PC. Newest first. Small fixes are folded into the day's
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
+## 2026-11-02 — The editor picks the song part; one kind of edit per project
+- No `song_start` set? The cine montage now picks the best part of the song itself: the strongest build-up with the
+  drop about two thirds into the video (ESCAPE PLAN: 49.9 s, close to the TikTok sound's 48.1 s). The plan notes say
+  where it starts; `song_start:` in project.yaml still wins.
+- *Nieuw project* asks once what kind of edit it is: **Cine montage** or **Snelle edit** (AutoEdit in Resolve). The
+  project opens on that and the home page shows the matching next step. Client films (JUICT) and explainers/intros
+  show *via Claude* instead of the 4 steps (`editor:` in project.yaml; recognised automatically).
+
 ## 2026-11-02 — A video in 4 steps
 - A project's *Cine montage* tab starts with one path: **Clips → Muziek → Bekijken → Ja, renderen**. Pick the song
   from a list, press *Maak voorstel*, look at the storyboard, press *Ja, renderen*. That button is your approval of

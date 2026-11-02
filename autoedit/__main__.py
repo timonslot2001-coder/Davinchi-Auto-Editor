@@ -46,6 +46,9 @@ def main(argv=None):
     a = sub.add_parser("new", help="create a project folder: clips/ music/ exports/ project.yaml")
     a.add_argument("name")
     a.add_argument("--title", help="title over the intro (default: the project name)")
+    a.add_argument("--editor", default="cine", choices=["cine", "snel", "klant", "anders"],
+                   help="cine = cine montage (default), snel = AutoEdit in Resolve, klant / anders = client film or "
+                        "explainer/intro, made via Claude")
     sub.add_parser("projects", help="list your projects (clips, song, exports)")
     a = sub.add_parser("import", help="copy new clips from the camera SD card into a project")
     a.add_argument("name")
@@ -189,7 +192,7 @@ def main(argv=None):
         login()
     elif args.cmd == "new":
         from . import projects
-        projects.new(cfg, args.name, args.title)
+        projects.new(cfg, args.name, args.title, args.editor)
     elif args.cmd == "projects":
         from . import projects
         t = Table("project", "clips", "song", "exports", "title")

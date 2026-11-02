@@ -101,10 +101,16 @@ async function home() {
     <div class="card" id="newCard" hidden style="margin-bottom:18px"><h2>Nieuw project</h2>
       <div class="form"><label>Naam<input id="npName" placeholder="bijv. Porto 2026"></label>
       <label>Titel in de video<input id="npTitle" placeholder="standaard: de naam"></label></div>
+      <div class="editors" role="radiogroup" aria-label="Soort edit">
+        <button class="ed on" data-ed="cine" role="radio" aria-checked="true"><b>Cine montage</b><small>kort, filmisch, in je stijl (standaard)</small></button>
+        <button class="ed" data-ed="snel" role="radio" aria-checked="false"><b>Snelle edit</b><small>AutoEdit bouwt hem in Resolve</small></button></div>
       <div class="row" style="margin-top:12px"><button id="npGo">Aanmaken</button>
       <span class="muted small">Maakt clips/, music/, exports/ en project.yaml in je AutoEdit Projects-map.</span></div></div>
     ${list.length ? `<div class="grid projects">${list.map(pcard).join("")}</div>` : '<div class="empty">Nog geen projecten.</div>'}`;
   $("#newBtn").onclick = () => ($("#newCard").hidden = !$("#newCard").hidden);
+  document.querySelectorAll(".ed").forEach((b) => (b.onclick = () => document.querySelectorAll(".ed").forEach((x) => {
+    x.classList.toggle("on", x === b); x.setAttribute("aria-checked", String(x === b));
+  })));
   $("#offBtn").onclick = () => ($("#offCard").hidden = !$("#offCard").hidden);
   $("#ofGo").onclick = () => {
     const name = $("#ofName").value.trim(), soort = $("#ofKind").value;
@@ -115,18 +121,22 @@ async function home() {
   $("#npGo").onclick = () => {
     const name = $("#npName").value.trim();
     if (!name) return toast("Geef het project een naam", "err");
-    startJob("/api/projects", { name, title: $("#npTitle").value }, { onDone: (j) => j.status === "done" && (location.hash = "#/p/" + enc(name)) });
+    const editor = (document.querySelector(".ed.on") || {}).dataset?.ed || "cine";
+    startJob("/api/projects", { name, title: $("#npTitle").value, editor }, { onDone: (j) => j.status === "done" && (location.hash = "#/p/" + enc(name)) });
   };
 }
 function nextStep(p) {                                          // the one thing to do next for this project
+  if (p.editor === "klant") return ["Klantfilm: via Claude", ""];
+  if (p.editor === "anders") return ["Uitleg / intro: via Claude", ""];
   if (!p.clips) return ["Clips kiezen", "warn"];
+  if (p.editor === "snel") return p.exports ? ["Klaar", "ok"] : ["Bouwen in Resolve", "warn"];
   if (!p.cine) return ["Voorstel maken", "warn"];
   if (p.cine !== "approved") return ["Bekijken → Ja, renderen", "warn"];
   return p.exports ? ["Klaar", "ok"] : ["Renderen", "warn"];
 }
 function pcard(p) {
   const [next, cls] = nextStep(p);
-  const cine = `<span class="tag ${cls}">${cls === "ok" ? "✓ " : "→ "}${esc(next)}</span>`;
+  const cine = `<span class="tag ${cls}">${cls === "ok" ? "✓ " : cls ? "→ " : ""}${esc(next)}</span>`;
   return `<a class="pcard" href="#/p/${enc(p.name)}">
     <div class="img" style="${p.thumb ? `background-image:url('${fileUrl(p.thumb)}')` : ""}">${p.thumb ? "" : "▶"}</div>
     <div class="body"><div class="name">${esc(p.name)}</div>
@@ -136,8 +146,9 @@ function pcard(p) {
 
 // ------------------------------------------------------------------ project
 let P = null;
-async function project(name, tab = "cine") {
+async function project(name, tab) {
   P = await api("/api/projects/" + enc(name));
+  tab = tab || { snel: "autoedit", klant: "files", anders: "files" }[P.editor] || "cine";
   const tabs = [["cine", "Cine montage"], ["autoedit", "AutoEdit (Resolve)"], ["ai", "AI-shot"], ["files", "Bestanden"], ["settings", "Instellingen"]];
   const s = P.settings || {};
   main.innerHTML = `
@@ -147,6 +158,9 @@ async function project(name, tab = "cine") {
     <div class="tabs">${tabs.map(([k, l]) => `<a href="#/p/${enc(name)}/${k}" class="${k === tab ? "on" : ""}">${l}</a>`).join("")}</div>
     <div id="tab"></div>`;
   ({ cine: tabCine, autoedit: tabAutoedit, ai: tabAI, files: tabFiles, settings: tabSettings }[tab] || tabCine)();
+  const special = { klant: "Klantfilm: de film blijft zoals de klant hem kreeg. Zeg tegen Claude wat er moet veranderen (intro/outro, een shot eruit).",
+    anders: "Uitlegvideo of intro: die maak je via Claude, niet via de vier stappen." }[P.editor];
+  if (special) $("#tab").insertAdjacentHTML("afterbegin", `<div class="banner" style="margin-bottom:14px">${esc(special)}</div>`);
 }
 const reload = () => route();
 

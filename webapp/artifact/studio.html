@@ -200,8 +200,6 @@ a.btn:hover { filter: brightness(1.08); }
 .banner b { font-weight: 600; }
 #offline { margin-bottom: 16px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
 #offline .dot { align-self: center; }
-#demo { margin-bottom: 16px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; border-color: rgb(var(--a1-rgb) / .35);
-  background: linear-gradient(90deg, rgb(var(--a1-rgb) / .1), transparent 60%), var(--panel); }
 .empty { color: var(--muted); padding: 34px 18px; text-align: center; border: 1px dashed var(--line2); border-radius: var(--r);
   background: rgb(var(--grid-rgb) / .025); }
 .why { font-size: 12px; color: var(--muted); }
@@ -418,7 +416,6 @@ nav a i svg { width: 16px; height: 16px; display: block; fill: none; stroke: cur
   </aside>
   <main>
     <div id="offline" class="banner warn" hidden></div>
-    <div id="demo" class="banner" hidden></div>
     <div id="view"><div class="loading">Laden…</div></div>
   </main>
 </div>
@@ -596,7 +593,7 @@ function toast(msg, kind = "") {
 // ------------------------------------------------------------------ state
 const S = {
   db: null, comments: null, user: null,
-  projects: new Map(), projectsReady: false, jobs: [], pc: null, demo: false, real: { projects: new Map(), jobs: [] },
+  projects: new Map(), projectsReady: false, jobs: [], pc: null, real: { projects: new Map(), jobs: [] },
   ssd: new Map(), ssdReady: false, ssdSel: new Set(),
   dbNote: "", canSend: "onbekend", owner: null,
 };
@@ -626,10 +623,10 @@ function project(id) {
 }
 const projectList = () => [...S.projects.keys()].map(project).filter((p) => p && p.name)
   .sort((a, b) => (toDate(b.updated_at)?.getTime() || 0) - (toDate(a.updated_at)?.getTime() || 0) || a.name.localeCompare(b.name));
-const online = () => S.demo || (S.comments && S.canSend === "available" && S.owner !== false);
+const online = () => (S.comments && S.canSend === "available" && S.owner !== false);
 function applyData() {
-  S.projects = S.demo ? DEMO.projects : S.real.projects;
-  S.jobs = (S.demo ? DEMO.jobs : S.real.jobs).slice()
+  S.projects = S.real.projects;
+  S.jobs = S.real.jobs.slice()
     .sort((a, b) => (toDate(b.started_at)?.getTime() || 0) - (toDate(a.started_at)?.getTime() || 0));
 }
 function offlineReason() {
@@ -712,7 +709,6 @@ async function send(btn, action, p, extra) {
   if (!online()) { toast(offlineReason(), "err"); return false; }
   const r = requestText(action, p ? p.name : "", extra);
   if (r.error) { toast(r.error, "err"); return false; }
-  if (S.demo) { if (p) demoRun(action, p, extra); toast(ACT_NL[action] + ": demo, er gaat niets naar je PC.", "ok"); return true; }
   btn.disabled = true; btn.dataset.sending = "1";
   try {
     const anchor = await S.comments.anchorFor(btn);
@@ -733,13 +729,6 @@ function renderShell() {
   const off = $("#offline");
   const seen = S.pc && S.pc.seen_at ? ago(S.pc.seen_at) : "";
   off.hidden = online() || S.canSend === "onbekend";
-  const dm = $("#demo");
-  dm.hidden = !S.demo;
-  if (S.demo && !dm.childElementCount) {
-    dm.innerHTML = `<span class="tag red">Demo</span><span>Voorbeelddata: knoppen werken, maar er gaat niets naar je PC.</span>` +
-      `<span class="spacer"></span><button class="ghost sm" id="demoOff">Demo sluiten</button>`;
-    $("#demoOff").onclick = () => setDemo(false);
-  }
   if (!off.hidden) {
     const detail = !S.comments ? "Opdrachten sturen werkt niet in deze weergave."
       : S.owner === false || S.canSend === "writers_only" ? "Alleen de eigenaar kan opdrachten naar de PC sturen."
@@ -749,9 +738,9 @@ function renderShell() {
   }
   const busy = S.jobs.filter((j) => j.status === "bezig").length;
   const badge = $("#jobBadge"); badge.hidden = !busy; badge.textContent = busy;
-  const pcOn = S.canSend === "available" || S.demo;
-  const pcLabel = S.demo ? "Demo-modus" : pcOn ? "PC-sessie luistert" : "PC-sessie niet bereikbaar";
-  $("#sideStatus").innerHTML = `<div title="${pcLabel}"><span class="dot ${pcOn ? "on" : "off"}"></span><span class="short">${S.demo ? "Demo" : "PC"}</span><span class="full">${pcLabel}</span></div>` +
+  const pcOn = S.canSend === "available";
+  const pcLabel = pcOn ? "PC-sessie luistert" : "PC-sessie niet bereikbaar";
+  $("#sideStatus").innerHTML = `<div title="${pcLabel}"><span class="dot ${pcOn ? "on" : "off"}"></span><span class="short">PC</span><span class="full">${pcLabel}</span></div>` +
     (seen ? `<div class="full">laatst gezien ${esc(seen)}</div>` : "") +
     (S.pc && S.pc.host ? `<div class="full">${esc(S.pc.host)}</div>` : "") +
     (busy ? `<div title="${busy} ${busy === 1 ? "taak" : "taken"} bezig"><span class="dot busy"></span><span class="short">${busy}</span><span class="full">${busy} ${busy === 1 ? "taak" : "taken"} bezig</span></div>` : "");
@@ -806,190 +795,6 @@ function jobsStrip(el, projectName) {
   }));
 }
 
-// ------------------------------------------------------------------ demo: sample projects, only in this browser
-// Lets Timon try the whole flow without the PC. Nothing is sent or written; the LUTs only approximate the real looks.
-const DEMO = { projects: new Map(), jobs: [], built: false, sheet: "" };
-const hex12 = () => Array.from({ length: 12 }, () => "0123456789abcdef"[Math.floor(Math.random() * 16)]).join("");
-function demoCube(fn) {
-  const n = 17, rows = ["LUT_3D_SIZE " + n], data = new Float32Array(n * n * n * 3);
-  let i = 0;
-  for (let b = 0; b < n; b++) for (let g = 0; g < n; g++) for (let r = 0; r < n; r++) {
-    const o = fn(r / (n - 1), g / (n - 1), b / (n - 1)).map(StudioMath.clamp01);
-    rows.push(o.map((v) => v.toFixed(4)).join(" ")); data.set(o, i); i += 3;
-  }
-  const url = URL.createObjectURL(new Blob([rows.join("\n")], { type: "text/plain" }));
-  (window.__lutCache = window.__lutCache || new Map()).set(url, Promise.resolve({ n, data }));
-  return url;
-}
-const luma = (r, g, b) => 0.2126 * r + 0.7152 * g + 0.0722 * b;
-function demoLook(q) {
-  return (r, g, b) => {
-    const l = luma(r, g, b);
-    let c = [r, g, b].map((v) => l + (v - l) * q.sat).map((v) => 0.5 + (v - 0.5) * q.con).map((v) => q.lift + v * (q.gain - q.lift));
-    c[0] += q.warm * (0.4 + 0.6 * l); c[2] -= q.warm * (0.4 + 0.6 * l);
-    c[2] += q.cool * (0.3 + 0.6 * (1 - l)); c[0] -= q.cool * 0.3;
-    return c;
-  };
-}
-const DEMO_LOOKS = {
-  reference_film: { sat: 0.95, con: 1.08, lift: 0.03, gain: 0.98, warm: 0.04, cool: 0.02 },
-  clean_warm: { sat: 1.08, con: 1.02, lift: 0.01, gain: 1.02, warm: 0.06, cool: 0 },
-  moody: { sat: 0.7, con: 1.15, lift: 0.02, gain: 0.88, warm: 0, cool: 0.05 },
-  daylight: { sat: 1.15, con: 1, lift: 0, gain: 1.05, warm: 0.03, cool: 0 },
-  blue_hour: { sat: 0.9, con: 1, lift: 0.03, gain: 0.95, warm: -0.02, cool: 0.09 },
-  vintage: { sat: 0.78, con: 0.9, lift: 0.08, gain: 0.94, warm: 0.07, cool: 0 },
-};
-// Cinematic sample frames, drawn once: shallow depth of field, bokeh, backlight, a lens vignette and grain,
-// then flattened to look like Timon's ungraded S-Log3 so the grade preview has real work to do.
-function demoStill(kind) {
-  const c = document.createElement("canvas"); c.width = 960; c.height = 540;
-  const x = c.getContext("2d"), W = 960, H = 540, TAU = Math.PI * 2;
-  let seed = { gerecht: 7, lucht: 11, tegenlicht: 23, nacht: 42 }[kind] || 1;
-  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  const lin = (x0, y0, x1, y1, stops) => { const g = x.createLinearGradient(x0, y0, x1, y1); stops.forEach(([o, col]) => g.addColorStop(o, col)); return g; };
-  const rad = (cx, cy, r, stops) => { const g = x.createRadialGradient(cx, cy, 0, cx, cy, r); stops.forEach(([o, col]) => g.addColorStop(o, col)); return g; };
-  const ell = (cx, cy, rx, ry, fill) => { x.fillStyle = fill; x.beginPath(); x.ellipse(cx, cy, rx, ry, 0, 0, TAU); x.fill(); };
-  const soft = (px, fn) => { x.save(); x.filter = `blur(${px}px)`; fn(); x.restore(); };
-  if (kind === "gerecht") {
-    x.fillStyle = rad(300, 90, 900, [[0, "#6d5038"], [0.45, "#33251b"], [1, "#0e0a08"]]); x.fillRect(0, 0, W, H);
-    x.globalAlpha = 0.07;
-    for (let i = 0; i < 40; i++) { x.fillStyle = i % 2 ? "#000" : "#c79a6b"; x.fillRect(0, i * 14 + Math.sin(i) * 4, W, 2 + rnd() * 3); }
-    x.globalAlpha = 1;
-    soft(16, () => { for (let i = 0; i < 6; i++) { const r = 16 + rnd() * 26; ell(760 + rnd() * 180, 60 + rnd() * 120, r, r, "rgba(255,196,128,.45)"); } });
-    soft(22, () => ell(510, 330, 300, 140, "rgba(0,0,0,.7)"));
-    ell(480, 290, 290, 158, lin(0, 140, 0, 450, [[0, "#f6f2ec"], [1, "#b9b1a5"]]));
-    ell(480, 292, 222, 116, lin(0, 180, 0, 410, [[0, "#ebe6de"], [1, "#d3ccc1"]]));
-    soft(6, () => ell(478, 300, 118, 70, "rgba(60,20,12,.55)"));
-    ell(470, 284, 112, 66, rad(450, 260, 130, [[0, "#d0574a"], [0.55, "#9b2e25"], [1, "#5c1611"]]));
-    for (let i = 0; i < 900; i++) {
-      const a = rnd() * TAU, r = Math.sqrt(rnd());
-      x.fillStyle = rnd() < 0.5 ? "rgba(255,190,170,.28)" : "rgba(50,8,6,.35)";
-      x.fillRect(470 + Math.cos(a) * r * 104, 284 + Math.sin(a) * r * 60, 2, 2);
-    }
-    ell(498, 262, 27, 25, rad(490, 252, 32, [[0, "#ffe9a8"], [0.55, "#f3b02a"], [1, "#b8700e"]]));
-    ell(490, 254, 7, 5, "rgba(255,255,255,.75)");
-    for (let i = 0; i < 26; i++) {
-      const a = rnd() * TAU;
-      ell(470 + Math.cos(a) * (60 + rnd() * 50), 284 + Math.sin(a) * (34 + rnd() * 30), 4 + rnd() * 3, 2 + rnd() * 2, rnd() < 0.5 ? "#3f7f2c" : "#5fa043");
-    }
-  } else if (kind === "lucht") {
-    x.fillStyle = lin(0, 0, 0, H, [[0, "#1c2f55"], [0.38, "#a2587a"], [0.6, "#f08a5d"], [0.72, "#ffc98b"], [1, "#ffd9a8"]]); x.fillRect(0, 0, W, H);
-    x.fillStyle = rad(640, 330, 260, [[0, "rgba(255,244,214,1)"], [0.12, "rgba(255,226,170,.95)"], [0.4, "rgba(255,170,110,.35)"], [1, "rgba(255,150,100,0)"]]);
-    x.fillRect(0, 0, W, H);
-    soft(10, () => { for (let i = 0; i < 7; i++) ell(rnd() * W, 60 + rnd() * 170, 90 + rnd() * 160, 10 + rnd() * 16, `rgba(${200 + rnd() * 55 | 0},${130 + rnd() * 60 | 0},${140 + rnd() * 40 | 0},.45)`); });
-    const ridge = (base, amp, freq, phase, col, blur) => soft(blur, () => {
-      x.fillStyle = col; x.beginPath(); x.moveTo(0, H);
-      for (let px = 0; px <= W; px += 8) x.lineTo(px, base - Math.sin(px * freq + phase) * amp - Math.sin(px * freq * 2.7 + phase * 2) * amp * 0.35);
-      x.lineTo(W, H); x.closePath(); x.fill();
-    });
-    ridge(360, 34, 0.006, 1.2, "rgba(150,95,120,.85)", 2);
-    ridge(395, 42, 0.008, 3.1, "rgba(95,62,88,.92)", 1);
-    ridge(430, 38, 0.011, 0.4, "#3a2a3e", 0.5);
-    ridge(470, 30, 0.014, 2.2, "#1d1622", 0);
-  } else if (kind === "tegenlicht") {
-    x.fillStyle = lin(0, 0, W, 0, [[0, "#1a1c22"], [0.55, "#6b6f78"], [1, "#e9e3d6"]]); x.fillRect(0, 0, W, H);
-    x.fillStyle = rad(860, 200, 520, [[0, "rgba(255,240,215,.95)"], [0.35, "rgba(255,226,190,.35)"], [1, "rgba(255,220,180,0)"]]); x.fillRect(0, 0, W, H);
-    soft(18, () => { for (let i = 0; i < 9; i++) { const r = 18 + rnd() * 34; ell(600 + rnd() * 340, 40 + rnd() * 460, r, r, `rgba(255,${210 + rnd() * 40 | 0},${170 + rnd() * 50 | 0},.35)`); } });
-    const sil = () => {
-      x.beginPath(); x.ellipse(430, 215, 78, 96, -0.08, 0, TAU);
-      x.moveTo(250, H); x.bezierCurveTo(255, 400, 330, 330, 420, 318); x.bezierCurveTo(520, 318, 600, 380, 620, H); x.closePath();
-    };
-    soft(10, () => { x.fillStyle = "rgba(255,214,160,.85)"; sil(); x.fill(); });       // rim light around the figure
-    x.save(); x.translate(-5, 2); x.fillStyle = "#121318"; sil(); x.fill(); x.restore();
-  } else {
-    x.fillStyle = lin(0, 0, 0, H, [[0, "#070b18"], [0.55, "#121a33"], [1, "#05070d"]]); x.fillRect(0, 0, W, H);
-    const cols = ["255,176,90", "255,120,80", "120,200,255", "255,220,150", "220,90,140"];
-    soft(14, () => { for (let i = 0; i < 46; i++) { const r = 10 + rnd() * 34; ell(rnd() * W, 60 + rnd() * 300, r, r, `rgba(${cols[i % cols.length]},${(0.25 + rnd() * 0.45).toFixed(2)})`); } });
-    soft(3, () => { for (let i = 0; i < 18; i++) { const r = 3 + rnd() * 6; ell(rnd() * W, 80 + rnd() * 260, r, r, `rgba(${cols[i % cols.length]},.9)`); } });
-    x.fillStyle = lin(0, 380, 0, H, [[0, "#0d1120"], [1, "#05060a"]]); x.fillRect(0, 380, W, H - 380);
-    soft(6, () => { for (let i = 0; i < 26; i++) { x.fillStyle = `rgba(${cols[i % cols.length]},.28)`; x.fillRect(rnd() * W, 390, 4 + rnd() * 10, 80 + rnd() * 70); } });
-  }
-  x.fillStyle = rad(W / 2, H / 2, 640, [[0.55, "rgba(0,0,0,0)"], [1, "rgba(0,0,0,.6)"]]); x.fillRect(0, 0, W, H);
-  const img = x.getImageData(0, 0, W, H), d = img.data;          // flat and bright, like Timon's ungraded S-Log3, plus grain
-  for (let i = 0; i < d.length; i += 4) {
-    const l = luma(d[i], d[i + 1], d[i + 2]), n = (rnd() - 0.5) * 7;
-    for (let k = 0; k < 3; k++) d[i + k] = 0.4 * 255 + (l + (d[i + k] - l) * 0.6) * 0.38 + n;
-  }
-  x.putImageData(img, 0, 0);
-  return c.toDataURL("image/jpeg", 0.86);
-}
-function demoSheet(stills) {
-  const c = document.createElement("canvas"); c.width = 1280; c.height = 760;
-  const x = c.getContext("2d");
-  const signal = getComputedStyle(document.documentElement).getPropertyValue("--a1").trim() || "#9fdcff";
-  x.fillStyle = "#070a10"; x.fillRect(0, 0, 1280, 760);
-  x.fillStyle = "#e9eaee"; x.font = "600 26px Inter, Segoe UI, sans-serif"; x.fillText("STORYBOARD · demo", 32, 48);
-  const imgs = stills.map((u) => { const im = new Image(); im.src = u; return im; });
-  return Promise.all(imgs.map((im) => im.decode().catch(() => {}))).then(() => {
-    for (let i = 0; i < 12; i++) {
-      const cx = 32 + (i % 4) * 307, cy = 76 + Math.floor(i / 4) * 224;
-      x.filter = "contrast(1.5) saturate(1.5)"; x.drawImage(imgs[i % imgs.length], cx, cy, 291, 164); x.filter = "none";
-      x.fillStyle = signal; x.fillRect(cx, cy, 34, 22);
-      x.fillStyle = "#04060b"; x.font = "700 13px Inter, Segoe UI, sans-serif"; x.fillText(String(i + 1).padStart(2, "0"), cx + 8, cy + 16);
-      x.fillStyle = "#8b90a0"; x.font = "12px Inter, Segoe UI, sans-serif";
-      x.fillText((i * 2.6).toFixed(1).replace(".", ",") + " s · " + ["cut", "flash", "whip", "cut"][i % 4], cx, cy + 184);
-    }
-    return c.toDataURL("image/jpeg", 0.85);
-  });
-}
-async function buildDemo() {
-  const now = Date.now();
-  const st = { gerecht: demoStill("gerecht"), lucht: demoStill("lucht"), tegenlicht: demoStill("tegenlicht"), nacht: demoStill("nacht") };
-  const s = (k, label) => ({ url: st[k], is_log: true, label });
-  const conv = demoCube((r, g, b) => {
-    const l = luma(r, g, b);
-    return [r, g, b].map((v) => l + (v - l) * 1.6).map((v) => { const t = StudioMath.clamp01((v - 0.25) / 0.45); return t * t * (3 - 2 * t) * 0.96 + 0.02; });
-  });
-  const looks = {};
-  for (const k in DEMO_LOOKS) looks[k] = demoCube(demoLook(DEMO_LOOKS[k]));
-  const luts = { conv, looks };
-  DEMO.sheet = await demoSheet(Object.values(st));
-  const P = (id, d) => DEMO.projects.set(id, { luts, render: null, ...d });
-  P("beef-tartaar-v2", { name: "Beef Tartaar v2", updated_at: now - 6e5, stills: [s("gerecht", "gerecht"), s("tegenlicht", "tegenlicht"), s("nacht", "nacht")],
-    plan: { edl_sha1: hex12(), shots: 24, duration: 31.4, title: "BEEF TARTAAR", sheet_url: DEMO.sheet },
-    approval: { status: "approved", by: "Timon", at: now - 3e6, note: "ja, render zo", current: true, grade_current: false },
-    grade: { look: "moody", strength: 0.8, exposure: -1.75, key: hex12() } });
-  P("smoke-sesh", { name: "Smoke Sesh", updated_at: now - 8.64e7, stills: [s("nacht", "nacht"), s("tegenlicht", "tegenlicht")],
-    plan: { edl_sha1: hex12(), shots: 18, duration: 22, title: "SMOKE SESH", sheet_url: DEMO.sheet },
-    approval: { status: "approved", by: "Timon", at: now - 9e7, note: "top, zo houden", current: true, grade_current: true },
-    grade: { look: "reference_film", strength: 1, exposure: -1.75, key: hex12() },
-    render: { at: now - 8e7, review_url: DEMO.sheet, preview_url: null } });
-  P("parijs-weekend", { name: "Parijs weekend", updated_at: now - 3e8, stills: [s("lucht", "lucht"), s("nacht", "nacht"), s("tegenlicht", "tegenlicht")],
-    plan: null, approval: null, grade: { look: "daylight", strength: 0.9, exposure: -1.5, key: hex12() } });
-  P("kas", { name: "Kas", updated_at: now - 5e8, stills: [s("lucht", "lucht"), s("gerecht", "gerecht")], plan: null, approval: null, grade: {} });
-  DEMO.jobs = [
-    { id: "d1", project: "Beef Tartaar v2", action: "grade", status: "klaar", message: "Grade opgeslagen: moody 80 %", started_at: now - 7e5, finished_at: now - 6.9e5 },
-    { id: "d2", project: "Smoke Sesh", action: "render", status: "fout", message: "Renderen: mislukt\nResolve was niet open. Open DaVinci Resolve en probeer opnieuw.", started_at: now - 9e6, finished_at: now - 8.9e6 },
-  ];
-  DEMO.built = true;
-}
-async function setDemo(on) {
-  if (on && !DEMO.built) { toast("Voorbeelddata maken…"); await buildDemo(); }
-  S.demo = on; applyData();
-  if (location.hash && location.hash !== "#/") location.hash = "#/"; else render();
-}
-function demoRun(action, p, extra) {
-  const raw = DEMO.projects.get(p.id), now = Date.now();
-  const job = { id: "d" + now, project: p.name, action, status: "bezig", message: "Demo: draait…", started_at: now };
-  DEMO.jobs.push(job); applyData(); refresh();
-  setTimeout(() => {
-    if (action === "grade") {
-      raw.grade = { look: extra.look, strength: extra.strength, exposure: extra.exposure, key: hex12() };
-      if (raw.approval) raw.approval.grade_current = false;
-    } else if (action === "plan") {
-      raw.plan = { edl_sha1: hex12(), shots: 14 + Math.floor(Math.random() * 12), duration: 18 + Math.random() * 14, title: p.name.toUpperCase(), sheet_url: DEMO.sheet };
-      if (raw.approval) raw.approval.current = false;
-    } else if (action === "goedkeuren") {
-      raw.approval = { status: "approved", by: "Timon", at: Date.now(), note: extra.note, current: true, grade_current: true };
-    } else if (action === "render") {
-      raw.render = { at: Date.now(), review_url: DEMO.sheet, preview_url: null };
-    }
-    raw.updated_at = Date.now();
-    Object.assign(job, { status: "klaar", finished_at: Date.now(), message: "Demo: " + ACT_NL[action] + " klaar." + (action === "preview" ? " (In de demo is er geen echte video.)" : "") });
-    applyData(); refresh();
-  }, 1600);
-}
-
 // ------------------------------------------------------------------ router
 let view = null;                                // {key, update()}
 function route() {
@@ -1024,11 +829,9 @@ function homeView() {
       $("#list").innerHTML = !S.projectsReady ? '<div class="loading">Projecten laden…</div>'
         : (S.dbNote ? `<div class="banner warn" style="margin-bottom:16px">${S.dbNote}</div>` : "") +
           (list.length ? todoHtml + `<h2>Alle projecten</h2><div class="grid projects">${list.map(pcard).join("")}</div>`
-            : `<div class="empty"><div class="setup"><b>Nog geen projecten.</b> De Studio-sessie op je PC zet hier elk cine-montage-project neer.
-                ${online() ? "" : SETUP}
-                <div class="row" style="margin-top:14px"><button class="dark" id="demoOn">Bekijk met voorbeelddata</button></div></div></div>`);
-      const on = $("#demoOn");
-      if (on) on.onclick = () => setDemo(true);
+            : `<div class="empty"><div class="setup"><b>Nog geen projecten.</b> Start de Studio-sessie op je PC
+                (<code>start-studio-sessie.bat</code>), dan verschijnen je projecten hier.
+                ${online() ? "" : SETUP}</div></div>`);
     },
   };
 }
@@ -1622,7 +1425,7 @@ function renderTab(el, id) {
       const gates = [
         [approved && !!a.current, p.plan ? "Plan goedgekeurd" : "Plan gemaakt en goedgekeurd"],
         [approved && !!a.grade_current, "Grade goedgekeurd" + (g.look != null ? ` (${lookName(g.look)}, ${pct(g.strength)})` : "")],
-        [online(), S.demo ? "PC bereikbaar (demo)" : "Studio-sessie op je PC bereikbaar"],
+        [online(), "Studio-sessie op je PC bereikbaar"],
       ];
       $("#gates", el).innerHTML = gates.map(([ok, t]) => `<li class="${ok ? "ok" : "wait"}"><i>${ok ? "✓" : "!"}</i>${esc(t)}</li>`).join("");
       $("#renderBtn", el).dataset.block = ready ? "" : "1";

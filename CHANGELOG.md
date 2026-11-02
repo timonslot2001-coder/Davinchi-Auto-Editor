@@ -3,6 +3,10 @@
 What changed, in words you would notice in an edit or on the PC. Newest first. Small fixes are folded into the day's
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
+## 2026-11-02 — Studio shows only your own projects
+- The sample projects are gone from the Studio (no *Bekijk met voorbeelddata*, no demo bar). With no projects yet,
+  Projecten tells you to start `start-studio-sessie.bat` on the PC; your projects appear once that runs.
+
 ## 2026-11-01 — Sort the SSD on the website
 - New page **SSD** in the AutoEdit website: the shoot folders with video (_Inbox first) with a thumbnail of every clip.
   Folders with only photos are left out; photos get their own editor later.

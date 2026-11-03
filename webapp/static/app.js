@@ -181,7 +181,7 @@ function tabCine() {
     ${step(2, !!song, "Muziek", `<select id="pSong"><option value="">${song ? esc(song) : "kies een nummer…"}</option></select>`)}
     ${step(3, c.has_plan, "Bekijken", c.has_plan
       ? `${c.sheet ? `<a class="tag blue" target="_blank" href="${fileUrl(c.sheet)}">storyboard ↗</a> ` : ""}${c.shots.length} shots · ${(+c.duration).toFixed(1)} s <button class="ghost sm" id="pPlan">Nieuw voorstel</button>`
-      : `<button class="sm" id="pPlan" ${P.clips.length ? "" : "disabled"}>Maak voorstel</button>`)}
+      : `<button class="sm" id="pPlan" ${P.clips.length && song ? "" : "disabled"}>Maak voorstel</button>${P.clips.length && !song ? ' <span class="muted small">kies eerst een nummer</span>' : ""}`)}
     ${step(4, rendered, "Renderen", rendered ? `klaar: ${esc(cineExports[0].name)} <button class="sm" id="pPost">Plannen</button>`
       : `<button class="sm" id="pGo" ${c.has_plan ? "" : "disabled"}>Ja, renderen</button>`)}
   </ol>

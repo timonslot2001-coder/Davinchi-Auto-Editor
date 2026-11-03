@@ -51,6 +51,11 @@ plans = []
 real_run = subprocess.run
 subprocess.run = lambda args, **kw: (plans.append(args), type("R", (), {"returncode": 0})())[1]
 try:
+    out = library.card(cfg)                                      # no song picked yet: no plan, wait for step 2
+    assert out == [{"project": "2026-11-02 voorstel", "clips": 1, "plan": False, "needs_song": True}], out
+    assert not plans, "nothing is edited before the music is chosen"
+    (projects / "2026-11-02 voorstel" / "project.yaml").write_text('song: "Escape Plan"\n', encoding="utf-8")
+    assert library.has_song(projects / "2026-11-02 voorstel")
     out = library.card(cfg)
     assert out == [{"project": "2026-11-02 voorstel", "clips": 1, "plan": True}], out
     assert plans and plans[-1][-1].endswith("2026-11-02 voorstel"), plans

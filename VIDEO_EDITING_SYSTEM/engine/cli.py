@@ -4,6 +4,7 @@
   python -m engine plan  <project> [--title X] [--length 18] [--accent #E70002] [--seed 1]
                          [--title-shot CLIP[:s]] [--final-shot CLIP[:s]] [--order story] [--look L]
                                                  inventory + EDL + storyboard  -> STOP (gate B)
+                                                 refuses without a song (--song, song: in project.yaml or music/)
   python -m engine grade <project> --look L [--strength 0..1] [--exposure -3..0.5]
                                                  the project's grade (cine_montage/grade.json), part of the approval
   python -m engine check <project>              style checks on the current plan (EDITING_PSYCHOLOGY.md)
@@ -32,6 +33,8 @@ from . import media, planner, qa, render, storyboard, style_checks
 from .edl import EDL
 
 PROJECTS = Path("C:/Users/Timon/Videos/AutoEdit Projects")
+NO_SONG = ("Kies eerst een nummer: zonder muziek wordt er niet bewerkt. Website: stap 2 Muziek; of zet song: in "
+           "project.yaml, of een nummer in de map music/ van het project.")
 
 
 def find_project(name: str) -> Path:
@@ -186,6 +189,8 @@ def main(argv=None):
             inv["clips"] = [c for c in inv["clips"] if Path(c["path"]).stem.lower() not in skip]
             print("skipped clips:", ", ".join(sorted(skip)))
         song, song_src = media.pick_song(proj, inv, args.song)
+        if song is None:                                         # Timon picks the music before anything is edited
+            raise SystemExit(NO_SONG)
         mus = media.music_map(song, work / "cache") if song else None
         print(f"song: {song.name if song else 'none'} ({song_src})")
         edl = planner.plan(p, inv, mus, args.title, args.length, args.accent, args.fps, seed=args.seed,

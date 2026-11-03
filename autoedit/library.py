@@ -394,10 +394,24 @@ def pick(cfg, name: str, refs: list[str]) -> dict:
 
 # ---------------------------------------------------------------- camera card in -> proposal ready
 
+def has_song(project: Path) -> bool:
+    """Did Timon pick the music for this project? `song:` in project.yaml or a song in its music/ folder (the same
+    places engine plan looks; engine plan refuses without one)."""
+    import yaml
+    try:
+        if (yaml.safe_load((project / "project.yaml").read_text(encoding="utf-8")) or {}).get("song"):
+            return True
+    except (OSError, AttributeError, yaml.YAMLError):
+        pass
+    music = project / "music"
+    return music.is_dir() and any(f.suffix.lower() in {".mp3", ".wav", ".m4a", ".aac", ".flac", ".ogg"} for f in music.iterdir())
+
+
 def card(cfg) -> list[dict]:
     """What the website runs when a camera card goes in: offload everything new to _Inbox (one folder per day, checked,
     card untouched), then per new day with video an edit '<date> voorstel' with all of that day's clips and a cine
-    montage plan (storyboard) for it. Nothing is rendered: that waits for "Ja, renderen"."""
+    montage plan (storyboard) for it. Nothing is rendered: that waits for "Ja, renderen". No plan is made before
+    Timon picked the music: a project without a song gets `needs_song` and waits for step 2 on the website."""
     import subprocess
     import sys
 
@@ -415,6 +429,10 @@ def card(cfg) -> list[dict]:
             con.print(f"  {name} heeft al een voorstel; niets overschreven")
             continue
         r = pick(cfg, name, [f"{rel}/{v.name}" for v in vids])
+        if not has_song(Path(r["project"])):
+            out.append({"project": name, "clips": len(vids), "plan": False, "needs_song": True})
+            con.print(f"[yellow]Kies een nummer[/] voor {name} (website, stap 2 Muziek); daarna maak je het voorstel")
+            continue
         engine = ROOT / "VIDEO_EDITING_SYSTEM"
         con.print(f"[bold]Voorstel[/] {name}: plan maken ({len(vids)} clips)…")
         done = subprocess.run([sys.executable, "-m", "engine", "plan", r["project"]], cwd=str(engine)).returncode == 0

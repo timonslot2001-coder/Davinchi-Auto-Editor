@@ -262,7 +262,8 @@ function tabCine() {
     yaml = yaml.replace(/^song_start:.*\n?/m, "");                // the old start belongs to the old song
     await api(`/api/projects/${enc(P.name)}/settings`, { method: "PUT", body: { yaml } });
     toast("Nummer opgeslagen: " + name, "ok");
-    reload();
+    if (!c.has_plan) return reload();                            // a new song means a new proposal: start it right away
+    startJob(`/api/projects/${enc(P.name)}/cine/plan`, { title: (c.title || s.title || P.name).toUpperCase(), song: name }, { onDone: reload });
   });
   $("#pPlan").onclick = async () => {
     if (appr?.status === "approved" && !(await confirmDlg("Nieuw voorstel?", "Het huidige voorstel wordt vervangen.", "Nieuw voorstel"))) return;

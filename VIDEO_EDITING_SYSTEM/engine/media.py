@@ -196,7 +196,7 @@ def pick_song(project: Path, inv: dict, song: str | None) -> tuple[Path | None, 
     folder = Path((settings(REPO / "config.yaml").get("paths") or {}).get("music_folder") or "")
     tracks = [Path(m) for m in inv["music"]]
     tracks += sorted(p for p in folder.glob("*") if p.suffix.lower() in AUDIO_EXT) if folder.is_dir() else []
-    hits = [t for t in tracks if str(choice).lower() in t.stem.lower()]
+    hits = [t for t in tracks if str(choice).lower() == t.name.lower() or str(choice).lower() in t.stem.lower()]
     if not hits:
         raise SystemExit(f"{src} '{choice}' matches no song in music/ or {folder}: {[t.name for t in tracks] or 'none'}")
     return hits[0], src

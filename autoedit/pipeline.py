@@ -24,7 +24,7 @@ def pick_music(cfg, music: str | None) -> Path | None:
         if Path(music).exists():
             return Path(music)
         # just type part of the name: --music "orange" picks "Baby Keem - Orange Soda.mp3" from the music folder
-        hits = [t for t in tracks if music.lower() in t.stem.lower()]
+        hits = [t for t in tracks if music.lower() == t.name.lower() or music.lower() in t.stem.lower()]
         if not hits:
             raise SystemExit(f"No song matching '{music}' in {folder}. Songs there: {[t.name for t in tracks] or 'none'}")
         return hits[0]

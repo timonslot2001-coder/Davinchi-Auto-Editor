@@ -167,6 +167,7 @@ Not from the references: it is Timon's own transition (4×4 wipe left, per-tile 
 | 2026-10-26 | Smoke Sesh | "the video in the frame looks squashed" | §2/§9: card centre-crops; check proportions |
 | 2026-10-26 | — | "4x4 wipe left with exposure flash, max 1-2 per video" | RULE_GRID_FLOW, §7 |
 | 2026-10-30 | Beef Tartaar | "kook of kleding videos hoef je die grid overgangen niet … gebruik dat trucje maar 1x" | RULE_GRID_FLOW 1×, off for food/fashion (§7, decision 0012) |
+| 2026-11-03 | Vakantie Madeira | "zorg er ten allertijden voor dat de tekst nooit verdrukt lijkt" (title squeezed sideways) | titles autoscale with one uniform scale (never stretched); several words go on two lines when the letters get clearly bigger; lines and letters never touch (`components.html` fitBox) |
 | 2026-10-28 | JUICT (client film, not a montage) | "de orginele bedrijfsfilm mag je intact houden … geen ondertitels" | none here: client films are out of this style's scope (decision 0010, `CLAUDE.md` → *Client films*). The photo snap he liked is a candidate device, not part of P_CINE_MONTAGE |
 
 ## 11. Confidence and what would raise it

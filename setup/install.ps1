@@ -51,6 +51,12 @@ foreach ($m in $T.comfy.models.PSObject.Properties) {
 if (-not (Test-Path $Comfy)) { $todo.Add("Install Comfy Desktop: $($T.comfy.app)") }
 foreach ($n in $T.comfy.custom_nodes) { $todo.Add("Comfy custom node: $n (install via ComfyUI Manager)") }
 
+Write-Host "== Local model (website box 'Typ wat je wilt')"
+$Lms = Join-Path $env:LOCALAPPDATA "Programs\LM Studio\resources\app\.webpack\lms.exe"
+if (-not (Test-Path $Lms)) { $todo.Add("Install LM Studio: winget install ElementLabs.LMStudio, open it once, then: lms get openai/gpt-oss-20b") }
+elseif (-not (Test-Path (Join-Path $HOME ".lmstudio\models\lmstudio-community\gpt-oss-20b-GGUF"))) { $todo.Add("Local model missing: lms get openai/gpt-oss-20b (~12 GB)") }
+else { Write-Host "  ok  LM Studio + gpt-oss-20b" }
+
 Write-Host "== Bought Resolve packs"
 if ($MakeBackup) {
     Copy-Tree (Join-Path $Fusion "Templates") (Join-Path $MakeBackup "Templates")

@@ -104,6 +104,11 @@ the website recognises it: `edit_v*.py` in the folder or clips under *Klanten* o
 - **Feedback:** *Korter* / *Langer* (±3 s), *Ander nummer* (next song in the music folder, old start dropped),
   *Ander voorstel* (new seed), *eruit* per shot (`skip:` in project.yaml). Each runs `engine plan` again and is logged
   in `cine_montage/feedback.json`.
+- **Typ wat je wilt:** the box under the feedback buttons sends the sentence to `POST /api/projects/<name>/ask`.
+  `assistant.py` asks a local model in LM Studio on this PC (free, no tokens; default `openai/gpt-oss-20b`, loaded on
+  the first question and unloaded after 10 min idle) to pick one of the same buttons: new plan (song, title, length),
+  feedback, *eruit* for a clip, or a look. Every value is checked against what exists; the page then runs the usual
+  job. Rendering is not one of its buttons. Settings: `local_llm:` {model, url, lms, ttl_s} in config.yaml.
 - **Plannen:** `autoedit schedule <project>` queues the newest render with caption and time; the dialog shows them and
   *Plannen* approves the queue entry (it posts at that time, decision 0003).
 

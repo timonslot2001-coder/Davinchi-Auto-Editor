@@ -293,6 +293,10 @@ def create(host=None) -> Flask:
     def cine_looks(name):
         return host.call("looks", {"name": name, "fresh": request.args.get("fresh") == "1"})
 
+    @app.post("/api/projects/<name>/ask")
+    def ask(name):
+        return host.call("ask", {"name": name, "text": _text((request.get_json() or {}).get("text"), 500)})
+
     @app.post("/api/projects/<name>/cine/feedback")
     def cine_feedback(name):
         b = request.get_json() or {}

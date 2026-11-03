@@ -339,8 +339,16 @@ def library_preview(path: str) -> str:
     return _library().preview(_cfg(), path)
 
 
+def ask(name: str, text: str) -> dict:
+    """A typed request -> one website action, via the local model (webapp/assistant.py)."""
+    from . import assistant
+    p = project(name)
+    songs = list(dict.fromkeys([m["name"] for m in p["music"]] + [m["name"] for m in music()]))
+    return assistant.ask(p, text, songs, _cfg())
+
+
 CALLS = {"status": status, "roots": roots, "projects": projects, "project": project, "save_settings": save_settings,
-         "feedback": feedback, "looks": looks,
+         "feedback": feedback, "looks": looks, "ask": ask,
          "save_comments": save_comments, "queue": queue, "queue_choose": queue_choose, "music": music,
          "report": report, "ai_models": ai_models, "library": library, "library_shoot": library_shoot,
          "library_thumb": library_thumb, "library_preview": library_preview}

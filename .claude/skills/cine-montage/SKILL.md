@@ -49,6 +49,10 @@ Depth titles and cut-out flashes need a subject matte (not built). Fonts are ver
 paced, not beat-locked (snapped to a strong onset only within 2 frames).
 
 ## Learnings from real runs
+- 2026-11-03 (Vakantie Madeira): "VAKANTIE MADEIRA" was squeezed sideways to fit the frame. Text is never stretched now:
+  `fitBox` in `components.html` scales uniformly, puts a multi-word title on two lines when that makes the letters at
+  least 20% bigger (a `|` in the title sets the lines by hand), and keeps lines and letters apart. Check the title frame
+  on the sheet anyway.
 - 2026-11-01 (Beef Tartaar x Escape Plan, test): Timon wants the pace to come from the music, not the category.
   `--pacing music` (or `pacing: music` in project.yaml) cuts on the felt beat (>= 135 BPM counts half-time), gives
   calm/breakdown parts 3-4 beats per shot without flashes or whips, cuts exactly on a drop and puts the white card

@@ -3,6 +3,10 @@
 What changed, in words you would notice in an edit or on the PC. Newest first. Small fixes are folded into the day's
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
+## 2026-11-03 — Titles are never squeezed
+- The poster title scales evenly now instead of being squeezed sideways to fit. A title of several words goes onto
+  two lines when that makes the letters clearly bigger (VAKANTIE / MADEIRA); lines and letters never touch.
+
 ## 2026-11-03 — S-Log3 clips picked from the SSD get their grade again
 - Clips chosen on the SSD page came without the camera's XML, so the editor had to guess S-Log3 from the picture and
   guessed wrong for bright shots (washed-out, grey video). The XML now comes along when you pick clips (also when you

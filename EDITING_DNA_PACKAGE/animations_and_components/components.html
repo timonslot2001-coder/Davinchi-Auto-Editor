@@ -68,7 +68,7 @@ const C = {
     el.style.color = o.color || "var(--title-red)";
     if (o.font === "grotesque") {                          // R02-type: wide heavy grotesque, tight tracking
       el.style.fontFamily = "Archivo"; el.style.fontWeight = 900; el.style.fontStretch = "88%";
-      el.style.letterSpacing = "-0.045em";
+      el.style.letterSpacing = "-0.02em";                    // tight, but letters never touch (2026-11-03)
     }
     fitBox(el, parseFloat(o.width || "0.96"), o.height ? parseFloat(o.height) : null);
   },
@@ -125,13 +125,33 @@ function card(o, bg, wr, hr) {
 }
 // Fit the title's ink box to a share of the frame width (and optionally height: the R17/R11 'poster'
 // titles are taller than any free condensed face, so they are matched with a vertical stretch).
+// Autoscale: text is never stretched or squeezed, one uniform scale that fits width wr and (if given) height hr of the
+// frame (Timon 2026-11-03: "zorg dat de tekst nooit verdrukt lijkt"). A title of several words goes onto two lines
+// when that makes the letters clearly bigger (VAKANTIE|MADEIRA); a "|" in the text sets the lines by hand.
 function fitBox(el, wr, hr) {
   const W = stage.clientWidth, H = stage.clientHeight;
-  el.style.fontSize = "100px";
-  const r = el.getBoundingClientRect();
-  const s = wr * W / r.width;
-  const sy = hr ? (hr * H) / (r.height * 0.86 * s) : 1;    // 0.86: cap height share of the Anton em box (approx.)
-  el.style.transform = `translate(-50%, -50%) scale(${s}, ${s * sy})`;
+  const fit = () => {
+    el.style.fontSize = "100px";
+    el.style.lineHeight = el.innerHTML.includes("<br>") ? "1.04" : "";   // two lines never touch
+    el.style.transform = "translate(-50%, -50%)";
+    const r = el.getBoundingClientRect();
+    return Math.min(wr * W / r.width, hr ? hr * H / (r.height * 0.86) : Infinity);   // 0.86: Anton cap share (approx.)
+  };
+  let s = fit();
+  const words = el.textContent.trim().split(/\s+/);
+  if (!el.innerHTML.includes("<br>") && words.length > 1) {
+    const one = el.innerHTML;
+    let best = { s: 0, html: one };
+    for (let i = 1; i < words.length; i++) {                // the most balanced split = the biggest letters
+      el.innerHTML = words.slice(0, i).join(" ") + "<br>" + words.slice(i).join(" ");
+      const s2 = fit();
+      if (s2 > best.s) best = { s: s2, html: el.innerHTML };
+    }
+    el.innerHTML = best.s > s * 1.2 ? best.html : one;
+    s = fit();
+  }
+  el.style.transform = `translate(-50%, -50%) scale(${s})`;
+  el.dataset.scale = s.toFixed(4);                          // one number: the same scale in x and y
 }
 function render(t) {
   stage.innerHTML = "";

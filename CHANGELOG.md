@@ -3,6 +3,10 @@
 What changed, in words you would notice in an edit or on the PC. Newest first. Small fixes are folded into the day's
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
+## 2026-11-03 — Foto's link in the Studio
+- The Studio (claude.ai) has *Foto's ↗* in its menu: it opens the website's photo page on your PC (or on your phone via
+  Tailscale). The website must be running (`autoedit.bat`). No tokens: the photos are not rebuilt inside the Studio.
+
 ## 2026-11-03 — Photos: pick a look (LightCraft)
 - New page *Foto's* on the website: choose a shoot, tick photos, press *Kies een look*. You see your first photo finished
   in six looks (Automatisch, Zwart-wit… made by LightCraft, a free Lightroom-like editor on your PC). Tap one and every

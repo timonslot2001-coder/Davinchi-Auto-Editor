@@ -26,7 +26,8 @@ Both shells work, because no command below carries free text from a comment: the
    - `PY -m webapp studio-projects` → `[{name, slug, state}]`: every project's `projects/<slug>` document (folder
      names the validator refuses are left out). Merge each `state` as in *Writing a project* below (keeps uploaded
      URLs). Never put a project name on a command line.
-   - `studio/pc` = `{host: <hostname>, seen_at: <now, ISO UTC>}`.
+   - `studio/pc` = the output of `PY -m webapp studio-pc` (`{host, website, phone}`: the website's addresses for the
+     *Foto's* link) plus `seen_at: <now, ISO UTC>`.
    - The SSD folders: see *SSD page* below.
 4. Tell Timon in one line: "Studio-sessie luistert (N projecten)." Then wait for comments.
 

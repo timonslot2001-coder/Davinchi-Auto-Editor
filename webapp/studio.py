@@ -836,6 +836,25 @@ def _dur(s: float) -> str:
     return f"{int(s // 3600)}u{int(s % 3600 // 60):02d}" if s >= 3600 else f"{int(s // 60)}:{int(s % 60):02d}"
 
 
+WEB_PORT = 5060                                                  # `python -m webapp` (autoedit.bat)
+
+
+def pc_doc() -> dict:
+    """studio/pc: this PC's name and where its website is, so the Studio can link to pages that live only there
+    (Foto's). `phone` is the Tailscale address (webapp --phone), or None when Tailscale is not set up."""
+    import socket
+    from .phone import tailscale_ip
+    ip = tailscale_ip()
+    return {"host": socket.gethostname(), "website": f"http://127.0.0.1:{WEB_PORT}",
+            "phone": f"http://{ip}:{WEB_PORT}" if ip else None}
+
+
+def pc_cli(argv=None) -> int:
+    argparse.ArgumentParser(prog="webapp studio-pc").parse_args(argv)
+    _out(pc_doc())
+    return 0
+
+
 def ssd_cli(argv=None) -> int:
     argparse.ArgumentParser(prog="webapp studio-ssd").parse_args(argv)
     _out(ssd_docs())

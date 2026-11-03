@@ -836,7 +836,7 @@ def _dur(s: float) -> str:
     return f"{int(s // 3600)}u{int(s % 3600 // 60):02d}" if s >= 3600 else f"{int(s // 60)}:{int(s % 60):02d}"
 
 
-WEB_PORT = 5060                                                  # `python -m webapp` (autoedit.bat)
+WEB_PORT = 5080                                                  # `python -m webapp` (autoedit.bat)
 
 
 def pc_doc() -> dict:

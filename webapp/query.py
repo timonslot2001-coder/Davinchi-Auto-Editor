@@ -345,6 +345,10 @@ def photo_thumb(ref: str) -> str:
     return _photos().thumb(_cfg(), ref)
 
 
+def photo_open(rel: str) -> dict:
+    return _photos().open_app(_cfg(), rel)
+
+
 def photo_looks(ref: str) -> list[dict]:
     return _photos().looks(_cfg(), ref)
 
@@ -370,4 +374,4 @@ CALLS = {"status": status, "roots": roots, "projects": projects, "project": proj
          "save_comments": save_comments, "queue": queue, "queue_choose": queue_choose, "music": music,
          "report": report, "ai_models": ai_models, "library": library, "library_shoot": library_shoot,
          "library_thumb": library_thumb, "photo_shoot": photo_shoot, "photo_thumb": photo_thumb,
-         "photo_looks": photo_looks, "library_preview": library_preview}
+         "photo_looks": photo_looks, "photo_open": photo_open, "library_preview": library_preview}

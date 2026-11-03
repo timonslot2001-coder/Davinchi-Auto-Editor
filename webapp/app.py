@@ -52,15 +52,15 @@ def create(host=None) -> Flask:
     # ------------------------------------------------------------ pages
     @app.get("/")
     def index():
-        return send_from_directory(STATIC, "index.html")
+        return send_from_directory(STATIC, "index.html", max_age=0)
 
     @app.get("/favicon.ico")
     def favicon():
         return "", 204
 
     @app.get("/static/<path:f>")
-    def static_file(f):
-        return send_from_directory(STATIC, f)
+    def static_file(f):                                          # max_age 0: the browser checks for a newer version
+        return send_from_directory(STATIC, f, max_age=0)
 
     # ------------------------------------------------------------ status, files, jobs
     @app.get("/api/status")
@@ -179,6 +179,12 @@ def create(host=None) -> Flask:
     @app.get("/api/photos/looks")
     def photo_looks():
         return jsonify(host.call("photo_looks", {"ref": _photo_ref(request.args["ref"])}))
+
+    @app.post("/api/photos/open")
+    def photo_open():
+        if host.mode != "local":
+            raise ValueError("LightCraft opens on the Resolve PC: use the website there (autoedit.bat)")
+        return host.call("photo_open", {"rel": str((request.get_json() or {}).get("rel") or "")})
 
     @app.post("/api/photos/export")
     def photo_export():

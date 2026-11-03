@@ -7,6 +7,6 @@ WORKDIR /app
 COPY webapp/ webapp/
 RUN useradd -m studio
 USER studio
-EXPOSE 5060
-HEALTHCHECK --interval=30s --timeout=5s CMD python -c "import urllib.request;urllib.request.urlopen('http://127.0.0.1:5060/')"
+EXPOSE 5080
+HEALTHCHECK --interval=30s --timeout=5s CMD python -c "import urllib.request;urllib.request.urlopen('http://127.0.0.1:5080/')"
 CMD ["python", "-m", "webapp", "--bind", "0.0.0.0", "--no-browser"]

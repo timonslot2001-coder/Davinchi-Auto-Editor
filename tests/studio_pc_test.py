@@ -8,9 +8,9 @@ from webapp import phone, studio             # noqa: E402
 
 phone.tailscale_ip = lambda: None
 d = studio.pc_doc()
-assert d["website"] == "http://127.0.0.1:5060" and d["phone"] is None and d["host"], d
+assert d["website"] == "http://127.0.0.1:5080" and d["phone"] is None and d["host"], d
 phone.tailscale_ip = lambda: "100.101.102.103"
-assert studio.pc_doc()["phone"] == "http://100.101.102.103:5060"
+assert studio.pc_doc()["phone"] == "http://100.101.102.103:5080"
 html = (Path(__file__).resolve().parents[1] / "webapp" / "artifact" / "studio.html").read_text(encoding="utf-8")
 assert 'id="navFotos"' in html and 'target="_blank" rel="noopener"' in html, "the Studio links to the website's photos"
 print("studio pc test ok")

@@ -8,9 +8,9 @@ always do the same thing.
 ## Start
 | how | what runs where | open |
 |---|---|---|
-| `autoedit.bat` (double-click) | everything on this PC; on your phone too when Tailscale is on (`--phone`, only your devices) | http://127.0.0.1:5060 |
-| `start-studio-docker.bat` | the website in Docker Desktop on the Resolve PC, the work through the worker | http://localhost:5060 |
-| `start-worker-for-laptop.bat` + `docker compose up -d --build` | the website in Docker on your laptop, the work on the Resolve PC | http://localhost:5060 on the laptop |
+| `autoedit.bat` (double-click) | everything on this PC; on your phone too when Tailscale is on (`--phone`, only your devices) | http://127.0.0.1:5080 |
+| `start-studio-docker.bat` | the website in Docker Desktop on the Resolve PC, the work through the worker | http://localhost:5080 |
+| `start-worker-for-laptop.bat` + `docker compose up -d --build` | the website in Docker on your laptop, the work on the Resolve PC | http://localhost:5080 on the laptop |
 
 ### Docker on another computer (laptop)
 The website runs in Docker on the laptop; the editing still happens on the PC with Resolve and the footage.
@@ -23,7 +23,7 @@ The website runs in Docker on the laptop; the editing still happens on the PC wi
    ```
    docker compose up -d --build
    ```
-   Open http://localhost:5060. The sidebar shows "Docker → Windows-worker" in green when it reaches the PC.
+   Open http://localhost:5080. The sidebar shows "Docker → Windows-worker" in green when it reaches the PC.
 
 Both computers must be on the same network. If the laptop can not reach the worker: check that the PC window is
 still open, that the address is the PC's 192.168.x.x address, and that the firewall allows Python on private networks.
@@ -68,7 +68,7 @@ Decision: [0013](../docs/decisions/0013-studio-artifact-comment-route.md).
 - `start-worker-for-laptop.bat` opens the worker to your home network (needed for the laptop); every request still
   needs the token. Close its window when you are done. The normal worker listens on 127.0.0.1 only.
 - The website listens on 127.0.0.1 only. To use it on your phone in the same wifi: start it with `--bind 0.0.0.0`
-  (or set the compose port to `"5060:5060"`). There is no login, so only do that on your home network.
+  (or set the compose port to `"5080:5080"`). There is no login, so only do that on your home network.
 
 ## Offload
 *SD-kaart offloaden* on the Projecten page runs `autoedit offload "<name>" --soort <soort>`: photos and videos from
@@ -109,7 +109,9 @@ the website recognises it: `edit_v*.py` in the folder or clips under *Klanten* o
   photo in six looks (`GET /api/photos/looks`, `autoedit/photos.py`, cached in `data/photo_looks`); a tap runs
   `autoedit photos <look> <photos…>`: LightCraft auto settings + the look's preset, full size, into
   `<shoot>/2 Bewerkt/Foto/<name>_<look>.jpg`, from the RAW when there is one. `lightcraft:` in config.yaml points at
-  `lightcraft-cli.exe` (default: the portable copy in `~/.autoedit/lightcraft`).
+  `lightcraft-cli.exe` (default: the portable copy in `~/.autoedit/lightcraft`). **Openen in LightCraft** (`POST /api/photos/open`,
+  local mode only) starts `lightcraft.exe` on the shoot's photo folders: culling, comparing, deleting and own LUTs are
+  done in LightCraft's own window.
 - **Typ wat je wilt:** the box under the feedback buttons sends the sentence to `POST /api/projects/<name>/ask`.
   `assistant.py` asks a local model in LM Studio on this PC (free, no tokens; default `openai/gpt-oss-20b`, loaded on
   the first question and unloaded after 10 min idle) to pick one of the same buttons: new plan (song, title, length),

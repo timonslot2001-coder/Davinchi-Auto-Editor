@@ -589,6 +589,7 @@ async function showPhotos(rel) {
   box.innerHTML = `<div class="card stack">
     <div class="row"><h2 style="margin:0">${esc(rel.split("/")[1])}</h2><span class="spacer"></span>
       <span class="tag">${s.photos.length} foto's</span>${s.done.length ? `<span class="tag ok">${s.done.length} bewerkt</span>` : ""}
+      <button class="sm" id="foOpen" title="Uitzoeken, vergelijken, wissen, je eigen LUT's en alle schuiven: in LightCraft zelf">Openen in LightCraft</button>
       <button class="sm dark" id="foAll">Alles kiezen</button></div>
     <div class="thumbs">${s.photos.map((p, i) => `<div class="th${photoPicked.has(key(p)) ? " pk" : ""}" data-i="${i}" title="${esc(p.name)}">
       <img loading="lazy" src="${photoThumb(key(p))}" alt=""><button class="ck" aria-label="Kies ${esc(p.name)}">✓</button>
@@ -607,6 +608,10 @@ async function showPhotos(rel) {
     allBtn(); fotos.update();
   };
   box.querySelectorAll(".th").forEach((th) => (th.onclick = () => { pick(th, !th.classList.contains("pk")); allBtn(); fotos.update(); }));
+  $("#foOpen").onclick = () => guard(async () => {
+    await api("/api/photos/open", { method: "POST", body: { rel } });
+    toast("LightCraft opent op je PC met deze shoot", "ok");
+  });
 }
 
 async function showShoot(rel) {

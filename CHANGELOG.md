@@ -3,7 +3,15 @@
 What changed, in words you would notice in an edit or on the PC. Newest first. Small fixes are folded into the day's
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
+## 2026-11-03 — Open a shoot in LightCraft
+- On the website's *Foto's* page, **Openen in LightCraft** opens the shoot in LightCraft's own window on your PC. Sorting
+  out look-alike and blurry photos, comparing, deleting, your own LUTs and every slider are done there; *Kies een look*
+  stays as the one-tap shortcut (also on your phone).
+- After an update the website always loads its newest pages (no old copy from the browser's cache).
+
 ## 2026-11-03 — Foto's link in the Studio
+- The website moved from port 5060 to **5080**: Edge and Chrome refuse 5060 (`ERR_UNSAFE_PORT`, it is the internet-phone
+  port). The website is now at http://127.0.0.1:5080 (phone: `http://100.x.y.z:5080`).
 - `start-studio-sessie.bat` also starts the website (when it is not running yet), so the Studio's *Foto's ↗* link
   always has something to open.
 - The Studio (claude.ai) has *Foto's ↗* in its menu: it opens the website's photo page on your PC (or on your phone via

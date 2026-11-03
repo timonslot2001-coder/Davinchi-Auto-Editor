@@ -3,6 +3,11 @@
 What changed, in words you would notice in an edit or on the PC. Newest first. Small fixes are folded into the day's
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
+## 2026-11-03 — S-Log3 clips picked from the SSD get their grade again
+- Clips chosen on the SSD page came without the camera's XML, so the editor had to guess S-Log3 from the picture and
+  guessed wrong for bright shots (washed-out, grey video). The XML now comes along when you pick clips (also when you
+  pick a clip again for an older edit). Vakantie Madeira is repaired: 8 S-Log3 clips, 1 Rec.709.
+
 ## 2026-11-03 — Type what you want (local model, free)
 - Under the feedback buttons on the website: type what you want ("korter", "ander nummer", "moody look", "haal C0146
   eruit", "plan met het austria nummer en titel MADEIRA"). A model running on your own PC (LM Studio, gpt-oss-20b)

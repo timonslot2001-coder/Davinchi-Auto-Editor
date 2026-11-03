@@ -333,15 +333,26 @@ def resolve_clip(cfg, ref: str) -> Path:
     return hits[0]
 
 
+def _link_sidecar(src: Path, dst: Path) -> None:
+    """The camera's <stem>M01.XML next to the clip comes along under the clip's new name: it says S-Log3 or Rec.709,
+    and without it the grade has to guess from the picture (engine render.detect_log)."""
+    side = src.with_name(src.stem + "M01.XML")
+    to = dst.with_name(dst.stem + "M01.XML")
+    if side.exists() and not to.exists():
+        os.link(side, to)
+
+
 def _link_into(edits: Path, src: Path) -> str:
-    """Hard link src into the edit folder; 'added', or 'there' when that clip is already in it."""
+    """Hard link src (and its camera XML) into the edit folder; 'added', or 'there' when that clip is already in it."""
     dst = edits / src.name
     if dst.exists() and os.path.samefile(dst, src):
+        _link_sidecar(src, dst)                                   # edits made before the XML came along
         return "there"
     if dst.exists():                                              # same clip name from another shoot: '<shoot> C0001.MP4'
         shoot_dir = src.parent.parent.parent if src.parent.name == "Video" else src.parent
         dst = offload._free_name(edits, f"{shoot_dir.name} {src.name}")
     os.link(src, dst)
+    _link_sidecar(src, dst)
     return "added"
 
 

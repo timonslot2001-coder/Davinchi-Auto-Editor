@@ -8,9 +8,9 @@ always do the same thing.
 ## Start
 | how | what runs where | open |
 |---|---|---|
-| `autoedit.bat` (double-click) | everything on this PC; on your phone too when Tailscale is on (`--phone`, only your devices) | http://127.0.0.1:5060 |
-| `start-studio-docker.bat` | the website in Docker Desktop on the Resolve PC, the work through the worker | http://localhost:5060 |
-| `start-worker-for-laptop.bat` + `docker compose up -d --build` | the website in Docker on your laptop, the work on the Resolve PC | http://localhost:5060 on the laptop |
+| `autoedit.bat` (double-click) | everything on this PC; on your phone too when Tailscale is on (`--phone`, only your devices) | http://127.0.0.1:5080 |
+| `start-studio-docker.bat` | the website in Docker Desktop on the Resolve PC, the work through the worker | http://localhost:5080 |
+| `start-worker-for-laptop.bat` + `docker compose up -d --build` | the website in Docker on your laptop, the work on the Resolve PC | http://localhost:5080 on the laptop |
 
 ### Docker on another computer (laptop)
 The website runs in Docker on the laptop; the editing still happens on the PC with Resolve and the footage.
@@ -23,7 +23,7 @@ The website runs in Docker on the laptop; the editing still happens on the PC wi
    ```
    docker compose up -d --build
    ```
-   Open http://localhost:5060. The sidebar shows "Docker → Windows-worker" in green when it reaches the PC.
+   Open http://localhost:5080. The sidebar shows "Docker → Windows-worker" in green when it reaches the PC.
 
 Both computers must be on the same network. If the laptop can not reach the worker: check that the PC window is
 still open, that the address is the PC's 192.168.x.x address, and that the firewall allows Python on private networks.
@@ -68,7 +68,7 @@ Decision: [0013](../docs/decisions/0013-studio-artifact-comment-route.md).
 - `start-worker-for-laptop.bat` opens the worker to your home network (needed for the laptop); every request still
   needs the token. Close its window when you are done. The normal worker listens on 127.0.0.1 only.
 - The website listens on 127.0.0.1 only. To use it on your phone in the same wifi: start it with `--bind 0.0.0.0`
-  (or set the compose port to `"5060:5060"`). There is no login, so only do that on your home network.
+  (or set the compose port to `"5080:5080"`). There is no login, so only do that on your home network.
 
 ## Offload
 *SD-kaart offloaden* on the Projecten page runs `autoedit offload "<name>" --soort <soort>`: photos and videos from

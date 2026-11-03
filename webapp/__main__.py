@@ -1,4 +1,4 @@
-"""python -m webapp                 the web app on this PC, everything local   → http://127.0.0.1:5060
+"""python -m webapp                 the web app on this PC, everything local   → http://127.0.0.1:5080
 python -m webapp worker          the Windows worker for the Docker container (port 5061, token from .env)
 python -m webapp laptop-info     address + token for a Docker container on another computer
 python -m webapp --phone         also on your phone through Tailscale; only this PC and your tailnet get in (phone.py)
@@ -49,7 +49,7 @@ def main(argv=None):
         serve(args.port or 5061, args.bind)
         return
     from .app import create, make_host, run_server
-    port = args.port or 5060
+    port = args.port or 5080
     host = make_host()
     app = create(host)
     if host.mode == "local":                                     # camera card in -> offload + proposal (cardwatch.py)

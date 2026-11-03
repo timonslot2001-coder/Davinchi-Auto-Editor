@@ -26,7 +26,7 @@ environment; see [setup/README.md](setup/README.md).
 
 ### On your phone
 Install **Tailscale** (free) on this PC and on your phone and log in with the same account on both. Then
-`autoedit.bat` prints the address for the phone (`http://100.x.y.z:5060`). Only this PC and your own Tailscale devices
+`autoedit.bat` prints the address for the phone (`http://100.x.y.z:5080`). Only this PC and your own Tailscale devices
 get in; anyone else on the network gets *403*. Without Tailscale the website stays on this PC only.
 
 The terminal commands below still work (`autoedit project "smoke"`, `autoedit run "C:\Users\Timon\Videos\Shoot"`).

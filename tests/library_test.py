@@ -98,16 +98,20 @@ d = day("2026-10-20 SD-kaart", videos=["C0300.MP4", "C0202.MP4"])
 kas = lib / "Koken" / "2026-10-20 Kas"
 kas.parent.mkdir(parents=True, exist_ok=True)
 os.replace(d, kas)
+(kas / "1 Ruw" / "Video" / "C0202M01.XML").write_text('CaptureGammaEquation" value="s-log3-cine"')
 r = library.pick(cfg, "Kort", ["Reizen/2026-10-09 Ibiza/C0230.MP4", "Koken/2026-10-20 Kas/C0300.MP4",
                                "Reizen/2026-10-09 Ibiza/C0202.MP4", "Koken/2026-10-20 Kas/C0202.MP4"])
 edits = lib / "_Edits" / "Kort"
 assert r["added"] == 4 and r["clips"] == 4, r
-assert sorted(p.name for p in edits.iterdir()) == ["2026-10-20 Kas C0202.MP4", "C0202.MP4", "C0230.MP4", "C0300.MP4"]
+assert sorted(p.name for p in edits.glob("*.MP4")) == ["2026-10-20 Kas C0202.MP4", "C0202.MP4", "C0230.MP4", "C0300.MP4"]
+assert [p.name for p in edits.glob("*.XML")] == ["2026-10-20 Kas C0202M01.XML"], "the camera XML comes along, renamed"
 assert os.path.samefile(edits / "C0230.MP4", shoot / "1 Ruw" / "Video" / "C0230.MP4"), "a hard link, not a copy"
 assert (shoot / "1 Ruw" / "Video" / "C0230.MP4").exists(), "the original stays"
 assert (projects / "Kort" / "clips").resolve() == edits.resolve()
+(shoot / "1 Ruw" / "Video" / "C0230M01.XML").write_text("x")
 r = library.pick(cfg, "Kort", ["Reizen/2026-10-09 Ibiza/C0230.MP4", "Reizen/2026-10-09 Ibiza/C0254.MP4"])
 assert r["added"] == 1 and r["already"] == 1 and r["clips"] == 5, r
+assert (edits / "C0230M01.XML").exists(), "picking a clip again also brings its XML (edits made before this fix)"
 assert library.shoots(cfg)["shoots"] and not any(s["rel"].startswith("_Edits") for s in library.shoots(cfg)["shoots"])
 # picking into a project that read a whole shoot keeps its clips (linked into the edit too)
 r = library.pick(cfg, "Ibiza", ["Koken/2026-10-20 Kas/C0300.MP4"])

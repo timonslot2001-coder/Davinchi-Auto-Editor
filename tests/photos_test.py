@@ -57,4 +57,10 @@ try:
     raise AssertionError("unknown look")
 except SystemExit:
     pass
+
+# Openen in LightCraft: the app next to lightcraft-cli.exe, on the shoot's photo folder(s)
+(tmp / "lightcraft.exe").write_bytes(b"")
+started = []
+r = photos.open_app(cfg, "Reizen/2026-10-09 Ibiza", popen=lambda cmd, **kw: started.append(cmd))
+assert started == [[str(tmp / "lightcraft.exe"), "--no-demo", str(foto)]] and r["opened"] == [str(foto)], started
 print("photos test ok")

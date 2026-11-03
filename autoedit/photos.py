@@ -3,6 +3,9 @@ headless). Same idea as the video grade: you see one of your photos finished in 
 photo is then developed in that look (auto settings first, then the look) into '<shoot>/2 Bewerkt/Foto/'. When a photo
 has a RAW twin (DSC01234.ARW next to DSC01234.JPG) the RAW is developed. The originals are never changed.
 
+Everything else (culling look-alikes, comparing, deleting, your own LUTs as profiles, every slider) is done in
+LightCraft's own window: `open_app` starts it on the shoot's photo folders.
+
 config.yaml `lightcraft:` = path to lightcraft-cli.exe (default: the portable copy in ~/.autoedit/lightcraft)."""
 from __future__ import annotations
 
@@ -33,6 +36,19 @@ def cli(cfg) -> Path:
         raise SystemExit("LightCraft is not installed: put the portable zip in ~/.autoedit/lightcraft "
                          "(github.com/storytold/lightcraft releases) or set `lightcraft:` in config.yaml")
     return p
+
+
+def open_app(cfg, rel: str, popen=None) -> dict:
+    """Start LightCraft's own window (next to lightcraft-cli.exe) on this shoot's photo folders, on this PC."""
+    app = cli(cfg).with_name("lightcraft.exe")
+    if not app.is_file():
+        raise SystemExit(f"LightCraft's app is missing next to {cli(cfg).name}")
+    folders = sorted({str(Path(p["raw"] or p["path"]).parent) for p in photos(cfg, rel)["photos"]})
+    if not folders:
+        raise ValueError(f"{rel} has no photos")
+    (popen or subprocess.Popen)([str(app), "--no-demo", *folders], cwd=str(app.parent), close_fds=True,
+                                creationflags=getattr(subprocess, "DETACHED_PROCESS", 0))
+    return {"opened": folders}
 
 
 def photos(cfg, rel: str) -> dict:

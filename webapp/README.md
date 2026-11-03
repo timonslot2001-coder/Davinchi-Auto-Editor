@@ -109,7 +109,9 @@ the website recognises it: `edit_v*.py` in the folder or clips under *Klanten* o
   photo in six looks (`GET /api/photos/looks`, `autoedit/photos.py`, cached in `data/photo_looks`); a tap runs
   `autoedit photos <look> <photos…>`: LightCraft auto settings + the look's preset, full size, into
   `<shoot>/2 Bewerkt/Foto/<name>_<look>.jpg`, from the RAW when there is one. `lightcraft:` in config.yaml points at
-  `lightcraft-cli.exe` (default: the portable copy in `~/.autoedit/lightcraft`).
+  `lightcraft-cli.exe` (default: the portable copy in `~/.autoedit/lightcraft`). **Openen in LightCraft** (`POST /api/photos/open`,
+  local mode only) starts `lightcraft.exe` on the shoot's photo folders: culling, comparing, deleting and own LUTs are
+  done in LightCraft's own window.
 - **Typ wat je wilt:** the box under the feedback buttons sends the sentence to `POST /api/projects/<name>/ask`.
   `assistant.py` asks a local model in LM Studio on this PC (free, no tokens; default `openai/gpt-oss-20b`, loaded on
   the first question and unloaded after 10 min idle) to pick one of the same buttons: new plan (song, title, length),

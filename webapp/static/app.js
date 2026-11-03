@@ -74,7 +74,7 @@ async function loadStatus() {
 }
 
 // ------------------------------------------------------------------ router
-const routes = { "": home, ssd, queue, music, tools, jobs, p: project };
+const routes = { "": home, ssd, fotos, queue, music, tools, jobs, p: project };
 async function route() {
   const [, top = "", ...rest] = location.hash.split("/");
   document.querySelectorAll("nav a").forEach((a) => a.classList.toggle("on", a.dataset.nav === (top || "home") || (top === "p" && a.dataset.nav === "home")));
@@ -522,6 +522,91 @@ async function ssd(open) {
     startJob("/api/library/pick", { name, clips }, { onDone: (j) => { if (j.status === "done") { picked.clear(); location.hash = "#/p/" + enc(name); } } });
   };
   if (open && byRel[open]) showShoot(open);
+}
+
+// ------------------------------------------------------------------ photos: LightCraft looks
+// Same idea as the video grade: one of your photos finished in six looks, tap one, and every chosen photo is developed
+// in that look (LightCraft, RAW when there is one) into '<shoot>/2 Bewerkt/Foto'. Originals stay untouched.
+const photoPicked = new Set();                                    // '<Soort>/<map>/<photo name>'
+const photoThumb = (ref) => "/api/photos/thumb?ref=" + enc(ref);
+
+async function fotos(open) {
+  const lib = await api("/api/library");
+  if (!lib.connected) {
+    main.innerHTML = `<div class="head"><div><div class="crumb">AutoEdit</div><h1>Foto's</h1></div></div>
+      <div class="empty">De SSD (${esc(lib.library)}) is niet aangesloten op de pc.</div>`;
+    return;
+  }
+  const shoots = lib.shoots.filter((s) => s.photos > 0);
+  const groups = lib.kinds.map((k) => [k, shoots.filter((s) => s.kind === k.kind)]).filter(([, l]) => l.length);
+  main.innerHTML = `
+    <div class="head"><div><div class="crumb">AutoEdit</div><h1>Foto's</h1></div><span class="spacer"></span>
+      <span class="muted small">bewerkt met LightCraft · ${shoots.length} mappen met foto's</span></div>
+    <div class="card ssd-move"><div class="row"><b id="foCount"></b><span class="spacer"></span>
+      <button class="ghost sm" id="foClear">Wissen</button><button id="foLooks" disabled>Kies een look</button></div>
+      <div class="lookgrid photo-looks" id="foGrid"></div>
+      <div class="muted small" id="foHint" style="margin-top:6px"></div></div>
+    <div class="grid cols-2 ssd-grid" style="margin-top:16px">
+      <div class="card ssd-list">${groups.map(([k, list]) => `<h3>${esc(KIND_LABEL[k.kind] || k.folder)} <span class="muted small">${list.length}</span></h3>
+        ${list.map((s) => `<div class="ssd-row" data-rel="${esc(s.rel)}"><div class="nm"><b>${esc(s.name)}</b>
+          <span class="muted small">${esc(s.date || "")}</span><div class="muted small">${s.photos} foto's</div></div></div>`).join("")}`).join("")}</div>
+      <div id="foShoot"><div class="empty">Klik links op een map, vink foto's aan en druk op <b>Kies een look</b>.</div></div>
+    </div>`;
+  const update = () => {
+    const n = photoPicked.size;
+    $("#foCount").textContent = n ? `${n} foto${n === 1 ? "" : "'s"} gekozen` : "Vink foto's aan om ze te bewerken";
+    $("#foLooks").disabled = !n;
+    $("#foClear").style.display = n ? "" : "none";
+    $("#foHint").textContent = n ? "Je ziet de eerste gekozen foto in elke look. Tik op een look: alle gekozen foto's worden zo bewerkt, in de map 2 Bewerkt/Foto van hun shoot (originelen blijven zoals ze zijn)." : "";
+  };
+  fotos.update = update; update();
+  document.querySelectorAll(".ssd-row").forEach((row) => (row.onclick = () => showPhotos(row.dataset.rel)));
+  $("#foClear").onclick = () => { photoPicked.clear(); $("#foGrid").innerHTML = ""; update(); document.querySelectorAll("#foShoot .th.pk").forEach((t) => t.classList.remove("pk")); };
+  $("#foLooks").onclick = () => guard(async () => {
+    const refs = [...photoPicked];
+    $("#foGrid").innerHTML = '<div class="loading">Voorbeelden maken… (± 5 s)</div>';
+    const looks = await api("/api/photos/looks?ref=" + enc(refs[0]));
+    const name = Object.fromEntries(looks.map((l) => [l.id, l.name]));
+    $("#foGrid").innerHTML = looks.map((l) => `<button class="lookcard" data-look="${l.id}">
+      <img src="${fileUrl(l.path)}" alt=""><span><b>${esc(l.name)}</b></span></button>`).join("");
+    document.querySelectorAll("[data-look]").forEach((b) => (b.onclick = async () => {
+      if (!(await confirmDlg("Foto's bewerken?", `<p>${refs.length} foto('s) in de look <b>${esc(name[b.dataset.look])}</b>.</p>
+        <p class="muted small">Ze komen in 2 Bewerkt/Foto van hun shoot, op volle grootte. De originelen blijven zoals ze zijn.</p>`, "Bewerken"))) return;
+      startJob("/api/photos/export", { look: b.dataset.look, photos: refs }, { onDone: (j) => { if (j.status === "done") { photoPicked.clear(); route(); } } });
+    }));
+  });
+  if (open && shoots.some((s) => s.rel === open)) showPhotos(open);
+}
+
+async function showPhotos(rel) {
+  history.replaceState(null, "", "#/fotos/" + enc(rel));
+  document.querySelectorAll(".ssd-row").forEach((r) => r.classList.toggle("on", r.dataset.rel === rel));
+  const box = $("#foShoot");
+  box.innerHTML = '<div class="loading">Laden…</div>';
+  const s = await guard(() => api("/api/photos/shoot?rel=" + enc(rel)));
+  if (!s || !$("#foShoot") || location.hash !== "#/fotos/" + enc(rel)) return;
+  const key = (p) => rel + "/" + p.name;
+  box.innerHTML = `<div class="card stack">
+    <div class="row"><h2 style="margin:0">${esc(rel.split("/")[1])}</h2><span class="spacer"></span>
+      <span class="tag">${s.photos.length} foto's</span>${s.done.length ? `<span class="tag ok">${s.done.length} bewerkt</span>` : ""}
+      <button class="sm dark" id="foAll">Alles kiezen</button></div>
+    <div class="thumbs">${s.photos.map((p, i) => `<div class="th${photoPicked.has(key(p)) ? " pk" : ""}" data-i="${i}" title="${esc(p.name)}">
+      <img loading="lazy" src="${photoThumb(key(p))}" alt=""><button class="ck" aria-label="Kies ${esc(p.name)}">✓</button>
+      ${p.raw ? '<span class="d">RAW</span>' : ""}<span class="n">${esc(p.name)}</span></div>`).join("")}</div></div>`;
+  if (innerWidth < 900) box.scrollIntoView({ block: "start" });
+  const pick = (th, on) => {
+    const k = key(s.photos[+th.dataset.i]);
+    on ? photoPicked.add(k) : photoPicked.delete(k);
+    th.classList.toggle("pk", on);
+  };
+  const allBtn = () => ($("#foAll").textContent = s.photos.every((p) => photoPicked.has(key(p))) ? "Niets kiezen" : "Alles kiezen");
+  allBtn();
+  $("#foAll").onclick = () => {
+    const on = !s.photos.every((p) => photoPicked.has(key(p)));
+    box.querySelectorAll(".th").forEach((th) => pick(th, on));
+    allBtn(); fotos.update();
+  };
+  box.querySelectorAll(".th").forEach((th) => (th.onclick = () => { pick(th, !th.classList.contains("pk")); allBtn(); fotos.update(); }));
 }
 
 async function showShoot(rel) {

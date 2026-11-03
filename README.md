@@ -182,6 +182,7 @@ Videos land in your TikTok inbox; paste the caption (it's in the dashboard) and 
 | `autoedit card` | what a camera card going in starts (the website does it by itself): offload to `_Inbox`, then per new day an edit `<date> voorstel` with a plan |
 | `autoedit schedule <name>` | the project's newest cine montage render into the posting queue, caption and time filled in (approve to post) |
 | `autoedit pick <name> <clips...>` | put clips from the SSD (`"<Soort>/<map>/<clip>"`) in one edit: hard links in `_Edits\<name>`, the project reads from there |
+| `autoedit photos <look> <photos...>` | develop photos of a shoot (`"<Soort>/<map>/<photo>"`) with LightCraft in one look (auto, cinematic, warm_film, crisp, moody, bw) into `2 Bewerkt/Foto`; the website's *Foto's* page does this |
 | `autoedit sort <name> <folders...> --soort <soort>` | name shoot folders on the SSD (`"_Inbox/2026-10-09 SD-kaart"`) and move them into `<Soort>\<date> <name>`; links the project. `--no-project` |
 | `autoedit import <name>` | copy new clips from the camera SD card (`--since YYYY-MM-DD`) |
 | `autoedit project <name>` | edit a project by (partial) name; `--song`, `--title`, `--variants`, `--seed` |

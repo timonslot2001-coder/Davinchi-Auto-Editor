@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "lightcraft": {
+      "command": "${USERPROFILE}/.autoedit/lightcraft/v0.18.0/lightcraft-0.18.0-windows-x64-portable/lightcraft-cli.exe",
+      "args": ["mcp", "--compact"]
+    }
+  }
+}

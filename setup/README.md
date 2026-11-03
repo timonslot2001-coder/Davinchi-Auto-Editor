@@ -21,4 +21,5 @@ powershell -ExecutionPolicy Bypass -File setup\install.ps1 -MakeBackup "D:\Backu
 After adding a skill, plugin, pack or model: run `python setup/snapshot.py` and commit `setup/toolchain.json`.
 Comfy Desktop and DaVinci Resolve themselves are installed by hand. LM Studio (the local model behind the website box
 *Typ wat je wilt*) too: `winget install ElementLabs.LMStudio`, open it once, then `lms get openai/gpt-oss-20b`; `install.ps1`
-reports it when missing.
+reports it when missing. LightCraft (the *Foto's* page and the `lightcraft` MCP server in `.mcp.json`): unzip the
+portable release from github.com/storytold/lightcraft into `~/.autoedit/lightcraft/v<version>/`.

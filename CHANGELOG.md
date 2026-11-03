@@ -3,6 +3,13 @@
 What changed, in words you would notice in an edit or on the PC. Newest first. Small fixes are folded into the day's
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
+## 2026-11-03 — Photos: pick a look (LightCraft)
+- New page *Foto's* on the website: choose a shoot, tick photos, press *Kies een look*. You see your first photo finished
+  in six looks (Automatisch, Zwart-wit… made by LightCraft, a free Lightroom-like editor on your PC). Tap one and every
+  chosen photo is developed in that look, full size, into `2 Bewerkt/Foto` of its shoot. A photo with a RAW file is
+  developed from the RAW. The originals stay as they are.
+- Claude can drive LightCraft too (MCP server `lightcraft` in `.mcp.json`).
+
 ## 2026-11-03 — Titles are never squeezed
 - The poster title scales evenly now instead of being squeezed sideways to fit. A title of several words goes onto
   two lines when that makes the letters clearly bigger (VAKANTIE / MADEIRA); lines and letters never touch.

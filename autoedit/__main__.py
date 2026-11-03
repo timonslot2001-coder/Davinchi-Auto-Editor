@@ -69,6 +69,9 @@ def main(argv=None):
     a = sub.add_parser("pick", help="put chosen clips from the SSD in one edit (hard links in _Edits, no copy) + project")
     a.add_argument("name", help="name of the edit / project, e.g. 'Smoke Sesh kort'")
     a.add_argument("clips", nargs="+", help="clips as '<Soort>/<datum naam>/<clip>', e.g. 'Smoken/2026-07-25 Smoke Sesh/C0184.MP4'")
+    a = sub.add_parser("photos", help="develop chosen photos of a shoot in one LightCraft look into '2 Bewerkt/Foto'")
+    a.add_argument("look", help="auto / cinematic / warm_film / crisp / moody / bw")
+    a.add_argument("photos", nargs="+", help="photos as '<Soort>/<datum naam>/<photo>'")
     a = sub.add_parser("project", help="edit a project by name (partial name is fine)")
     a.add_argument("name")
     a.add_argument("--song", help="override the project's song")
@@ -223,6 +226,9 @@ def main(argv=None):
     elif args.cmd == "pick":
         from . import library
         library.pick(cfg, args.name, args.clips)
+    elif args.cmd == "photos":
+        from . import photos
+        photos.export(cfg, args.photos, args.look)
     elif args.cmd == "project":
         from . import projects
         res = projects.run(cfg, args.name, song=args.song, title=args.title, variants=args.variants, seed=args.seed)

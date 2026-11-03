@@ -331,6 +331,24 @@ def library_shoot(rel: str) -> dict:
     return _library().shoot(_cfg(), rel)
 
 
+def _photos():
+    sys.path.insert(0, str(REPO))
+    from autoedit import photos
+    return photos
+
+
+def photo_shoot(rel: str) -> dict:
+    return _photos().photos(_cfg(), rel)
+
+
+def photo_thumb(ref: str) -> str:
+    return _photos().thumb(_cfg(), ref)
+
+
+def photo_looks(ref: str) -> list[dict]:
+    return _photos().looks(_cfg(), ref)
+
+
 def library_thumb(path: str) -> str:
     return _library().thumb(_cfg(), path)
 
@@ -351,4 +369,5 @@ CALLS = {"status": status, "roots": roots, "projects": projects, "project": proj
          "feedback": feedback, "looks": looks, "ask": ask,
          "save_comments": save_comments, "queue": queue, "queue_choose": queue_choose, "music": music,
          "report": report, "ai_models": ai_models, "library": library, "library_shoot": library_shoot,
-         "library_thumb": library_thumb, "library_preview": library_preview}
+         "library_thumb": library_thumb, "photo_shoot": photo_shoot, "photo_thumb": photo_thumb,
+         "photo_looks": photo_looks, "library_preview": library_preview}

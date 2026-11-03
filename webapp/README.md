@@ -104,6 +104,12 @@ the website recognises it: `edit_v*.py` in the folder or clips under *Klanten* o
 - **Feedback:** *Korter* / *Langer* (±3 s), *Ander nummer* (next song in the music folder, old start dropped),
   *Ander voorstel* (new seed), *eruit* per shot (`skip:` in project.yaml). Each runs `engine plan` again and is logged
   in `cine_montage/feedback.json`.
+- **Foto's (LightCraft):** the *Foto's* page lists shoots with photos (`GET /api/photos/shoot`, thumbnails via
+  `/api/photos/thumb`, RAW without a JPG twin developed small by LightCraft). *Kies een look* shows the first chosen
+  photo in six looks (`GET /api/photos/looks`, `autoedit/photos.py`, cached in `data/photo_looks`); a tap runs
+  `autoedit photos <look> <photos…>`: LightCraft auto settings + the look's preset, full size, into
+  `<shoot>/2 Bewerkt/Foto/<name>_<look>.jpg`, from the RAW when there is one. `lightcraft:` in config.yaml points at
+  `lightcraft-cli.exe` (default: the portable copy in `~/.autoedit/lightcraft`).
 - **Typ wat je wilt:** the box under the feedback buttons sends the sentence to `POST /api/projects/<name>/ask`.
   `assistant.py` asks a local model in LM Studio on this PC (free, no tokens; default `openai/gpt-oss-20b`, loaded on
   the first question and unloaded after 10 min idle) to pick one of the same buttons: new plan (song, title, length),

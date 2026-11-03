@@ -161,6 +161,36 @@ def create(host=None) -> Flask:
             raise ValueError("clips as '<Soort>/<datum naam>/<clip>'")
         return job(["autoedit", "pick", name, *clips], f"Edit starten: {name}", name)
 
+    # ------------------------------------------------------------ photos (LightCraft)
+    def _photo_ref(v):
+        if not (isinstance(v, str) and re.fullmatch(r"_?[A-Za-z]+/[^/\\]{1,120}/[^/\\]{1,200}", v)
+                and not {".", ".."} & set(v.split("/")[1:])):
+            raise ValueError("photos as '<Soort>/<datum naam>/<photo>'")
+        return v
+
+    @app.get("/api/photos/shoot")
+    def photo_shoot():
+        return host.call("photo_shoot", {"rel": request.args["rel"]})
+
+    @app.get("/api/photos/thumb")
+    def photo_thumb():
+        return serve(host.call("photo_thumb", {"ref": _photo_ref(request.args["ref"])}))
+
+    @app.get("/api/photos/looks")
+    def photo_looks():
+        return jsonify(host.call("photo_looks", {"ref": _photo_ref(request.args["ref"])}))
+
+    @app.post("/api/photos/export")
+    def photo_export():
+        b = request.get_json() or {}
+        refs = b.get("photos") or []
+        if not refs or len(refs) > 1000:
+            raise ValueError("pick 1-1000 photos")
+        look = b.get("look")
+        if look not in ("auto", "cinematic", "warm_film", "crisp", "moody", "bw"):
+            raise ValueError("look: auto, cinematic, warm_film, crisp, moody or bw")
+        return job(["autoedit", "photos", look, *[_photo_ref(r) for r in refs]], f"Foto's bewerken ({len(refs)})", None)
+
     @app.get("/api/projects/<name>")
     def project(name):
         return proj(name)

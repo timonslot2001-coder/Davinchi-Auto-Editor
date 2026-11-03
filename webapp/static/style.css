@@ -135,6 +135,7 @@ dialog menu { display: flex; justify-content: flex-end; gap: 8px; padding: 0; ma
 .steps4 select { width: 100%; margin-top: 4px; }
 details.more > summary { cursor: pointer; padding: 10px 2px; }
 .lookgrid { display: grid; gap: 10px; margin-top: 8px; }
+.ask input { flex: 1; min-width: 0; }
 .lookcard { display: flex; flex-direction: column; gap: 6px; padding: 6px; text-align: left; background: var(--panel2);
   border: 1.5px solid transparent; color: inherit; box-shadow: none; border-radius: 8px; }
 .lookcard img { width: 100%; border-radius: 6px; display: block; } .lookcard.on { border-color: var(--accent); }

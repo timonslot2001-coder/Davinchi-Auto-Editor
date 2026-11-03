@@ -188,7 +188,9 @@ function tabCine() {
   ${c.has_plan ? `<div class="row fb" style="margin-top:10px"><span class="muted small">Niet goed? Nieuw voorstel:</span>
     <button class="ghost sm" data-fb="korter">Korter</button><button class="ghost sm" data-fb="langer">Langer</button>
     <button class="ghost sm" data-fb="ander_nummer">Ander nummer</button><button class="ghost sm" data-fb="ander_voorstel">Ander voorstel</button>
-    <span class="muted small">· of tik bij een shot op <b>eruit</b></span></div>` : ""}<p class="muted small" style="margin:8px 0 0">Kleur: je huisstijl-look${c.grade.look !== "reference_film" ? ` (nu: ${esc(c.grade.look)})` : ""}. <b>Ja, renderen</b> is je goedkeuring van dit voorstel.</p></div>`;
+    <span class="muted small">· of tik bij een shot op <b>eruit</b></span></div>` : ""}
+  <form class="row ask" id="askF" style="margin-top:10px"><input id="askT" placeholder="Of typ wat je wilt, bv. &quot;korter&quot;, &quot;ander nummer&quot;, &quot;moody look&quot;" autocomplete="off">
+    <button class="sm" id="askB">Doe het</button></form><div class="muted small" id="askR"></div><p class="muted small" style="margin:8px 0 0">Kleur: je huisstijl-look${c.grade.look !== "reference_film" ? ` (nu: ${esc(c.grade.look)})` : ""}. <b>Ja, renderen</b> is je goedkeuring van dit voorstel.</p></div>`;
   $("#tab").innerHTML = `
   ${pathCard}
   <div class="grid cols-2" style="margin-top:16px">
@@ -268,6 +270,28 @@ function tabCine() {
   $("#pPlan").onclick = async () => {
     if (appr?.status === "approved" && !(await confirmDlg("Nieuw voorstel?", "Het huidige voorstel wordt vervangen.", "Nieuw voorstel"))) return;
     startJob(`/api/projects/${enc(P.name)}/cine/plan`, { title: (c.title || s.title || P.name).toUpperCase(), song: s.song || "" }, { onDone: reload });
+  };
+  // Typed request -> the local model (free, on this PC) picks one of these same buttons; the page runs it as usual.
+  $("#askF").onsubmit = (ev) => {
+    ev.preventDefault();
+    const text = $("#askT").value.trim();
+    if (!text) return;
+    $("#askB").disabled = true; $("#askR").textContent = "Even denken… (lokaal model, gratis)";
+    guard(async () => {
+      const r = await api(`/api/projects/${enc(P.name)}/ask`, { method: "POST", body: { text } });
+      const a = r.action;
+      const say = { plan: "Nieuw voorstel", feedback: "Nieuw voorstel", look: "Look" };
+      $("#askR").textContent = a ? `→ ${say[a.action]}${a.song ? ` met ${a.song}` : ""}${a.kind ? ` (${a.kind.replace("_", " ")}${a.clip ? ": " + a.clip : ""})` : ""}${a.look ? `: ${a.look}` : ""}` : r.reply;
+      if (!a) return;
+      $("#askT").value = "";
+      if (a.action === "plan") startJob(`/api/projects/${enc(P.name)}/cine/plan`, {
+        title: a.title || (c.title || s.title || P.name).toUpperCase(), song: a.song || s.song || "", length: a.length || "" }, { onDone: reload });
+      else if (a.action === "feedback") startJob(`/api/projects/${enc(P.name)}/cine/feedback`, { kind: a.kind, clip: a.clip }, { onDone: reload });
+      else if (a.action === "look") startJob(`/api/projects/${enc(P.name)}/cine/grade`, { look: a.look, strength: 1, exposure: -1.75 }, { onDone: reload });
+    }).finally(() => {
+      $("#askB").disabled = false;
+      if ($("#askR").textContent.startsWith("Even denken")) $("#askR").textContent = "";
+    });
   };
   const fb = (kind, clip) => startJob(`/api/projects/${enc(P.name)}/cine/feedback`, { kind, clip }, { onDone: reload });
   document.querySelectorAll("[data-fb]").forEach((b) => (b.onclick = () => fb(b.dataset.fb)));

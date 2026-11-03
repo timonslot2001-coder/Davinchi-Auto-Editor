@@ -3,6 +3,12 @@
 What changed, in words you would notice in an edit or on the PC. Newest first. Small fixes are folded into the day's
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
+## 2026-11-03 — Type what you want (local model, free)
+- Under the feedback buttons on the website: type what you want ("korter", "ander nummer", "moody look", "haal C0146
+  eruit", "plan met het austria nummer en titel MADEIRA"). A model running on your own PC (LM Studio, gpt-oss-20b)
+  picks the right button in about 2 s and the website runs it. Costs no tokens. "Render hem" is not something it
+  does: that stays your *Ja, renderen* press.
+
 ## 2026-11-03 — Picking a song works
 - Choosing a song on the website stopped the plan with "matches no song" (the full file name with `.mp3` was not
   recognised). Fixed, in the cine montage and in AutoEdit.

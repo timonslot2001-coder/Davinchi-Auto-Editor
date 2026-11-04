@@ -61,6 +61,27 @@ except SystemExit:
 # Openen in LightCraft: the app next to lightcraft-cli.exe, on the shoot's photo folder(s)
 (tmp / "lightcraft.exe").write_bytes(b"")
 started = []
-r = photos.open_app(cfg, "Reizen/2026-10-09 Ibiza", popen=lambda cmd, **kw: started.append(cmd))
-assert started == [[str(tmp / "lightcraft.exe"), "--no-demo", str(foto)]] and r["opened"] == [str(foto)], started
+r = photos.open_app(cfg, "Reizen/2026-10-09 Ibiza", popen=lambda cmd, **kw: started.append(cmd), running=lambda: False)
+assert started == [[str(tmp / "lightcraft.exe"), "--no-demo", "--control", "7980", str(foto)]], started
+assert r == {"opened": [str(foto)], "reused": False}
+# already open: the folder goes into that window over the control channel, no second copy
+sent = []
+
+
+def fake_connect(cmd, **kw):
+    sent.append(cmd)
+    return subprocess.CompletedProcess(cmd, 0, json.dumps({"command": "library.import", "ok": True}) + "\n", "")
+
+
+started.clear()
+r = photos.open_app(cfg, "Reizen/2026-10-09 Ibiza", popen=lambda cmd, **kw: started.append(cmd),
+                    running=lambda: True, run=fake_connect)
+assert not started and r["reused"], (started, r)
+assert sent[0][1:4] == ["run", "--connect", "127.0.0.1:7980"] and json.loads(sent[0][5])["paths"] == [str(foto)], sent
+try:                                                          # open, but started outside AutoEdit (no control channel)
+    photos.open_app(cfg, "Reizen/2026-10-09 Ibiza", running=lambda: True,
+                    run=lambda cmd, **kw: subprocess.CompletedProcess(cmd, 1, "", "connection refused"))
+    raise AssertionError("must explain, not start a second copy")
+except ValueError as e:
+    assert "sluit LightCraft" in str(e)
 print("photos test ok")

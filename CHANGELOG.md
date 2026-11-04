@@ -4,6 +4,8 @@ What changed, in words you would notice in an edit or on the PC. Newest first. S
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
 ## 2026-11-04 — Foto's link works from your laptop too
+- The website starts by itself when you log in to Windows (minimised, no browser tab), so the Studio's *Foto's ↗*
+  link works after a restart too. `setup/autostart-website.ps1 -Remove` switches that off.
 - Once Tailscale is set up, the Studio's *Foto's ↗* link uses the PC's Tailscale address everywhere (PC, laptop, phone);
   127.0.0.1 only ever reached the website on the PC itself.
 

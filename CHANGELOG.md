@@ -3,6 +3,11 @@
 What changed, in words you would notice in an edit or on the PC. Newest first. Small fixes are folded into the day's
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
+## 2026-11-04 — LightCraft from any device
+- LightCraft runs on your PC (your photos are on its SSD); on any other device you see and use it through **Chrome
+  Remote Desktop** in the browser. *Openen in LightCraft* from your laptop or phone opens LightCraft on the PC and the
+  remote-desktop tab at once; the Studio has *PC op afstand ↗* in its menu.
+
 ## 2026-11-04 — Foto's link works from your laptop too
 - *Openen in LightCraft* keeps one LightCraft window: a second shoot is added to the open window instead of starting a
   second copy (which could not open the library). LightCraft opened another way gets a clear message.

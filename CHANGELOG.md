@@ -3,6 +3,10 @@
 What changed, in words you would notice in an edit or on the PC. Newest first. Small fixes are folded into the day's
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
+## 2026-11-04 — Foto's link works from your laptop too
+- Once Tailscale is set up, the Studio's *Foto's ↗* link uses the PC's Tailscale address everywhere (PC, laptop, phone);
+  127.0.0.1 only ever reached the website on the PC itself.
+
 ## 2026-11-03 — Open a shoot in LightCraft
 - On the website's *Foto's* page, **Openen in LightCraft** opens the shoot in LightCraft's own window on your PC. Sorting
   out look-alike and blurry photos, comparing, deleting, your own LUTs and every slider are done there; *Kies een look*

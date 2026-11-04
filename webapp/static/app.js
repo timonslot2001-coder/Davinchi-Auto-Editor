@@ -608,15 +608,16 @@ async function showPhotos(rel) {
     allBtn(); fotos.update();
   };
   box.querySelectorAll(".th").forEach((th) => (th.onclick = () => { pick(th, !th.classList.contains("pk")); allBtn(); fotos.update(); }));
-  // LightCraft runs on the PC (photos on its SSD). From another device: open it there and show the PC through
-  // Chrome Remote Desktop (the tab opens inside the click, so no popup blocker stops it).
+  // LightCraft runs on the PC (photos on its SSD). From another device: open it there and show only its window in
+  // the browser (Guacamole, setup/lightcraft_web.py, same host as this page; the tab opens inside the click, so no
+  // popup blocker stops it).
   $("#foOpen").onclick = () => {
     const away = !["127.0.0.1", "localhost"].includes(location.hostname);
-    const tab = away ? window.open("https://remotedesktop.google.com/access", "_blank") : null;
+    const tab = away ? window.open(`http://${location.hostname}:8085/guacamole/`, "_blank") : null;
     if (tab) tab.opener = null;
     guard(async () => {
       await api("/api/photos/open", { method: "POST", body: { rel } });
-      toast(away ? "LightCraft staat open op je PC: kies je PC in Chrome Extern bureaublad" : "LightCraft opent op je PC met deze shoot", "ok");
+      toast(away ? "LightCraft opent in het nieuwe tabblad (log in, kies LightCraft)" : "LightCraft opent op je PC met deze shoot", "ok");
       return true;
     }).then((ok) => !ok && tab && tab.close());
   };

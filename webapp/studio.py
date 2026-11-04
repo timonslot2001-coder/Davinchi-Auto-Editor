@@ -837,16 +837,19 @@ def _dur(s: float) -> str:
 
 
 WEB_PORT = 5080                                                  # `python -m webapp` (autoedit.bat)
+LIGHTCRAFT_PORT = 8085                                           # LightCraft in the browser (setup/lightcraft_web.py)
 
 
 def pc_doc() -> dict:
     """studio/pc: this PC's name and where its website is, so the Studio can link to pages that live only there
-    (Foto's). `phone` is the Tailscale address (webapp --phone), or None when Tailscale is not set up."""
+    (Foto's). `phone` is the Tailscale address (webapp --phone), or None when Tailscale is not set up; `lightcraft` is
+    LightCraft in the browser (Guacamole) on that address."""
     import socket
     from .phone import tailscale_ip
     ip = tailscale_ip()
     return {"host": socket.gethostname(), "website": f"http://127.0.0.1:{WEB_PORT}",
-            "phone": f"http://{ip}:{WEB_PORT}" if ip else None}
+            "phone": f"http://{ip}:{WEB_PORT}" if ip else None,
+            "lightcraft": f"http://{ip or '127.0.0.1'}:{LIGHTCRAFT_PORT}/guacamole/"}
 
 
 def pc_cli(argv=None) -> int:

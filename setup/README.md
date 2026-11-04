@@ -19,7 +19,11 @@ powershell -ExecutionPolicy Bypass -File setup\install.ps1 -MakeBackup "D:\Backu
 ```
 
 After adding a skill, plugin, pack or model: run `python setup/snapshot.py` and commit `setup/toolchain.json`.
-Comfy Desktop and DaVinci Resolve themselves are installed by hand. `setup/autostart-website.ps1` makes the website start at
+Comfy Desktop and DaVinci Resolve themselves are installed by hand. **LightCraft in the browser** (any device, over Tailscale): Docker Desktop (`winget install Docker.DockerDesktop`, with
+WSL), Remote Desktop on, LightCraft registered as the only RemoteApp (admin PowerShell: the `TSAppAllowList\Applications\lightcraft`
+key with `Name`, `Path` to `lightcraft.exe`, `ShowInTSWA` 1, `CommandLineSetting` 1), then `python setup/lightcraft_web.py up`
+(Guacamole on port 8085 of this PC and its Tailscale address; login password in `data/guacamole/WACHTWOORD.txt`).
+`setup/autostart-website.ps1` makes the website start at
 Windows log-in (minimised, no browser; `-Remove` takes it away). LM Studio (the local model behind the website box
 *Typ wat je wilt*) too: `winget install ElementLabs.LMStudio`, open it once, then `lms get openai/gpt-oss-20b`; `install.ps1`
 reports it when missing. LightCraft (the *Foto's* page and the `lightcraft` MCP server in `.mcp.json`): unzip the

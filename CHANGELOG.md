@@ -4,6 +4,8 @@ What changed, in words you would notice in an edit or on the PC. Newest first. S
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
 ## 2026-11-04 — Foto's link works from your laptop too
+- *Openen in LightCraft* keeps one LightCraft window: a second shoot is added to the open window instead of starting a
+  second copy (which could not open the library). LightCraft opened another way gets a clear message.
 - The website starts by itself when you log in to Windows (minimised, no browser tab), so the Studio's *Foto's ↗*
   link works after a restart too. `setup/autostart-website.ps1 -Remove` switches that off.
 - Once Tailscale is set up, the Studio's *Foto's ↗* link uses the PC's Tailscale address everywhere (PC, laptop, phone);

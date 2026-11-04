@@ -38,17 +38,37 @@ def cli(cfg) -> Path:
     return p
 
 
-def open_app(cfg, rel: str, popen=None) -> dict:
-    """Start LightCraft's own window (next to lightcraft-cli.exe) on this shoot's photo folders, on this PC."""
+CONTROL = "127.0.0.1:7980"                                      # LightCraft's control channel (lightcraft --control)
+
+
+def _running() -> bool:
+    r = subprocess.run(["tasklist", "/FI", "IMAGENAME eq lightcraft.exe", "/NH"], capture_output=True, text=True)
+    return "lightcraft.exe" in r.stdout.lower()
+
+
+def open_app(cfg, rel: str, popen=None, running=None, run=None) -> dict:
+    """LightCraft's own window (next to lightcraft-cli.exe) on this shoot's photo folders, on this PC. One window:
+    when LightCraft already runs, the folders are added to it over its control channel instead of starting a second
+    copy (that one could not open the library, which the first holds)."""
     app = cli(cfg).with_name("lightcraft.exe")
     if not app.is_file():
         raise SystemExit(f"LightCraft's app is missing next to {cli(cfg).name}")
     folders = sorted({str(Path(p["raw"] or p["path"]).parent) for p in photos(cfg, rel)["photos"]})
     if not folders:
         raise ValueError(f"{rel} has no photos")
-    (popen or subprocess.Popen)([str(app), "--no-demo", *folders], cwd=str(app.parent), close_fds=True,
+    if (running or _running)():
+        steps = ["library.import", json.dumps({"paths": folders, "mode": "add"}),
+                 "library.source", json.dumps({"kind": "libraryFolder", "path": folders[0]})]
+        r = (run or subprocess.run)([str(cli(cfg)), "run", "--connect", CONTROL, *steps], capture_output=True,
+                                    text=True, encoding="utf-8", errors="replace", timeout=120)
+        first = next((json.loads(l) for l in r.stdout.splitlines() if l.startswith("{")), None)
+        if not first or not first.get("ok"):
+            raise ValueError("LightCraft is al open, maar niet vanuit AutoEdit: sluit LightCraft en klik opnieuw")
+        return {"opened": folders, "reused": True}
+    (popen or subprocess.Popen)([str(app), "--no-demo", "--control", CONTROL.rsplit(":", 1)[1], *folders],
+                                cwd=str(app.parent), close_fds=True,
                                 creationflags=getattr(subprocess, "DETACHED_PROCESS", 0))
-    return {"opened": folders}
+    return {"opened": folders, "reused": False}
 
 
 def photos(cfg, rel: str) -> dict:

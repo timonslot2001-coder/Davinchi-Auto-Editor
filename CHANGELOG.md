@@ -3,12 +3,6 @@
 What changed, in words you would notice in an edit or on the PC. Newest first. Small fixes are folded into the day's
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
-## 2026-11-04 — LightCraft in your browser, from anywhere
-- LightCraft runs on your PC next to the SSD and shows **only its own window** in any browser over Tailscale:
-  http://100.124.52.116:8085/guacamole/ (log in, pick *LightCraft*, then your Windows password). From your laptop
-  *Openen in LightCraft* opens it there; the Studio menu's *LightCraft ↗* too. Made with Apache Guacamole in Docker
-  (`setup/lightcraft_web.py`); not reachable from the internet.
-
 ## 2026-11-04 — LightCraft from any device
 - LightCraft runs on your PC (your photos are on its SSD); on any other device you see and use it through **Chrome
   Remote Desktop** in the browser. *Openen in LightCraft* from your laptop or phone opens LightCraft on the PC and the

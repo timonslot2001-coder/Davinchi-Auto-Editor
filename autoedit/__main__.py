@@ -22,6 +22,8 @@ def main(argv=None):
     a.add_argument("folder")
     a.add_argument("--category", help="what it's about: fitness / travel / fashion / lifestyle (captions + hashtags)")
     a.add_argument("--aspect", choices=["9:16", "16:9"], help="output shape (house style default: 16:9)")
+    a.add_argument("--look", help="colour: reference_film (house) / daylight (natural) / orange_teal / none (untouched) / ...")
+    a.add_argument("--captions", action="store_true", help="subtitles from the audio, made by Resolve, burnt in")
     a.add_argument("--style", help="advanced: use another edit style than your house style")
     a.add_argument("--variants", default="A", help="A/B hook test, e.g. AB or ABC")
     a.add_argument("--music", help="music file, part of a song name from your music folder, or 'none'")
@@ -129,7 +131,8 @@ def main(argv=None):
             cfg.raw.setdefault("audio", {})["music_bass_db"] = args.bass
         res = pipeline.run(cfg, args.folder, args.style, args.variants, args.music, args.stabilize,
                            render=not args.no_render, location=args.location, title=args.title,
-                           category=args.category, aspect=args.aspect, label=args.label, seed=args.seed)
+                           category=args.category, aspect=args.aspect, label=args.label, seed=args.seed,
+                           look=args.look, captions=args.captions)
         con.print_json(json.dumps(res, ensure_ascii=False))
     elif args.cmd == "analyze":
         from . import pipeline

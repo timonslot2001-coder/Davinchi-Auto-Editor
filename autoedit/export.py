@@ -127,6 +127,59 @@ def best_cover(video: Path, dst: Path, avoid_first: float = 0.5) -> Path:
     return dst
 
 
+CAPTION_FONTS = Path(__file__).resolve().parents[1] / "EDITING_DNA_PACKAGE" / "assets" / "fonts"
+
+
+def _ass_time(t: float) -> str:
+    t = max(0.0, t)
+    return f"{int(t // 3600)}:{int(t % 3600 // 60):02d}:{t % 60:05.2f}"
+
+
+def burn_captions(video: Path, lines: list, out: Path) -> Path:
+    """Burn captions into the video: bold white words with a black edge in the lower third (TikTok-style, above the
+    app buttons), font Archivo from the house fonts. lines: [(start s, end s, text)]."""
+    import subprocess
+    probe = qc(video, (0, 0))
+    w, h = probe.width, probe.height
+    tall = h > w
+    size, margin = (int(h * 0.052), int(h * 0.25)) if tall else (int(h * 0.062), int(h * 0.08))
+    ass = out.with_suffix(".ass")
+    per_line = max(10, int(w * 0.84 / (size * 0.55)))              # characters that fit between the margins
+
+    def wrap(text: str) -> str:                                   # our own line breaks: libass would run off the edge
+        out_lines, cur = [], ""
+        for word in text.replace("\n", " ").replace("{", "(").replace("}", ")").split():
+            if cur and len(cur) + 1 + len(word) > per_line:
+                out_lines.append(cur)
+                cur = word
+            else:
+                cur = f"{cur} {word}".strip()
+        return "\\N".join(out_lines + [cur])
+    events = "\n".join(f"Dialogue: 0,{_ass_time(a)},{_ass_time(b)},Cap,,0,0,0,,{wrap(t)}" for a, b, t in lines)
+    ass.write_text(f"""[Script Info]
+ScriptType: v4.00+
+PlayResX: {w}
+PlayResY: {h}
+WrapStyle: 2
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Cap,Archivo,{size},&H00FFFFFF,&H00FFFFFF,&H00000000,&H64000000,-1,0,0,0,100,100,0,0,1,{max(3, size // 14)},{max(2, size // 20)},2,{int(w * 0.08)},{int(w * 0.08)},{margin},1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+{events}
+""", encoding="utf-8")
+    fonts = CAPTION_FONTS.relative_to(ass.parent) if CAPTION_FONTS.is_relative_to(ass.parent) else CAPTION_FONTS
+    font_arg = str(fonts).replace("\\", "/").replace(":", "\\:")
+    r = subprocess.run([FFMPEG, "-v", "error", "-y", "-i", str(video), "-vf", f"ass={ass.name}:fontsdir='{font_arg}'",
+                        "-c:v", "libx264", "-crf", "16", "-preset", "medium", "-pix_fmt", "yuv420p", "-c:a", "copy",
+                        str(out)], cwd=ass.parent, capture_output=True, text=True)
+    if r.returncode or not out.exists():
+        raise RuntimeError(f"captions could not be burnt in: {r.stderr.strip()[-300:]}")
+    return out
+
+
 def finish(rendered: Path, out_dir: Path, base: str, target_lufs: float = -14, extra=("4:5",),
            expect=(1080, 1920)) -> dict:
     out_dir.mkdir(parents=True, exist_ok=True)

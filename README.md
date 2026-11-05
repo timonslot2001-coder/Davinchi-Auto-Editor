@@ -175,7 +175,7 @@ Videos land in your TikTok inbox; paste the caption (it's in the dashboard) and 
 ## Command reference
 | command | what it does |
 |---|---|
-| `autoedit run <folder>` | analyse → edit in Resolve → render → queue. Options: `--category`, `--aspect 9:16\|16:9`, `--music <file\|name\|none>`, `--bass <dB>`, `--title`, `--label`, `--location`, `--variants AB`, `--stabilize auto\|all\|none`, `--seed`, `--style`, `--no-render` |
+| `autoedit run <folder>` | analyse → edit in Resolve → render → queue. Options: `--category`, `--aspect 9:16\|16:9`, `--music <file\|name\|none>`, `--bass <dB>`, `--title`, `--label`, `--location`, `--variants AB`, `--stabilize auto\|all\|none`, `--seed`, `--style`, `--look <reference_film\|daylight\|orange_teal\|none>`, `--captions` (subtitles from the audio by Resolve, burnt in), `--no-render`. In Claude: `/flow` asks these as buttons |
 | `autoedit new <name>` | create a project folder with clips/, music/, exports/ and project.yaml |
 | `autoedit offload <name>` | camera card(s) → `<library>\<Soort>\<date> <name>\1 Ruw\` on the SSD, checked; links the project. `--soort koken\|kleding\|smoken\|reizen\|klanten\|inbox`, `--since YYYY-MM-DD`, `--no-project` |
 | `autoedit thumbs` | make the thumbnails of every clip on the SSD ahead of time (offload and sort do it for their own folders) |

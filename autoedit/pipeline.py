@@ -56,13 +56,18 @@ def run(cfg, folder: str | Path, style_name: str | None = None, variants: str = 
         stab_mode: str | None = None, render: bool = True, queue: bool = True, location: str | None = None,
         clips: list | None = None, title: str | None = None, category: str | None = None,
         aspect: str | None = None, label: str | None = None, out_dir: Path | None = None,
-        seed: int | None = None, log=con.print) -> list[dict]:
-    from .builder import Builder, render as do_render
+        seed: int | None = None, look: str | None = None, captions: bool = False, log=con.print) -> list[dict]:
+    from .builder import Builder, captions as do_captions, render as do_render
 
     folder = Path(folder)
     style = cfg.style(style_name)
     if aspect:
         style = dict(style, aspect=aspect)
+    if look:                                                      # /flow colour choice (grade.LOOKS, "none" = untouched)
+        from .grade import LOOKS
+        if look not in LOOKS:
+            raise SystemExit(f"look: one of {', '.join(LOOKS)}")
+        style = dict(style, grade_look=look)
     if label is not None:
         style = dict(style, corner_label=label or None)           # "" = no corner label
     # the category is what the video is ABOUT (captions/hashtags); the style is how it's EDITED (always the same)
@@ -97,9 +102,14 @@ def run(cfg, folder: str | Path, style_name: str | None = None, variants: str = 
             log(f"[bold]Variant {v}[/]: {len(plan.shots)} shots, {plan.length:.1f}s, hook “{plan.texts[0]['text'] if plan.texts else '-'}”")
             built = Builder(cfg, plan, style, log=log).build()
             res = {"variant": v, "timeline": built["timeline"], "plan": str(out_root / f"{base}_plan.json")}
+            lines = do_captions(built["timeline"], log=log) if captions else []
+            if captions:
+                res["captions"] = len(lines)
             if not render:
                 break
             raw = do_render(built["timeline"], out_root / "_raw", base, log=log)
+            if lines:                                             # Resolve makes the words, we burn them in
+                raw = export.burn_captions(raw, lines, raw.with_name(raw.stem + "_captions.mp4"))
             wide = style.get("aspect") == "16:9"
             fin = export.finish(raw, out_root, base, cfg.get("audio.target_lufs", -14),
                                 [] if wide else cfg.get("format.extra_exports", []),
@@ -109,6 +119,12 @@ def run(cfg, folder: str | Path, style_name: str | None = None, variants: str = 
             rev = review(Path(fin["files"].get("9:16") or fin["files"]["16:9"]), plan, out_root,
                          base + ("_16x9" if wide else "_9x16"))
             res["review"] = rev
+            try:
+                from .review import before_after
+                res["before_after"] = str(before_after(plan, Path(fin["files"].get("9:16") or fin["files"]["16:9"]),
+                                                       out_root / f"{base}_before_after.jpg"))
+            except Exception as e:                                # a nice-to-have: never fails the edit
+                log(f"  [yellow]before/after picture skipped: {e}[/]")
             for g in rev["good"]:
                 log(f"  ✓ {g}")
             for i in rev["issues"]:

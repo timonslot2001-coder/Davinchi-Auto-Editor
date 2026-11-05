@@ -39,6 +39,10 @@ LOOKS = {
     "vintage": dict(contrast=0.92, pivot=0.45, lift=0.06, gain=0.96, sat=0.85,
                     shadows=(0.01, 0.005, -0.005), highlights=(0.04, 0.015, -0.03),
                     teal_sky=0.05, orange_skin=0.15, hue_greens=-0.03, fade=0.06),
+    # Orange & Teal (the /flow colour choice): warm skin and highlights, teal shadows and skies, a bit more punch
+    "orange_teal": dict(contrast=1.10, pivot=0.45, lift=0.02, gain=0.98, sat=1.15,
+                        shadows=(-0.020, 0.010, 0.035), highlights=(0.050, 0.015, -0.045),
+                        teal_sky=0.55, orange_skin=0.40, hue_greens=-0.06, fade=0.01),
     "none": None,
 }
 

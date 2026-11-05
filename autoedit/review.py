@@ -31,6 +31,32 @@ def _momentary(path: Path) -> tuple[np.ndarray, np.ndarray]:
     return t, m
 
 
+def before_after(plan: Plan, video: Path, out: Path) -> Path:
+    """One picture: the raw first shot of the edit (as it came out of the camera) next to the same moment of the finished
+    video, labelled Before / After."""
+    import cv2
+    s = next((s for s in plan.shots if Path(s.clip).exists()), None)
+    if s is None:
+        raise FileNotFoundError("no source clip for the before picture")
+    t_src, t_out = (s.src_in + s.src_out) / 2, s.rec_in + (s.src_out - s.src_in) / 2
+
+    def grab(path, t):
+        r = subprocess.run([FFMPEG, "-v", "error", "-ss", f"{t:.2f}", "-i", str(path), "-frames:v", "1", "-vf",
+                            "scale=-2:720,format=bgr24", "-f", "rawvideo", "-"], capture_output=True)
+        w = len(r.stdout) // (720 * 3)
+        return np.frombuffer(r.stdout, np.uint8)[:720 * w * 3].reshape(720, w, 3).copy()
+    before, after = grab(s.clip, t_src), grab(video, t_out)
+    if before.shape[1] > after.shape[1]:                          # same framing: the centre of the wide camera frame
+        x = (before.shape[1] - after.shape[1]) // 2
+        before = np.ascontiguousarray(before[:, x:x + after.shape[1]])
+    for img, label in ((before, "Before"), (after, "After")):
+        cv2.putText(img, label, (24, 690), cv2.FONT_HERSHEY_DUPLEX, 1.6, (0, 0, 0), 6)
+        cv2.putText(img, label, (24, 690), cv2.FONT_HERSHEY_DUPLEX, 1.6, (255, 255, 255), 2)
+    gap = np.full((720, 16, 3), 20, np.uint8)
+    cv2.imwrite(str(out), np.hstack([before, gap, after]), [cv2.IMWRITE_JPEG_QUALITY, 88])
+    return out
+
+
 def review(video: Path, plan: Plan, out_dir: Path, base: str) -> dict:
     inv, taste = load_inventory(), load_taste()
     budget = inv["budget"]

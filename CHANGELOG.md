@@ -3,6 +3,12 @@
 What changed, in words you would notice in an edit or on the PC. Newest first. Small fixes are folded into the day's
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
+
+## 2026-11-05 — /flow: edit in Resolve from buttons
+- Type `/flow` in Claude: pick the video, then style, colour (Film, Natural, **Orange & Teal**, Laat zo), 9:16 or 16:9
+  and captions. AutoEdit builds and renders it in Resolve, checks it, and shows a **before/after** picture.
+- **Captions:** Resolve itself writes subtitles from the audio and burns them into the render (`autoedit run --captions`).
+  Talking-head styles (cutting pauses) come next.
 ## 2026-11-04 — Foto's link works from your laptop too
 - *Openen in LightCraft* keeps one LightCraft window: a second shoot is added to the open window instead of starting a
   second copy (which could not open the library). LightCraft opened another way gets a clear message.

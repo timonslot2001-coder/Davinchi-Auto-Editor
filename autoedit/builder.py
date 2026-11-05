@@ -388,6 +388,31 @@ class Builder:
 
 # ---------------------------------------------------------------- render
 
+def captions(timeline_name: str, language: str = "auto", log=con.print) -> list[tuple[float, float, str]]:
+    """Subtitles from the timeline's audio, made by Resolve itself (Studio: Timeline.CreateSubtitlesFromAudio) onto a
+    subtitle track. language: 'auto' or 'dutch' / 'english'. Returns [(start s, end s, text)] from the timeline start;
+    export.burn_captions burns them in (Resolve's own burn-in setting is accepted by script but not applied)."""
+    resolve = connect()
+    p = resolve.GetProjectManager().LoadProject(PROJECT) or resolve.GetProjectManager().GetCurrentProject()
+    tl = next(p.GetTimelineByIndex(i) for i in range(1, p.GetTimelineCount() + 1)
+              if p.GetTimelineByIndex(i).GetName() == timeline_name)
+    p.SetCurrentTimeline(tl)
+    lang = getattr(resolve, f"AUTO_CAPTION_{language.upper()}", None)
+    settings = {resolve.SUBTITLE_LANGUAGE: lang if lang is not None else resolve.AUTO_CAPTION_AUTO,
+                resolve.SUBTITLE_CHARS_PER_LINE: 32}
+    log("  captions: Resolve transcribes the audio…")
+    if not tl.CreateSubtitlesFromAudio(settings):
+        raise SystemExit("Resolve could not make subtitles (DaVinci Resolve Studio needed)")
+    fps, t0 = float(tl.GetSetting("timelineFrameRate") or 25), tl.GetStartFrame()
+    items = tl.GetItemListInTrack("subtitle", tl.GetTrackCount("subtitle")) or [] if tl.GetTrackCount("subtitle") else []
+    lines = [((it.GetStart() - t0) / fps, (it.GetEnd() - t0) / fps, (it.GetName() or "").strip()) for it in items]
+    lines = [ln for ln in lines if ln[2]]
+    for t in range(1, tl.GetTrackCount("subtitle") + 1):         # Resolve would burn them in too (its render setting
+        tl.SetTrackEnable("subtitle", t, False)                   # sticks in the project): the words are ours to burn
+    log(f"  captions: {len(lines)} lines")
+    return lines
+
+
 def render(timeline_name: str, out_dir: Path, name: str, log=con.print) -> Path:
     """Render the timeline to a high-quality 1080×1920 MP4 (post-processing happens in export.py)."""
     resolve = connect()
@@ -412,7 +437,7 @@ def render(timeline_name: str, out_dir: Path, name: str, log=con.print) -> Path:
         # 20 Mbps: under the Instagram Graph API's 25 Mbps maximum (docs/PLATFORM_SPECS.md), still far above what
         # Instagram/TikTok re-encode to
         "VideoQuality": 20000, "AudioCodec": "aac", "AudioSampleRate": 48000, "ExportVideo": True, "ExportAudio": True,
-        "ExportSubtitle": True, "SubtitleFormat": "BurnIn",
+        "ExportSubtitle": False,                                    # captions: export.burn_captions burns them in
     })
     job = p.AddRenderJob()
     p.StartRendering([job], isInteractiveMode=False)

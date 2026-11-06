@@ -103,8 +103,11 @@ cinematic:
   aspect: "16:9"            # like the reference; "9:16" also works
   look: "Daylight"          # warm, teal sky / orange highlights
   length_s: 13.0
-  intro_cuts: [0.27, 0.25]  # first two cuts are quick, then steady
-  shot_s: 0.8               # without music; with music: 2 beats per shot
+  intro_cuts: []            # was [0.27, 0.25]; Timon: "rustiger knippen" → first shot runs to the first hit
+  shot_s: 1.5               # target shot length; with music: the whole beats closest to it (152 BPM → 4 beats)
+  min_beats: 2              # a shot is never shorter than 2 beats…
+  min_shot_s: 0.8           # …or 0.8 s, so no moment gets chopped off
+  energy_speedup: false     # loud parts no longer cut faster than shot_s (quiet parts still hold longer)
   final_hold: 1.7           # long hold on the widest shot at the end
   dip_to_black: true
   dip_chance: 0.5           # only in about half of the videos, so they don't all look the same

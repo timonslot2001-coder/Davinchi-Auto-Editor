@@ -27,6 +27,10 @@ entry; the full list is in `git log`. Hard-to-reverse choices also get a record 
   the prompt into a separate Claude chat. *Kopiëren* still works. Needs the Studio session on the PC.
 - The Studio menu has *Foto's* and *PC op afstand* again (they were missing from the published page).
 
+## 2026-11-06 — Calmer cutting
+- Shots run about **one bar** (~1.5 s) instead of one beat: Beef Tartaar on Escape Plan went from 33 cuts to 10 in
+  16 s. Loud parts no longer cut faster, no quick 0.25 s cuts at the start, and a cut avoids the middle of a movement.
+
 ## 2026-11-04 — LightCraft from any device
 - LightCraft runs on your PC (your photos are on its SSD); on any other device you see and use it through **Chrome
   Remote Desktop** in the browser. *Openen in LightCraft* from your laptop or phone opens LightCraft on the PC and the

@@ -350,12 +350,15 @@ def make_cinematic_plan(clips: list[ClipAnalysis], style: dict, cfg, music: Musi
             return bool(overrides[c.name])
         return {"all": True, "none": False}.get(mode, c.shake >= thr)
 
-    # rhythm: 2 beats per shot at fast tempos (≈0.75–0.9 s), else 1 beat; fixed fallback without music
+    # rhythm: whole beats closest to shot_s; never shorter than min_beats (Timon 2026-11-06: "rustiger knippen",
+    # 0.4 s shots broke every moment); fixed fallback without music
     if music and music.tempo:
         beat = 60 / music.tempo
-        step = beat * max(1, round(style.get("shot_s", 0.8) / beat))     # whole beats closest to ~0.8 s
+        step = beat * max(1, round(style.get("shot_s", 0.8) / beat))
+        floor = max(beat * style.get("min_beats", 1), style.get("min_shot_s", 0.0))
     else:
         step = style.get("shot_s", 0.8)
+        floor = style.get("min_shot_s", 0.0)
     quick = style.get("intro_cuts", [0.27, 0.25])
     hold = style.get("final_hold", 1.7)
     length = style.get("length_s", 13.0)
@@ -381,8 +384,13 @@ def make_cinematic_plan(clips: list[ClipAnalysis], style: dict, cfg, music: Musi
         while t < final_start - 0.3:
             e = music.energy_at(t)
             # quiet → hold, loud → cut faster, very loud → quick bursts (ref A: ~0.27 s per shot)
-            want = step * (3.0 if e < 0.12 else 2.0 if e < 0.3 else 1.0 if e < 0.7 else 0.6 if e < 0.9 else 0.5)
+            fast = style.get("energy_speedup", True)          # off: loud parts don't cut faster than shot_s
+            want = step * (3.0 if e < 0.12 else 2.0 if e < 0.3 else 1.0 if e < 0.7 or not fast
+                           else 0.6 if e < 0.9 else 0.5)
+            want = max(want, floor)
             nxt = snap(t + want)
+            if nxt < t + floor - 0.02:                      # snapped below the minimum: next beat after it
+                nxt = min([b for b in beats if b >= t + floor - 0.02], default=t + want)
             if nxt <= t + 0.2:
                 nxt = t + want
             nxt = min(nxt, final_start)
@@ -422,7 +430,9 @@ def make_cinematic_plan(clips: list[ClipAnalysis], style: dict, cfg, music: Musi
                     if all(a + dur <= x or a >= y for x, y in used[c.path]):
                         q = max((s.score for s in c.segments if s.start <= a + dur / 2 <= s.end), default=0.3)
                         bonus = 0.25 if k < len(tagged) else 0.0
-                        yield q + bonus - 0.2 * len(used[c.path]) + rng.uniform(0, 0.05), c, a
+                        # don't break a moment: a cut right at a motion peak chops the action in half
+                        broken = sum(1 for p in c.motion_peaks if abs(p - a) < 0.25 or abs(p - a - dur) < 0.25)
+                        yield q + bonus - 0.2 * len(used[c.path]) - 0.3 * broken + rng.uniform(0, 0.05), c, a
         best = max(candidates(True), key=lambda x: x[0], default=None) or \
             max(candidates(False), key=lambda x: x[0], default=None)
         if best is None:

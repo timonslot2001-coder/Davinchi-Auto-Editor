@@ -76,6 +76,14 @@ rules:
     rule: "light/leak overlays stay below a white-out: ~75% opacity on cuts, the picture must stay readable"
     enforced_by:
       - 'inventory.yaml: opacity: 75'
+  - id: calm_cuts_no_broken_moments
+    said: "Rustiger knippen / er werd telkens geknipt midden in een gesprek"   # 2026-11-06, Beef Tartaar x Escape Plan
+    rule: "a shot runs at least 2 beats (and 0.8 s), ~1 bar on a fast song; loud parts don't cut faster; a cut never lands on a motion peak"
+    enforced_by:
+      - 'styles.yaml: min_beats: 2'
+      - 'styles.yaml: energy_speedup: false'
+      - 'autoedit/planner.py: a cut right at a motion peak chops the action in half'
+      - 'tests/pacing_test.py: shots shorter than 2 beats'
   # Client work (e.g. JUICT, 2026-10-28) is not taste for your own videos: see docs/decisions/0010-client-films-stay-intact.md
 
 # numbers the director reads (effect strength itself: config.yaml → effects.intensity)

@@ -30,6 +30,9 @@ entry; the full list is in `git log`. Hard-to-reverse choices also get a record 
 ## 2026-11-06 — Calmer cutting
 - Shots run about **one bar** (~1.5 s) instead of one beat: Beef Tartaar on Escape Plan went from 33 cuts to 10 in
   16 s. Loud parts no longer cut faster, no quick 0.25 s cuts at the start, and a cut avoids the middle of a movement.
+- **Brighter, less orange grade**: exposure and white balance are measured on the footage itself (per shoot and per
+  clip), lamp light is pulled 60% towards neutral, and the film look is at half strength.
+- A normal edit runs **~20 s** (was 13), and the final shot never holds longer than 3.5 s.
 - Shots follow the **order you filmed** them, and the last shot comes from the end of the shoot.
 - In 9:16 your landscape footage stays **whole** with black bars instead of being cropped to fill the screen.
 

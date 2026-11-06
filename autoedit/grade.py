@@ -145,10 +145,12 @@ def look_lut(look: str, size: int = 33) -> np.ndarray:
 
 def build_lut(look: str = "reference_film", strength: float = 1.0, exposure: float = -1.75,
               conversion: str = "SLog3SGamut3.CineToLC-709TypeA.cube",
-              creative_cube: str | None = None, creative_mix: float = 0.0, size: int = 33) -> Path:
-    """Bake conversion (+ optional creative .cube) + film look into one LUT in Resolve's LUT folder."""
+              creative_cube: str | None = None, creative_mix: float = 0.0, size: int = 33,
+              wb: tuple[float, float, float] | None = None) -> Path:
+    """Bake conversion (+ white balance, optional creative .cube) + film look into one LUT in Resolve's LUT folder."""
+    wb = tuple(round(float(x), 3) for x in wb) if wb else None
     key = hashlib.sha1(json.dumps([look, strength, exposure, conversion, creative_cube, creative_mix, size,
-                                   LOOKS.get(look)]).encode()).hexdigest()[:8]
+                                   LOOKS.get(look), wb]).encode()).hexdigest()[:8]
     out = OUT_DIR / f"AutoEdit_{look}_{key}.cube"
     if out.exists():
         return out
@@ -159,6 +161,8 @@ def build_lut(look: str = "reference_film", strength: float = 1.0, exposure: flo
         c = apply_cube(conv, np.clip(grid + exposure * 0.0769, 0, 1))
     else:
         c = grid                                         # footage that is already Rec.709 (AI shots, phone clips)
+    if wb:
+        c = np.clip(c * np.array(wb), 0, 1)
     if creative_cube and creative_mix > 0:
         cr, _ = read_cube(Path(creative_cube))
         c = c + (apply_cube(cr, c) - c) * creative_mix
@@ -166,6 +170,55 @@ def build_lut(look: str = "reference_film", strength: float = 1.0, exposure: flo
         c = film_look(c, LOOKS[look], strength)
     write_cube(out, c, f"AutoEdit {look}")
     return out
+
+
+def _sample(path: str, n: int = 3) -> list[np.ndarray]:
+    """A few small frames (16-bit RGB, 0..1) spread over a clip."""
+    import subprocess
+    import imageio_ffmpeg
+    ff = imageio_ffmpeg.get_ffmpeg_exe()
+    try:
+        dur = float(subprocess.run([ff, "-i", path], capture_output=True, text=True).stderr
+                    .split("Duration:")[1].split(",")[0].split(":")[-1]) or 3.0
+    except (IndexError, ValueError):
+        dur = 3.0
+    frames = []
+    for i in range(n):
+        out = subprocess.run([ff, "-v", "error", "-ss", f"{dur * (i + 1) / (n + 1):.2f}", "-i", path, "-frames:v", "1",
+                              "-vf", "scale=96:54", "-f", "rawvideo", "-pix_fmt", "rgb48le", "-"], capture_output=True)
+        if len(out.stdout) == 96 * 54 * 6:
+            frames.append(np.frombuffer(out.stdout, "<u2").reshape(-1, 3) / 65535.0)
+    return frames
+
+
+def auto_balance(paths: list[str], conversion: str = "SLog3SGamut3.CineToLC-709TypeA.cube",
+                 target: float = 0.42, wb_amount: float = 0.6, ev_range: tuple[float, float] = (-2.0, 0.5),
+                 max_clips: int = 8) -> tuple[float, tuple[float, float, float]]:
+    """Exposure and white balance for one shoot, measured on its own footage.
+
+    The fixed -1.75 stops only fits bright daylight clips; an evening kitchen under warm lamps came out dark and
+    orange. So: pick the exposure that puts the shoot's average brightness at `target`, and pull the colour cast
+    `wb_amount` of the way to neutral (not all the way: some warmth of the light stays).
+    """
+    conv, _ = read_cube(SONY / conversion)
+    step = max(1, len(paths) // max_clips)
+    px = [f for p in paths[::step][:max_clips] for f in _sample(p)]
+    if not px:
+        return -1.75, (1.0, 1.0, 1.0)
+    px = np.concatenate(px)
+    best, err = ev_range[0], 9.0
+    for ev in np.arange(ev_range[0], ev_range[1] + 0.01, 0.125):
+        y = _luma(apply_cube(conv, np.clip(px + ev * 0.0769, 0, 1))).mean()
+        if abs(y - target) < err:
+            best, err = float(ev), abs(y - target)
+    c = apply_cube(conv, np.clip(px + best * 0.0769, 0, 1))
+    y = _luma(c).reshape(-1)
+    mid = c[(y > 0.08) & (y < 0.9)]        # ignore black and blown-out pixels
+    mean = (mid if len(mid) > 50 else c).mean(0)
+    gains = mean.mean() / np.maximum(mean, 1e-3)
+    gains = 1 + (gains - 1) * wb_amount
+    gains = np.clip(gains / gains[1], 0.6, 1.6)             # keep green fixed so brightness stays put
+    return best, tuple(float(x) for x in gains)
 
 
 def relative(path: Path) -> str:

@@ -103,6 +103,14 @@ rules:
     enforced_by:
       - 'styles.yaml: light_leak: false'
       - 'autoedit/planner.py: best-scoring one in the second half of the clip'
+  - id: bright_natural_grade
+    said: "Wel erg donker en kort / ik vind het beeld echt rood oranjig, het mag wel iets cinematisch maar dit is extreem"   # 2026-11-06
+    rule: "exposure and white balance are measured per shoot (warm lamp light pulled 60% to neutral), film look at half strength; a normal edit runs ~20 s"
+    enforced_by:
+      - 'config.yaml: auto_balance: true'
+      - 'config.yaml: strength: 0.5'
+      - 'styles.yaml: length_s: 20.0'
+      - 'autoedit/grade.py: def auto_balance'
   # Client work (e.g. JUICT, 2026-10-28) is not taste for your own videos: see docs/decisions/0010-client-films-stay-intact.md
 
 # numbers the director reads (effect strength itself: config.yaml → effects.intensity)

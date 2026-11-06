@@ -19,7 +19,7 @@ plan = planner.make_cinematic_plan(clips, dict(cfg.style("cinematic"), aspect="9
 body = [s for s in plan.shots if s.clip and s.role != "black"]
 short = [round(s.dur, 2) for s in body if s.dur < 2 * beat - 0.03]
 assert not short, f"shots shorter than 2 beats: {short}"
-assert len(body) <= 14, f"{len(body)} shots in {plan.length:.0f} s is not calm"
+assert len(body) <= plan.length / 1.5, f"{len(body)} shots in {plan.length:.0f} s is not calm"
 chopped = [s for s in body for p in (5.0, 10.0) if abs(p - s.src_in) < 0.25 or abs(p - s.src_out) < 0.25]
 assert not chopped, "a cut lands right on a motion peak"
 print(f"pacing test ok ({len(body)} shots, shortest {min(s.dur for s in body):.2f} s)")

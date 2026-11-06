@@ -108,7 +108,25 @@ class Builder:
             # one baked LUT (Sony S-Log3 → Rec.709 + film look) on a clean node: renders exactly as tested
             from . import grade
             look = self.style.get("grade_look") or g.get("grade_look", "reference_film")
-            lut = grade.build_lut(look, g.get("strength", 1.0), g.get("exposure", -1.75))
+            exposure, wb = g.get("exposure", -1.75), None
+            per_clip: dict[str, str] = {}
+            self.project.RefreshLUTList()
+            if g.get("auto_balance", True):
+                # exposure + white balance measured on the footage itself: the shoot as a whole, then each clip
+                # nudged towards its own light (daylight counter vs. lamp-lit table in one shoot)
+                path_of = {id(it): it.GetMediaPoolItem().GetClipProperty("File Path") for it in items
+                           if not (it.GetName() or "").startswith("AI_")}
+                paths = sorted(set(path_of.values()) - {None, ""})
+                if paths:
+                    amt = g.get("wb_amount", 0.6)
+                    exposure, wb = grade.auto_balance(paths, wb_amount=amt)
+                    for p in paths:
+                        ev, w = grade.auto_balance([p], wb_amount=amt, max_clips=1)
+                        ev = round(max(exposure - 0.75, min(exposure + 0.75, ev)) * 4) / 4
+                        w = tuple(round(x * 20) / 20 for x in w)
+                        per_clip[p] = grade.relative(grade.build_lut(look, g.get("strength", 1.0), ev, wb=w))
+                    self.project.RefreshLUTList()
+            lut = grade.build_lut(look, g.get("strength", 1.0), exposure, wb=wb)
             # AI shots are already Rec.709: film look only, no S-Log3 conversion (else way too bright/flat)
             lut709 = grade.build_lut(look, g.get("strength", 1.0) * 0.8, 0.0, conversion=None)
             self.project.RefreshLUTList()
@@ -118,9 +136,11 @@ class Builder:
                 graph = it.GetNodeGraph()
                 graph.ResetAllGrades()
                 is_ai = (it.GetName() or "").startswith("AI_")
-                ok += bool(graph.SetLUT(1, rel709 if is_ai else rel))
+                clip_lut = per_clip.get(path_of.get(id(it))) if per_clip else None
+                ok += bool(graph.SetLUT(1, rel709 if is_ai else clip_lut or rel))
                 it.SetColorOutputCache(self.resolve.CACHE_ENABLED)
-            self.log(f"Grade [bold]{look}[/] (exposure {g.get('exposure', -1.75)} stops) on {ok}/{len(items)} clips")
+            wbs = f", white balance {tuple(round(x, 2) for x in wb)}" if wb else ""
+            self.log(f"Grade [bold]{look}[/] (exposure {exposure:+.2f} stops{wbs}) on {ok}/{len(items)} clips")
             return
         drx = self._powergrade_drx()
         if not drx:

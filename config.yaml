@@ -40,8 +40,10 @@ grading:
   # "powergrade": the Odyssey PowerGrade (only useful after you set its CST + look nodes by hand in Resolve).
   mode: "lut"
   grade_look: "reference_film"   # reference_film / clean_warm / moody / none (styles can override)
-  exposure: -1.75                # your Sony footage is exposed bright (ETTR); stops of correction
-  strength: 1.0                  # how strong the film look is (0..1)
+  exposure: -1.75                # fallback only; auto_balance measures exposure per shoot
+  auto_balance: true             # 2026-11-06 "erg donker / extreem rood-oranje": exposure + white balance from the shoot itself
+  wb_amount: 0.6                 # how far the colour cast is pulled to neutral (1 = fully neutral, 0 = as filmed)
+  strength: 0.5                  # how strong the film look is (0..1); was 1.0, "cinematisch mag, maar dit is extreem"
   # Option 1 (recommended): the label of your PowerGrade in the Resolve Gallery (PowerGrade album),
   # with the CST node already set to S-Log3 — the tool exports it automatically.
   gallery_label: "Odyssey"

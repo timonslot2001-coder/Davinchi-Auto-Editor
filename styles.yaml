@@ -102,7 +102,7 @@ cinematic:
   mode: "cinematic"
   aspect: "16:9"            # like the reference; "9:16" also works
   look: "Daylight"          # warm, teal sky / orange highlights
-  length_s: 13.0
+  length_s: 20.0            # was 13; 2026-11-06 "wel erg kort"
   intro_cuts: []            # was [0.27, 0.25]; Timon: "rustiger knippen" → first shot runs to the first hit
   shot_s: 1.5               # target shot length; with music: the whole beats closest to it (152 BPM → 4 beats)
   min_beats: 2              # a shot is never shorter than 2 beats…
@@ -111,6 +111,7 @@ cinematic:
   chronological: true       # shots in the order they were filmed; the final hold comes from the end of the shoot
   vertical_fit: true        # 9:16: landscape footage stays whole (bars above/below) instead of cropped to fill
   final_hold: 1.7           # long hold on the widest shot at the end
+  final_hold_max: 3.5       # the ending never holds longer than this (with 20 s it ran 7 s)
   dip_to_black: true
   dip_chance: 0.5           # only in about half of the videos, so they don't all look the same
   dip_s: 0.33

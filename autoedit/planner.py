@@ -379,7 +379,9 @@ def make_cinematic_plan(clips: list[ClipAnalysis], style: dict, cfg, music: Musi
         beats = music.beats
         snap = lambda x: min(beats, key=lambda b: abs(b - x))
         end = min(music.duration, length + 3.0)
-        late_hits = [h for h in (music.hits or []) if end * 0.6 <= h <= end - 1.0]
+        # the final hold may start on a late hit, but never runs longer than final_hold_max (a 7 s ending drags)
+        max_hold = style.get("final_hold_max", 3.5)
+        late_hits = [h for h in (music.hits or []) if max(end * 0.6, end - max_hold) <= h <= end - 1.0]
         final_start = snap(max(late_hits)) if late_hits else snap(end - hold)
         hold = max(1.2, end - final_start)
         first_hits = [h for h in (music.hits or []) if 0.8 <= h <= 2.6]

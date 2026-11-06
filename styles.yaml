@@ -108,6 +108,8 @@ cinematic:
   min_beats: 2              # a shot is never shorter than 2 beats…
   min_shot_s: 0.8           # …or 0.8 s, so no moment gets chopped off
   energy_speedup: false     # loud parts no longer cut faster than shot_s (quiet parts still hold longer)
+  chronological: true       # shots in the order they were filmed; the final hold comes from the end of the shoot
+  vertical_fit: true        # 9:16: landscape footage stays whole (bars above/below) instead of cropped to fill
   final_hold: 1.7           # long hold on the widest shot at the end
   dip_to_black: true
   dip_chance: 0.5           # only in about half of the videos, so they don't all look the same

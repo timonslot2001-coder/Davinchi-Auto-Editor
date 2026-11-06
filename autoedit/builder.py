@@ -229,7 +229,12 @@ class Builder:
             if keep_audio:
                 self._append(mpi[s.clip], a, a + dur, A_CLIP, start + bounds[i], 2)
                 speech.append((s.rec_in, s.rec_in + dur / self.fps))
-            item.SetProperty("Scaling", SCALE_FILL)
+            # landscape footage in a 9:16 frame: whole picture with bars (Timon 2026-11-06: "niet beeldvullend")
+            tall_frame = self.H > self.W
+            res = (mpi[s.clip].GetClipProperty("Resolution") or "3840x2160").lower().split("x")
+            wide_src = len(res) == 2 and res[0].isdigit() and res[1].isdigit() and int(res[0]) > int(res[1])
+            fit = tall_frame and wide_src and self.style.get("vertical_fit", False)
+            item.SetProperty("Scaling", SCALE_FIT if fit else SCALE_FILL)
             main_items.append((s, item))
         self.log(f"{len(main_items)} shots placed on V1")
 
@@ -322,7 +327,9 @@ class Builder:
                 n_src = max(1, int(round(n_tl / self.fps * src_fps)))
                 item = self._append(m, 0, n_src, lane[0], rec, 1)
                 if item:
-                    item.SetProperty("Scaling", SCALE_FILL)
+                    # with vertical_fit the leak stays on the picture band, not over the black bars
+                    bars = self.H > self.W and self.style.get("vertical_fit", False)
+                    item.SetProperty("Scaling", SCALE_FIT if bars else SCALE_FILL)
                     item.SetProperty("CompositeMode", COMPOSITE.get(o.get("blend", "screen"), 5))
                     item.SetProperty("Opacity", float(o.get("opacity", 90)))
                     lane[1] = rec + n_tl

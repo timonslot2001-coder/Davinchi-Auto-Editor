@@ -138,6 +138,8 @@ def direct(plan: Plan, clips: list[ClipAnalysis], music: MusicAnalysis | None, s
                 continue
             if any(sh.effects or sh.role != "body" or sh.dur < 0.3 for sh in run):
                 continue
+            if sum(sh.dur for sh in run) > 0.15 * plan.length:   # calm cuts: 3 photos would be a third of the video
+                continue
             if any(abs(run[0].rec_in - u) < min_gap for u in used_t):
                 continue
             for sh in run:

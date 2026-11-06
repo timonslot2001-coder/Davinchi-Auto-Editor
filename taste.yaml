@@ -84,6 +84,13 @@ rules:
       - 'styles.yaml: energy_speedup: false'
       - 'autoedit/planner.py: a cut right at a motion peak chops the action in half'
       - 'tests/pacing_test.py: shots shorter than 2 beats'
+  - id: filmed_order_and_whole_picture
+    said: "Je hebt een shot van het begin aan het einde gedaan en het is nu staand, het mag gewoon landscape zijn, of tenminste niet beeldvullend"   # 2026-11-06
+    rule: "shots follow the filming order and the last shot comes from the end of the shoot; in 9:16 landscape footage stays whole (bars), leaks stay on the picture; no 3-photo series when it would fill more than 15% of the video"
+    enforced_by:
+      - 'styles.yaml: chronological: true'
+      - 'styles.yaml: vertical_fit: true'
+      - 'autoedit/director.py: 3 photos would be a third of the video'
   # Client work (e.g. JUICT, 2026-10-28) is not taste for your own videos: see docs/decisions/0010-client-films-stay-intact.md
 
 # numbers the director reads (effect strength itself: config.yaml → effects.intensity)

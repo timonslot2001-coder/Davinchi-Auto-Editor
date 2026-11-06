@@ -30,6 +30,8 @@ entry; the full list is in `git log`. Hard-to-reverse choices also get a record 
 ## 2026-11-06 — Calmer cutting
 - Shots run about **one bar** (~1.5 s) instead of one beat: Beef Tartaar on Escape Plan went from 33 cuts to 10 in
   16 s. Loud parts no longer cut faster, no quick 0.25 s cuts at the start, and a cut avoids the middle of a movement.
+- Shots follow the **order you filmed** them, and the last shot comes from the end of the shoot.
+- In 9:16 your landscape footage stays **whole** with black bars instead of being cropped to fill the screen.
 
 ## 2026-11-04 — LightCraft from any device
 - LightCraft runs on your PC (your photos are on its SSD); on any other device you see and use it through **Chrome

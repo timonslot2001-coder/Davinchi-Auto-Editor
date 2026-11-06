@@ -319,6 +319,14 @@ ARC = ["detail", "detail", "establish", "subject", "subject", "close", "action",
        "establish", "rest", "close", "subject", "action", "rest"]
 
 
+def recorded(c: ClipAnalysis) -> float:
+    """When the clip was filmed: the camera's file time (kept when copied), so shots can follow the filming order."""
+    try:
+        return Path(c.path).stat().st_mtime
+    except OSError:
+        return 0.0
+
+
 EXTRA_TAGS: Path | None = None        # set per project (projects.py): <project>/tags.json
 
 
@@ -415,7 +423,7 @@ def make_cinematic_plan(clips: list[ClipAnalysis], style: dict, cfg, music: Musi
 
     def pick(role: str | None, dur: float, prev: str | None):
         def candidates(strict: bool):
-            for c in usable:
+            for c in pool:
                 if strict and role and role_of.get(c.path) != role:
                     continue
                 if c.path == prev and len(usable) > 1 and not (strict and role == "detail"):
@@ -436,30 +444,38 @@ def make_cinematic_plan(clips: list[ClipAnalysis], style: dict, cfg, music: Musi
         best = max(candidates(True), key=lambda x: x[0], default=None) or \
             max(candidates(False), key=lambda x: x[0], default=None)
         if best is None:
-            c = max(usable, key=lambda c: c.segments[0].score)
+            c = max(pool, key=lambda c: c.segments[0].score)
             return c, c.segments[0].start
         return best[1], best[2]
 
-    shots, t, prev = [], 0.0, None
+    # chronological, in the order Timon filmed (2026-11-06): the final hold comes from the end of the shoot (tag
+    # hero_wide there, else the calmest of the last clips) and every other shot is from before it, in filming order
+    order = sorted(usable, key=recorded)
+    tail = order[-max(1, min(3, len(order) // 3)):]
+    hero = next((c for c in tail if role_of.get(c.path) == "hero_wide"), None) or         min(tail, key=lambda c: c.motion - np.mean(c.per_second or [0]))
+    hb = ((tags.get(hero.name) or {}).get("best") or [hero.segments[0].start])[-1]
+    ha = max(0.1, min(hero.duration - hold - 0.1, hb - hold / 2))
+    used[hero.path].append((ha, ha + hold))
+    pool = [c for c in usable if recorded(c) <= recorded(hero)]
     roles = ARC[:]
+    picks, prev = [], None
     for i, d in enumerate(durs):
-        role = roles[i % len(roles)]
-        c, a = pick(role, d, prev)
+        c, a = pick(roles[i % len(roles)], d, prev)
         used[c.path].append((a, a + d))
+        picks.append((c, a))
+        prev = c.path
+    if style.get("chronological", True):
+        picks.sort(key=lambda ca: (recorded(ca[0]), ca[1]))
+    shots, t = [], 0.0
+    for i, (d, (c, a)) in enumerate(zip(durs, picks)):
+        a = max(0.0, min(a, c.duration - d - 0.05))           # the slot's length may differ from the picked one
         shots.append(Shot(c.path, round(a, 3), round(a + d, 3), round(t, 3),
                           role="hook" if i < len(quick) else "body", stabilize=stabilize(c)))
         t += d
-        prev = c.path
         if dip_at is not None and i == dip_at:
             dip = style.get("dip_s", 0.33)
             shots.append(Shot("", 0.0, dip, round(t, 3), role="black"))
             t += dip
-    # final hold on the widest, calmest shot (tag hero_wide, else lowest motion + high quality)
-    heroes = [c for c in usable if role_of.get(c.path) == "hero_wide"] or \
-        sorted(usable, key=lambda c: c.motion - np.mean(c.per_second or [0]))[:1]
-    hero = heroes[0]
-    hb = ((tags.get(hero.name) or {}).get("best") or [hero.segments[0].start])[-1]
-    ha = max(0.1, min(hero.duration - hold - 0.1, hb - hold / 2))
     shots.append(Shot(hero.path, round(ha, 3), round(ha + hold, 3), round(t, 3),
                       effects=["light_leak"] if style.get("light_leak", True) else [], role="outro",
                       stabilize=stabilize(hero)))

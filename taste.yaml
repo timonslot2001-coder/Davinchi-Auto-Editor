@@ -91,10 +91,16 @@ rules:
       - 'styles.yaml: chronological: true'
       - 'styles.yaml: vertical_fit: true'
       - 'autoedit/director.py: 3 photos would be a third of the video'
+  - id: fewer_effects_no_crackle
+    said: "Minder effecten en er zitten lame sfx in, ook krakend bij paarse gloed"   # 2026-11-06
+    rule: "about half the accents (accents_scale 0.5); crackling / spooky / sci-fi transition sounds are never picked"
+    enforced_by:
+      - 'taste.yaml: accents_scale: 0.5'
+      - 'autoedit/sfx.py: EXCLUDE_NAMES'
   # Client work (e.g. JUICT, 2026-10-28) is not taste for your own videos: see docs/decisions/0010-client-films-stay-intact.md
 
 # numbers the director reads (effect strength itself: config.yaml → effects.intensity)
 knobs:
-  accents_scale: 1.0          # lower = fewer accents overall (feedback 'too much' → ×0.8)
+  accents_scale: 0.5          # lower = fewer accents overall; 2026-11-06 'minder effecten' → 0.5 (was 1.0)
   sfx_scale: 1.0              # lower = fewer sounds
   sfx_level_db: 0             # global SFX level offset

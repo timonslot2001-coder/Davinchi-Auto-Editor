@@ -140,6 +140,9 @@ GENERATED = {"whoosh", "hit", "impact", "pop", "click", "shutter", "riser", "swe
 # libraries/folders that don't fit the house style (spooky, sci-fi, weapons) — never picked automatically
 EXCLUDE_PARTS = {"science fiction", "fantasy", "scary horror", "weird & scary", "guns", "mystery sfx", "stress",
                  "fighting foley"}
+# single sounds that crackle or feel off-style (Timon 2026-11-06: "lame sfx, krakend bij de paarse gloed")
+EXCLUDE_NAMES = {"electric", "scary", "ghost", "futuristic", "tense", "tension", "door", "robe", "foley", "warp",
+                 "water", "distort", "static", "crackle"}
 
 # FOUR Editors sound pack: folder → category (more precise than file names)
 FOLDER_MAP = {
@@ -189,6 +192,8 @@ class Library:
             for p in Path(folder).rglob("*"):
                 if p.suffix.lower() in {".wav", ".mp3", ".aif", ".aiff"} and "__MACOSX" not in p.parts:
                     if any(part.strip().lower() in EXCLUDE_PARTS for part in p.parts):
+                        continue
+                    if any(w in p.stem.lower() for w in EXCLUDE_NAMES):
                         continue
                     cat = FOLDER_MAP.get(p.parent.name.strip().lower()) or FOLDER_MAP.get(p.parent.parent.name.strip().lower())
                     # the big sound pack is sorted by folder only (file-name guessing pulls in spooky/sci-fi

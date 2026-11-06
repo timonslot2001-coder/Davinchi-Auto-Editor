@@ -269,7 +269,8 @@ def direct(plan: Plan, clips: list[ClipAnalysis], music: MusicAnalysis | None, s
                     s.effects.remove("light_leak")
                     t_leak = max(0.0, s.rec_in - min(0.6, f["dur"] * 0.35))
                     plan.overlays.append({"t": round(t_leak, 3), "dur": round(min(f["dur"], plan.length - t_leak), 3),
-                                          "path": f["path"], "fps": f["fps"], "blend": "screen", "opacity": 95,
+                                          "path": f["path"], "fps": f["fps"], "blend": "screen",
+                                          "opacity": fl.get("opacity", 70),        # taste: leaks_not_whiteout
                                           "why": "light_leak", "at": s.rec_in})
                     s.extra["overlay"] = "light_leak"
                     decisions.append(f"{s.rec_in:5.2f}s  light_leak     (real pack file: {Path(f['path']).stem})")

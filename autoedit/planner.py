@@ -448,12 +448,13 @@ def make_cinematic_plan(clips: list[ClipAnalysis], style: dict, cfg, music: Musi
             return c, c.segments[0].start
         return best[1], best[2]
 
-    # chronological, in the order Timon filmed (2026-11-06): the final hold comes from the end of the shoot (tag
-    # hero_wide there, else the calmest of the last clips) and every other shot is from before it, in filming order
+    # chronological, in the order Timon filmed (2026-11-06): the story ends where the shoot ends ("nu mis ik het
+    # gedeelte dat ik het eet"), so the final hold is the last usable clip (a hero_wide tag in the last clips wins),
+    # on its last good moment; every other shot is from before it, in filming order
     order = sorted(usable, key=recorded)
     tail = order[-max(1, min(3, len(order) // 3)):]
-    hero = next((c for c in tail if role_of.get(c.path) == "hero_wide"), None) or         min(tail, key=lambda c: c.motion - np.mean(c.per_second or [0]))
-    hb = ((tags.get(hero.name) or {}).get("best") or [hero.segments[0].start])[-1]
+    hero = next((c for c in tail if role_of.get(c.path) == "hero_wide"), None) or order[-1]
+    hb = ((tags.get(hero.name) or {}).get("best") or [(hero.segments[-1].start + hero.segments[-1].end) / 2])[-1]
     ha = max(0.1, min(hero.duration - hold - 0.1, hb - hold / 2))
     used[hero.path].append((ha, ha + hold))
     pool = [c for c in usable if recorded(c) <= recorded(hero)]
@@ -462,13 +463,18 @@ def make_cinematic_plan(clips: list[ClipAnalysis], style: dict, cfg, music: Musi
     for i, d in enumerate(durs):
         c, a = pick(roles[i % len(roles)], d, prev)
         used[c.path].append((a, a + d))
-        picks.append((c, a))
+        picks.append((c, a, d))
         prev = c.path
     if style.get("chronological", True):
-        picks.sort(key=lambda ca: (recorded(ca[0]), ca[1]))
+        picks.sort(key=lambda p: (recorded(p[0]), p[1]))
     shots, t = [], 0.0
-    for i, (d, (c, a)) in enumerate(zip(durs, picks)):
-        a = max(0.0, min(a, c.duration - d - 0.05))           # the slot's length may differ from the picked one
+    def hits(c, a, d):
+        return sum(1 for p in c.motion_peaks if abs(p - a) < 0.25 or abs(p - a - d) < 0.25)
+
+    for i, (d, (c, a0, d0)) in enumerate(zip(durs, picks)):
+        # the slot's length may differ from the picked one: grow/shrink at the end that doesn't land on a movement
+        opts = [max(0.0, min(x, c.duration - d - 0.05)) for x in (a0, a0 + d0 - d, a0 + (d0 - d) / 2)]
+        a = min(opts, key=lambda x: hits(c, x, d))
         shots.append(Shot(c.path, round(a, 3), round(a + d, 3), round(t, 3),
                           role="hook" if i < len(quick) else "body", stabilize=stabilize(c)))
         t += d

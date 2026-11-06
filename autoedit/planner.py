@@ -454,7 +454,10 @@ def make_cinematic_plan(clips: list[ClipAnalysis], style: dict, cfg, music: Musi
     order = sorted(usable, key=recorded)
     tail = order[-max(1, min(3, len(order) // 3)):]
     hero = next((c for c in tail if role_of.get(c.path) == "hero_wide"), None) or order[-1]
-    hb = ((tags.get(hero.name) or {}).get("best") or [(hero.segments[-1].start + hero.segments[-1].end) / 2])[-1]
+    # segments are sorted by score, not time: take the best-scoring one in the second half of the clip
+    late = [g for g in hero.segments if g.start >= hero.duration / 2] or hero.segments
+    end_seg = max(late, key=lambda g: g.score)
+    hb = ((tags.get(hero.name) or {}).get("best") or [(end_seg.start + end_seg.end) / 2])[-1]
     ha = max(0.1, min(hero.duration - hold - 0.1, hb - hold / 2))
     used[hero.path].append((ha, ha + hold))
     pool = [c for c in usable if recorded(c) <= recorded(hero)]

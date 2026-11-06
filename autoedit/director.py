@@ -96,7 +96,8 @@ def direct(plan: Plan, clips: list[ClipAnalysis], music: MusicAnalysis | None, s
     tech = inv["techniques"]
     rng = random.Random(f"director{seed}{plan.variant}")
     length = plan.length
-    max_accents = max(1, round(budget["accents_per_10s"] * length / 10 * knobs.get("accents_scale", 1.0)))
+    # rounded down, so the self-review's budget check agrees (round() could give one accent more than allowed)
+    max_accents = max(1, int(budget["accents_per_10s"] * length / 10 * knobs.get("accents_scale", 1.0)))
     max_sfx = max(1, round(budget["sfx_per_10s"] * length / 10 * knobs.get("sfx_scale", 1.0)))
     min_gap = budget.get("min_gap_s", 1.4)
 

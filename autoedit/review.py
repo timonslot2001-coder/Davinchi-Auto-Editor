@@ -42,10 +42,11 @@ def review(video: Path, plan: Plan, out_dir: Path, base: str) -> dict:
                and not (s.extra.get("series") and i > 0 and plan.shots[i - 1].extra.get("series"))]
     ov_acc = [o for o in getattr(plan, "overlays", []) if not o.get("ambient") and o.get("why") != "light_leak"]
     per10 = (len(accents) + len(ov_acc)) / max(plan.length, 1) * 10
-    allowed = budget["accents_per_10s"] * (taste.get("knobs", {}) or {}).get("accents_scale", 1.0)
+    scale = (taste.get("knobs", {}) or {}).get("accents_scale", 1.0)
+    allowed = budget["accents_per_10s"] * scale
     if per10 > allowed * 1.15:
         issues.append(f"too much eye candy: {per10:.1f} accents/10s (budget {allowed:.1f})")
-        fixes["accents_scale"] = round(allowed / per10 * 0.95, 2)
+        fixes["accents_scale"] = round(scale * allowed / per10 * 0.95, 2)   # down from the current knob, never up
     else:
         good.append(f"accent density ok ({per10:.1f}/10s)")
     run = best = 0
@@ -55,7 +56,7 @@ def review(video: Path, plan: Plan, out_dir: Path, base: str) -> dict:
         best = max(best, run)
     if best >= 3:
         issues.append(f"{best} shots in a row with effects — feels overdone")
-        fixes["accents_scale"] = min(fixes.get("accents_scale", 1.0), 0.8)
+        fixes["accents_scale"] = min(fixes.get("accents_scale", scale), scale * 0.8)
 
     # ---- ear candy: each SFX relative to the music around it
     t, m = _momentary(video)

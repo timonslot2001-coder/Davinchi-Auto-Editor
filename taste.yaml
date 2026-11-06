@@ -97,6 +97,12 @@ rules:
     enforced_by:
       - 'taste.yaml: accents_scale: 0.5'
       - 'autoedit/sfx.py: EXCLUDE_NAMES'
+  - id: clean_ending
+    said: "Dat einde is lame"   # 2026-11-06, Beef Tartaar: a hand blocking the plate under a pink light leak
+    rule: "the last shot is the best moment of the shoot's last clip, shown clean: no light leak over the ending"
+    enforced_by:
+      - 'styles.yaml: light_leak: false'
+      - 'autoedit/planner.py: best-scoring one in the second half of the clip'
   # Client work (e.g. JUICT, 2026-10-28) is not taste for your own videos: see docs/decisions/0010-client-films-stay-intact.md
 
 # numbers the director reads (effect strength itself: config.yaml → effects.intensity)

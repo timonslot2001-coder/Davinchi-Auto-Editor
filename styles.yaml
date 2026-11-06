@@ -114,7 +114,7 @@ cinematic:
   dip_to_black: true
   dip_chance: 0.5           # only in about half of the videos, so they don't all look the same
   dip_s: 0.33
-  light_leak: true          # orange film burn into the final hold
+  light_leak: false         # was true; 2026-11-06 "dat einde is lame": the pink haze hid the last shot
   whip_first_body: true
   frame_in_frame: 1         # shots shown as a 'photo' on a paper backdrop (refs A/B)
   bw_accents: 1             # black & white shots in the calmer parts (ref B)

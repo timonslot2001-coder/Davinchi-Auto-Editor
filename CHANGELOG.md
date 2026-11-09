@@ -4,6 +4,11 @@ What changed, in words you would notice in an edit or on the PC. Newest first. S
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
 ## 2026-11-09 — Make a JUICT video right in the Studio
+- **Maak video** on a werkinstructie: one click and your PC reads the PDF and makes the explainer from its steps (one
+  scene per step, the PDF's screenshots where it can, checked against the PDF before it is handed over). It shows up
+  under Video's and next to the instruction. The Promptgenerator is still there for when you want to steer it first.
+- Werkinstructies get a readable title from the file name (no "JUICT B.V." or export date), and uploading the same PDF
+  twice no longer makes a copy.
 - Under every prompt in the Promptgenerator there is now **Maak deze video**: give it a title (filled in from the
   prompt) and a series, and your PC makes the Motion film itself. It shows up under JUICT → Video's; no more copying
   the prompt into a separate Claude chat. *Kopiëren* still works. Needs the Studio session on the PC.

@@ -50,13 +50,13 @@ ACTIONS = ("plan", "grade", "goedkeuren", "preview", "render", "qa", "stills") +
 FILM_MAX = {"titel": 80, "serie": 60, "prompt": 6000}
 # keys allowed per action, besides actie and project (project required, except for the SSD actions)
 KEYS = {"grade": {"look", "strength", "exposure"}, "goedkeuren": {"plan", "grade", "notitie"},
-        "juict-film": {"titel", "serie", "prompt"},
+        "juict-film": {"titel", "serie", "prompt", "pdf", "doc"},
         "ssd-bekijk": {"map"}, "ssd-clip": {"map", "clip"}, "ssd-verplaats": {"naam", "soort", "mappen"},
         "ssd-edit": {"naam", "clips"}}
 SSD_REQUIRED = {"ssd-ververs": set(), "ssd-bekijk": {"map"}, "ssd-clip": {"map", "clip"},
                 "ssd-verplaats": {"naam", "soort", "mappen"}, "ssd-edit": {"naam", "clips"}}
 ALL_KEYS = {"actie", "project", "look", "strength", "exposure", "plan", "grade", "notitie", "map", "clip", "naam",
-            "soort", "mappen", "clips", "titel", "serie", "prompt"}
+            "soort", "mappen", "clips", "titel", "serie", "prompt", "pdf", "doc"}
 MAX_PICK = 60                                                    # clips per ssd-edit request (one comment)
 SOORTEN = ("koken", "kleding", "smoken", "reizen", "klanten", "inbox")
 DEFAULT_GRADE = ("reference_film", 1.0, -1.75)                   # engine gradechoice.Grade()
@@ -106,11 +106,16 @@ def _grade(work: Path) -> dict:
 # ---------------------------------------------------------------- request -> argv
 
 def _parse_film(req: dict) -> dict:
-    """actie=juict-film titel=".." serie=".." prompt="..": the prompt may have line breaks (it is the brief for the film);
-    titel and serie are one line. Nothing here runs: the session makes the Motion film from the prompt."""
+    """actie=juict-film titel=".." serie=".." [prompt=".."] [pdf=<asset id> doc=<juict_docs id>]: a film from the
+    Promptgenerator's prompt (may have line breaks) or straight from a werkinstructie PDF in the Studio's asset store.
+    titel and serie are one line. Nothing here runs: the session makes the Motion film."""
+    if "pdf" in req and not re.fullmatch(r"[0-9a-f]{8,64}", req["pdf"]):
+        raise ValueError("pdf moet de code van een geüploade werkinstructie zijn")
+    if "doc" in req and not re.fullmatch(r"[a-z0-9-]{1,40}", req["doc"]):
+        raise ValueError("onbekende werkinstructie")
     for key, n in FILM_MAX.items():
         v = req.get(key, "").strip()
-        if key != "serie" and not v:
+        if key == "titel" and not v or key == "prompt" and not v and "pdf" not in req:
             raise ValueError(f"{key} ontbreekt")
         if len(v) > n:
             raise ValueError(f"{key} is te lang (max {n} tekens)")
@@ -507,7 +512,7 @@ def cli(argv=None, spawn=None, host=None, poll: float = 1.0) -> int:
             act = req["actie"]
             fid = "film-" + hashlib.sha1(args.thread.encode()).hexdigest()[:10]   # juict_films/<id>: [a-z0-9-]
             _out({"ok": True, "action": act, "status": "klaar", "message": "film: maak hem van de prompt",
-                  "film": {"id": fid, **{k: req[k] for k in ("titel", "serie", "prompt")}}})
+                  "film": {"id": fid, **{k: req[k] for k in ("titel", "serie", "prompt", "pdf", "doc") if k in req}}})
             return 0
         act, name = req["actie"], req["project"]
         if act == "stills":                                      # quick and no engine job: answered right here

@@ -597,7 +597,15 @@ assert code == 1 and out["message"] == "al afgehandeld", out
 for bad in ('[studio] actie=juict-film titel="" prompt="x"', '[studio] actie=juict-film titel="a" prompt=""',
             '[studio] actie=juict-film titel="a\nb" prompt="x"', '[studio] actie=juict-film titel="a" serie="b\nc" prompt="x"',
             '[studio] actie=juict-film titel="a" prompt="x" project="Zomer Shoot"',
-            f'[studio] actie=juict-film titel="a" prompt="{"x" * 6001}"', '[studio] actie=juict-film titel="a" prompt="x\x07"'):
+            f'[studio] actie=juict-film titel="a" prompt="{"x" * 6001}"', '[studio] actie=juict-film titel="a" prompt="x\x07"',
+            '[studio] actie=juict-film titel="a" pdf=../x', '[studio] actie=juict-film titel="a" pdf=0123abcd doc=../x',
+            '[studio] actie=juict-film titel="a" doc=d-1'):
     raises(studio.parse, bad)
+r = studio.parse('[studio] actie=juict-film titel="Printix" serie="" pdf=0123456789abcdef0123456789abcdef doc=d-mh2x9k1')
+assert r["pdf"] == "0123456789abcdef0123456789abcdef" and r["doc"] == "d-mh2x9k1" and r["prompt"] == "", r
+ff2 = studio.INBOX / "jf-2.txt"
+ff2.write_text('[studio] actie=juict-film titel="Printix" pdf=0123456789abcdef0123456789abcdef doc=d-mh2x9k1\n', encoding="utf-8")
+code, out = cli(["--thread", "jf-2", "--text-file", str(ff2)], FakeHost())
+assert code == 0 and out["film"]["pdf"] == "0123456789abcdef0123456789abcdef" and out["film"]["doc"] == "d-mh2x9k1", out
 
 print("studio test OK")

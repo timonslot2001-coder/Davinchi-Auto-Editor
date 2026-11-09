@@ -97,7 +97,11 @@ const bad = [
   T("juict-film", "", { titel: "a", prompt: "   " }),
   T("juict-film", "", { titel: "a", prompt: "x".repeat(6001) }),
   T("juict-film", "", { titel: "a", prompt: "x\u0007" }),
+  T("juict-film", "", { titel: "a", pdf: "../x" }),
+  T("juict-film", "", { titel: "a", pdf: "0123abcd", doc: "D/1" }),
 ];
+check(T("juict-film", "", { titel: "Printix", serie: "Printix", pdf: "0123456789abcdef", doc: "d-mh2x9k1" }).text ===
+  '[studio] actie=juict-film titel="Printix" serie="Printix" pdf=0123456789abcdef doc=d-mh2x9k1', "juict-film from a PDF");
 bad.forEach((r, i) => check(r.error && !r.text, `bad request ${i} accepted: ${JSON.stringify(r)}`));
 
 const py = process.env.PYTHON;

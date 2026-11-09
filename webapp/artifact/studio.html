@@ -510,7 +510,8 @@ label.btn.up-btn { cursor: pointer; color: var(--on-accent); font-size: 13px; }
   background: #002345; color: #fff; border: 1px solid rgb(255 56 98 / .55); }
 .doc-t { display: flex; flex-direction: column; min-width: 0; }
 .doc-t b { font-weight: 600; font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.doc-card #dTitle { flex: 1; font-weight: 600; }
+.doc-card #dTitle { width: 100%; font-weight: 600; font-size: 15px; }
+.doc-card .pmake { border: 1px solid rgb(255 56 98 / .35); border-radius: var(--r-sm); }
 .pdf-frame { height: min(72vh, 900px); border-radius: 10px; overflow: auto; background: #2a2f3a; border: 1px solid var(--line2);
   display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 12px; }
 .pdf-page { width: 100%; height: auto; background: #fff; border-radius: 4px; box-shadow: 0 6px 20px rgb(0 0 0 / .4); }
@@ -954,13 +955,17 @@ body.nle-on #offline, body.nle-on #conn { margin: 0; border-radius: 0; }
     if (action === "juict-film") {                     // webapp/studio.py _parse_film: the PC session makes the Motion film
       const titel = String(extra.titel == null ? "" : extra.titel).trim(), serie = String(extra.serie == null ? "" : extra.serie).trim();
       const prompt = String(extra.prompt == null ? "" : extra.prompt).replace(/\r\n?/g, "\n").trim();
+      const pdf = String(extra.pdf || ""), doc = String(extra.doc || "");
       if (!titel) return { error: "geef de video een titel" };
       if (titel.length > 80 || CTRL_RE.test(titel)) return { error: "de titel is te lang (max 80 tekens, één regel)" };
       if (serie.length > 60 || CTRL_RE.test(serie)) return { error: "de serie is te lang (max 60 tekens, één regel)" };
-      if (!prompt) return { error: "er is nog geen prompt" };
+      if (pdf && !/^[0-9a-f]{8,64}$/.test(pdf)) return { error: "deze werkinstructie is niet goed geüpload: upload hem opnieuw" };
+      if (doc && !/^[a-z0-9-]{1,40}$/.test(doc)) return { error: "onbekende werkinstructie" };
+      if (!prompt && !pdf) return { error: "er is nog geen prompt" };
       if (prompt.length > 6000) return { error: "de prompt is te lang (max 6000 tekens): maak hem korter" };
       if (/[\u0000-\u0008\u000b-\u001f\u007f]/.test(prompt)) return { error: "de prompt bevat vreemde tekens" };
-      return { text: "[studio] actie=juict-film titel=" + quote(titel) + " serie=" + quote(serie) + " prompt=" + quote(prompt) };
+      return { text: "[studio] actie=juict-film titel=" + quote(titel) + " serie=" + quote(serie) +
+        (pdf ? " pdf=" + pdf : "") + (doc ? " doc=" + doc : "") + (prompt ? " prompt=" + quote(prompt) : "") };
     }
     if (action === "juict-montage") {
       // webapp/studio.py _parse_juict_montage: one Resolve timeline from fragments asset@start+dur, in order
@@ -1277,8 +1282,6 @@ function renderShell() {
       `<button class="ghost sm" id="pendClear">Begrepen</button>`;
     $("#pendClear").onclick = () => { S.pending = []; refresh(); };
   }
-  // Photos live only in the website (decision 0014): link to it. The Tailscale address works on the PC, the laptop and
-  // the phone alike, so it goes first; 127.0.0.1 only reaches the website on the PC itself.
   // Photos live only in the website (decision 0014): link to it. The Tailscale address works on the PC, the laptop and
   // the phone alike, so it goes first; 127.0.0.1 only reaches the website on the PC itself.
   const site = (u) => (typeof u === "string" && /^https?:\/\/[\w.\-]+(:\d{1,5})?\/?$/.test(u) ? u.replace(/\/$/, "") : "");
@@ -2089,12 +2092,21 @@ const DOC_MAX = 20 * 1024 * 1024;
 const fmtSize = (b) => (b >= 1048576 ? (b / 1048576).toFixed(1).replace(".", ",") + " MB" : Math.max(1, Math.round(b / 1024)) + " kB");
 function docList() {
   return [...S.jdocs.entries()].filter(([id]) => /^[a-z0-9-]{1,40}$/.test(id)).map(([id, d]) => ({
-    id, titel: str(d.titel).slice(0, 120) || str(d.name) || "Werkinstructie", name: str(d.name).slice(0, 160),
+    // a title nobody changed (still the old automatic one) is shown the new, readable way
+    id, titel: (str(d.titel) === oldDocTitle(str(d.name)) ? docTitle(str(d.name)) : str(d.titel).slice(0, 120)) || str(d.name) || "Werkinstructie",
+    name: str(d.name).slice(0, 160),
     ref: safeUrl(d.ref), asset: /^[0-9a-f]{8,64}$/.test(str(d.asset)) ? d.asset : "", size: +d.size || 0, at: d.at,
     video: str(d.video), serie: str(d.serie).slice(0, 60),
   })).filter((d) => d.ref).sort((a, b) => (toDate(b.at)?.getTime() || 0) - (toDate(a.at)?.getTime() || 0));
 }
-const docTitle = (name) => String(name).replace(/\.pdf$/i, "").replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 120) || "Werkinstructie";
+const oldDocTitle = (name) => String(name).replace(/\.pdf$/i, "").replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 120) || "Werkinstructie";
+const docTitle = (name) => {
+  let t = String(name).replace(/\.pdf$/i, "").replace(/_/g, " ");
+  t = t.replace(/^\s*JUICT(\s*B\.?\s*V\.?)?\s*[-–:]\s*/i, "")                        // company prefix
+    .replace(/\s*[-–]?\s*\d{4}-\d{2}-\d{2}([ T]\d{2}[.:]\d{2}([.:]\d{2})?)?\s*$/, "")   // export date at the end
+    .replace(/\s+/g, " ").trim();
+  return (t.charAt(0).toUpperCase() + t.slice(1)).slice(0, 120) || "Werkinstructie";
+};
 // PDF preview: pdf.js draws the pages on canvases (the viewer's sandbox shows no built-in PDF viewer in a frame).
 const PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
 let pdfjsP = null;
@@ -2145,6 +2157,8 @@ function docsView(openId) {
     for (const f of list) {
       if (!(/pdf$/i.test(f.type) || /\.pdf$/i.test(f.name))) { toast(f.name + ": geen PDF.", "err"); continue; }
       if (f.size > DOC_MAX) { toast(f.name + " is groter dan 20 MB.", "err"); continue; }
+      const same = docList().find((d) => d.name === f.name.slice(0, 160) && d.size === f.size);
+      if (same) { cur = same.id; toast(docTitle(f.name) + " staat er al.", "ok"); paint(true); continue; }
       busy++; paint(true);
       try {
         const blob = f.type === "application/pdf" ? f : new Blob([f], { type: "application/pdf" });
@@ -2183,9 +2197,12 @@ function docsView(openId) {
     if (!d) { box.innerHTML = docs.length ? '<div class="empty">Kies links een werkinstructie.</div>' : ""; return; }
     const vids = juictVideos();
     box.innerHTML = `<div class="card stack doc-card">
-      <div class="row"><input type="text" id="dTitle" maxlength="120" value="${esc(d.titel)}" aria-label="Titel"${canEdit() ? "" : " readonly"}>
-        <button class="sm" id="dPrompt" title="Open de promptgenerator met deze werkinstructie">Video-prompt maken</button>
-        <button class="ghost sm" id="dSave" title="PDF op je computer opslaan">Downloaden</button></div>
+      <input type="text" id="dTitle" maxlength="120" value="${esc(d.titel)}" aria-label="Titel"${canEdit() ? "" : " readonly"}>
+      <div class="row"><button class="sm" id="dMake" title="Je PC maakt de video van deze werkinstructie">Maak video</button>
+        <button class="ghost sm" id="dPrompt" title="Eerst zelf de prompt bijsturen in de promptgenerator">Via promptgenerator</button>
+        <button class="ghost sm" id="dSave" title="PDF op je computer opslaan">Downloaden</button>
+        <span class="spacer"></span>${d.video && juictVideo(d.video) ? `<a class="tag ok" href="#/juict/${enc(d.video)}">video: ${esc(fullTitle(juictVideo(d.video)))} →</a>` : ""}</div>
+      <div class="pmake" id="dMakeBox" hidden></div>
       <div class="row small muted"><span>${esc(d.name)}</span><span>·</span><span>${esc(fmtSize(d.size))}</span><span class="spacer"></span>
         ${canEdit() ? `<label class="row" style="gap:6px;flex-direction:row;align-items:center">Hoort bij <select id="dVideo"><option value="">geen video</option>${vids.map((x) => `<option value="${esc(x.id)}"${x.id === d.video ? " selected" : ""}>${esc(fullTitle(x))}</option>`).join("")}</select></label>
           <button class="ghost sm" id="dDel">Verwijderen</button>` : ""}</div>
@@ -2204,6 +2221,36 @@ function docsView(openId) {
         await dl.save({ filename: name, data: blob });
       } catch (err) { if (!(err && err.code === "cancelled")) toast("Downloaden mislukt (" + (err && err.code || "fout") + ").", "err"); }
       finally { btn.disabled = false; }
+    };
+    $("#dMake", box).onclick = () => {
+      const f = $("#dMakeBox", box);
+      if (!f.hidden) { f.hidden = true; return; }
+      const series = [...new Set(juictVideos().map((x) => serieName(x.serie)).filter(Boolean))];
+      f.innerHTML = `<div class="pmake-row"><label>Titel van de video<input type="text" class="mk-t" maxlength="80" autocomplete="off"></label>
+          <label>Serie<input type="text" class="mk-s" maxlength="60" autocomplete="off" list="dSeries" placeholder="Losse video's"><datalist id="dSeries">${series.map((x) => `<option value="${esc(x)}">`).join("")}</datalist></label></div>
+        <div class="row"><button class="sm mk-go">Maak video</button><button class="ghost sm mk-no">Annuleren</button></div>
+        <div class="why mk-why"></div>`;
+      f.hidden = false;
+      const t = $(".mk-t", f), sr = $(".mk-s", f), why = $(".mk-why", f), go = $(".mk-go", f);
+      t.value = (d.titel.split(/\s*[-–]\s*/)[0] || d.titel).slice(0, 80); sr.value = d.serie || "";
+      const req = () => requestText("juict-film", "", { titel: t.value, serie: sr.value, pdf: d.asset, doc: d.id });
+      const check = () => {
+        const r = req();
+        why.textContent = !online() ? offlineReason() : r.error ||
+          "Je PC leest deze PDF en maakt er een uitlegvideo van in JUICT-stijl (een paar minuten). Hij komt bij Video's te staan en hoort daarna bij deze instructie.";
+        why.className = "why mk-why" + (!online() || r.error ? " warn" : "");
+        go.disabled = !online() || !!r.error;
+        return r;
+      };
+      t.oninput = check; sr.oninput = check;
+      $(".mk-no", f).onclick = () => { f.hidden = true; };
+      go.onclick = async () => {
+        const r = check();
+        if (r.error) return toast(r.error, "err");
+        if (await sendText(go, "juict-film", r.text))
+          f.innerHTML = '<div class="why">Verstuurd. Je PC maakt de video; volg het onder Instellingen → Activiteit. Klaar? Dan staat hij bij <a href="#/juict">Video\'s</a>.</div>';
+      };
+      check(); t.focus();
     };
     $("#dPrompt", box).onclick = () => {
       S.promptSeed = "Ik wil een uitlegvideo in JUICT-stijl maken op basis van de werkinstructie “" + d.titel + "”" +

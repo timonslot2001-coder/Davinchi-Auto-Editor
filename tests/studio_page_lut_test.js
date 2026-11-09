@@ -66,6 +66,8 @@ const exact = [
     '[studio] actie=ssd-verplaats naam="Ibiza" soort=reizen mappen="_Inbox/2026-10-09 SD-kaart|_Inbox/2026-10-10 SD-kaart"'],
   [T("ssd-edit", "", { name: " Kort ", clips: ["Smoken/2026-07-25 Smoke Sesh/C0184.MP4", "Reizen/2025-08-11 Mongolië/C0203.MP4"] }),
     '[studio] actie=ssd-edit naam="Kort" clips="Smoken/2026-07-25 Smoke Sesh/C0184.MP4|Reizen/2025-08-11 Mongolië/C0203.MP4"'],
+  [T("juict-film", "", { titel: " Printix: aanmelden ", serie: "", prompt: 'Maak een video.\r\n1. Titel (4 sec): "Printix"\n2. Stap \\ 1' }),
+    '[studio] actie=juict-film titel="Printix: aanmelden" serie="" prompt="Maak een video.\n1. Titel (4 sec): \\"Printix\\"\n2. Stap \\\\ 1"'],
 ];
 for (const [got, want] of exact) check(got.text === want, `request ${JSON.stringify(got)} != ${want}`);
 const bad = [
@@ -90,6 +92,11 @@ const bad = [
   T("ssd-verplaats", "", { name: "Ibiza", soort: "vakantie", maps: ["_Inbox/x"] }),
   T("ssd-verplaats", "", { name: "Ibiza", soort: "reizen", maps: [] }),
   T("ssd-verplaats", "", { name: "Ibiza", soort: "reizen", maps: ['_Inbox/x" naam="y'] }),
+  T("juict-film", "", { titel: "", prompt: "x" }),
+  T("juict-film", "", { titel: "a\nb", prompt: "x" }),
+  T("juict-film", "", { titel: "a", prompt: "   " }),
+  T("juict-film", "", { titel: "a", prompt: "x".repeat(6001) }),
+  T("juict-film", "", { titel: "a", prompt: "x\u0007" }),
 ];
 bad.forEach((r, i) => check(r.error && !r.text, `bad request ${i} accepted: ${JSON.stringify(r)}`));
 
@@ -106,6 +113,9 @@ if (py) {
     check(parsed[3].look === "moody" && parsed[3].project === "Porto 2026", "grade round trip");
     check(parsed[8].clip === "C0203.MP4" && parsed[8].map === "Reizen/2025-08-11 Mongolië", "ssd-clip round trip");
     check(parsed[9].mappen.length === 2 && parsed[9].naam === "Ibiza" && parsed[9].soort === "reizen", "ssd-verplaats round trip");
+    const film = parsed[parsed.length - 1];
+    check(film.titel === "Printix: aanmelden" && film.serie === "Losse video's" &&
+      film.prompt === 'Maak een video.\n1. Titel (4 sec): "Printix"\n2. Stap \\ 1', "juict-film round trip: " + JSON.stringify(film));
     console.log("python parse: " + parsed.length + " request texts accepted");
   }
 } else {

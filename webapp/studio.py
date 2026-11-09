@@ -44,15 +44,19 @@ MAX_UPLOAD = 20 * 1024 * 1024                                  # Artifact asset 
 THREAD = re.compile(r"[A-Za-z0-9_-]{1,100}")
 KEEP = 500
 SSD_ACTIONS = ("ssd-ververs", "ssd-bekijk", "ssd-clip", "ssd-verplaats", "ssd-edit")
-ACTIONS = ("plan", "grade", "goedkeuren", "preview", "render", "qa", "stills") + SSD_ACTIONS
+FILM_ACTIONS = ("juict-film",)                                   # JUICT explainer: the session makes a Motion film
+NO_PROJECT = SSD_ACTIONS + FILM_ACTIONS
+ACTIONS = ("plan", "grade", "goedkeuren", "preview", "render", "qa", "stills") + NO_PROJECT
+FILM_MAX = {"titel": 80, "serie": 60, "prompt": 6000}
 # keys allowed per action, besides actie and project (project required, except for the SSD actions)
 KEYS = {"grade": {"look", "strength", "exposure"}, "goedkeuren": {"plan", "grade", "notitie"},
+        "juict-film": {"titel", "serie", "prompt"},
         "ssd-bekijk": {"map"}, "ssd-clip": {"map", "clip"}, "ssd-verplaats": {"naam", "soort", "mappen"},
         "ssd-edit": {"naam", "clips"}}
 SSD_REQUIRED = {"ssd-ververs": set(), "ssd-bekijk": {"map"}, "ssd-clip": {"map", "clip"},
                 "ssd-verplaats": {"naam", "soort", "mappen"}, "ssd-edit": {"naam", "clips"}}
 ALL_KEYS = {"actie", "project", "look", "strength", "exposure", "plan", "grade", "notitie", "map", "clip", "naam",
-            "soort", "mappen", "clips"}
+            "soort", "mappen", "clips", "titel", "serie", "prompt"}
 MAX_PICK = 60                                                    # clips per ssd-edit request (one comment)
 SOORTEN = ("koken", "kleding", "smoken", "reizen", "klanten", "inbox")
 DEFAULT_GRADE = ("reference_film", 1.0, -1.75)                   # engine gradechoice.Grade()
@@ -101,6 +105,23 @@ def _grade(work: Path) -> dict:
 
 # ---------------------------------------------------------------- request -> argv
 
+def _parse_film(req: dict) -> dict:
+    """actie=juict-film titel=".." serie=".." prompt="..": the prompt may have line breaks (it is the brief for the film);
+    titel and serie are one line. Nothing here runs: the session makes the Motion film from the prompt."""
+    for key, n in FILM_MAX.items():
+        v = req.get(key, "").strip()
+        if key != "serie" and not v:
+            raise ValueError(f"{key} ontbreekt")
+        if len(v) > n:
+            raise ValueError(f"{key} is te lang (max {n} tekens)")
+        bad = "\0\r" if key == "prompt" else "\0\r\n"
+        if any(c in v for c in bad) or any(ord(c) < 32 and c not in "\n\t" for c in v):
+            raise ValueError(f"{key} bevat tekens die niet mogen" + ("" if key == "prompt" else " (één regel)"))
+        req[key] = v
+    req["serie"] = req["serie"] or "Losse video's"
+    return req
+
+
 def parse(text: str) -> dict:
     text = (text or "").strip()
     if not text.startswith("[studio]"):
@@ -122,11 +143,13 @@ def parse(text: str) -> dict:
     act = req.get("actie")
     if act not in ACTIONS:
         raise ValueError(f"onbekende actie: {str(act)[:40]!r} (kies uit {', '.join(ACTIONS)})")
-    extra = set(req) - ({"actie"} if act in SSD_ACTIONS else {"actie", "project"}) - KEYS.get(act, set())
+    extra = set(req) - ({"actie"} if act in NO_PROJECT else {"actie", "project"}) - KEYS.get(act, set())
     if extra:
         raise ValueError(f"onbekende sleutel voor {act}: {', '.join(sorted(extra))}")
     if act in SSD_ACTIONS:
         return _parse_ssd(req)
+    if act in FILM_ACTIONS:
+        return _parse_film(req)
     if "project" not in req:
         raise ValueError("project ontbreekt")
     try:
@@ -480,6 +503,12 @@ def cli(argv=None, spawn=None, host=None, poll: float = 1.0) -> int:
         if req["actie"] in SSD_ACTIONS:
             act = req["actie"]
             return _ssd(req, host, poll)
+        if req["actie"] in FILM_ACTIONS:                         # checked here; the session makes the film itself
+            act = req["actie"]
+            fid = "film-" + hashlib.sha1(args.thread.encode()).hexdigest()[:10]   # juict_films/<id>: [a-z0-9-]
+            _out({"ok": True, "action": act, "status": "klaar", "message": "film: maak hem van de prompt",
+                  "film": {"id": fid, **{k: req[k] for k in ("titel", "serie", "prompt")}}})
+            return 0
         act, name = req["actie"], req["project"]
         if act == "stills":                                      # quick and no engine job: answered right here
             return _stills(name)

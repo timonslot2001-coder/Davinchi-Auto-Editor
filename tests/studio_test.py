@@ -583,4 +583,21 @@ n = len(h.runs)
 with studio.file_lock(studio.LOCK):                                 # never repoint clips while an engine job runs
     code, out = cli(["--thread", "s-10", '[studio] actie=ssd-edit naam="Kort" clips="_Inbox/2026-10-09 SD-kaart/C0202.MP4"'], h)
 assert code == 1 and "bezig" in out["message"] and len(h.runs) == n, out
+# ---- JUICT film from the Promptgenerator: checked here, made by the session (no engine, no worker)
+ff = studio.INBOX / "jf-1.txt"
+ff.write_text('[studio] actie=juict-film titel="Printix: aanmelden" serie="" prompt="Maak een uitlegvideo.\n'
+              '1. Titel (4 sec): \\"Printix\\"\n2. Stap 1 (8 sec)"\n', encoding="utf-8")
+code, out = cli(["--thread", "jf-1", "--text-file", str(ff)], FakeHost())
+assert code == 0 and out["action"] == "juict-film" and out["status"] == "klaar", out
+assert out["film"].pop("id") == "film-" + hashlib.sha1(b"jf-1").hexdigest()[:10], out
+assert out["film"] == {"titel": "Printix: aanmelden", "serie": "Losse video's",
+                       "prompt": 'Maak een uitlegvideo.\n1. Titel (4 sec): "Printix"\n2. Stap 1 (8 sec)'}, out
+code, out = cli(["--thread", "jf-1", "--text-file", str(ff)], FakeHost())
+assert code == 1 and out["message"] == "al afgehandeld", out
+for bad in ('[studio] actie=juict-film titel="" prompt="x"', '[studio] actie=juict-film titel="a" prompt=""',
+            '[studio] actie=juict-film titel="a\nb" prompt="x"', '[studio] actie=juict-film titel="a" serie="b\nc" prompt="x"',
+            '[studio] actie=juict-film titel="a" prompt="x" project="Zomer Shoot"',
+            f'[studio] actie=juict-film titel="a" prompt="{"x" * 6001}"', '[studio] actie=juict-film titel="a" prompt="x\x07"'):
+    raises(studio.parse, bad)
+
 print("studio test OK")

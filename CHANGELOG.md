@@ -3,6 +3,13 @@
 What changed, in words you would notice in an edit or on the PC. Newest first. Small fixes are folded into the day's
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
+## 2026-11-09 — The Studio session runs by itself
+- No more starting `start-studio-sessie.bat` by hand: run `powershell -ExecutionPolicy Bypass -File setup\autostart-studio.ps1`
+  once and it starts when you log in to Windows (minimised). When the session stops it comes back by itself after 15 s;
+  close its window to really stop it.
+- It keeps itself up to date: it gets the newest code at every start and again before each Studio request, so after a
+  merge you no longer pull or restart anything.
+
 ## 2026-11-09 — Make a JUICT video right in the Studio
 - **Maak video** on a werkinstructie: one click and your PC reads the PDF and makes the explainer from its steps (one
   scene per step, the PDF's screenshots where it can, checked against the PDF before it is handed over). It shows up

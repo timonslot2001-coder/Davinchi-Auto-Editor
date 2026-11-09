@@ -343,7 +343,7 @@ nav a i svg { width: 16px; height: 16px; display: block; fill: none; stroke: cur
 .led.klaar { background: var(--ok); box-shadow: 0 0 8px rgb(var(--ok-rgb) / .8); }
 .led.bezig { background: var(--warn); box-shadow: 0 0 8px rgb(var(--warn-rgb) / .9); animation: blink 1.4s ease-in-out infinite; }
 .led.fout { background: var(--fail); box-shadow: 0 0 8px rgb(var(--fail-rgb) / .8); }
-@media (min-width: 901px) { main .jobs, main .jobmsg { display: none !important; } }
+main .jobs, main .jobmsg { display: none !important; }   /* activity lives under Instellingen */
 
 /* home: what waits on Timon, before the project grid */
 .todo { margin-bottom: 26px; }
@@ -402,6 +402,389 @@ nav a i svg { width: 16px; height: 16px; display: block; fill: none; stroke: cur
   .todo-row { grid-template-columns: auto minmax(0, 1fr) auto; }
   .todo-row .go { grid-column: 3; grid-row: 1; } .todo-row .what { grid-column: 2 / 4; grid-row: 2; white-space: normal; }
   .specs b { font-size: 16px; } }
+/* JUICT: explainer films (Motion), made by the PC session; JUICT pink marks the section */
+.nav-juict { gap: 4px; }
+.side-h.juict { display: flex; align-items: center; gap: 7px; width: 100%; background: none; border: 0; box-shadow: none; border-radius: 6px;
+  padding: 4px 11px 7px; color: var(--dim); font: 500 10px/1.3 var(--mono); text-transform: uppercase; letter-spacing: .16em; cursor: pointer; }
+.side-h.juict:hover:not(:disabled) { filter: none; box-shadow: none; color: var(--text); }
+.side-h.juict .chev { margin-left: auto; }
+.side-h.juict[aria-expanded="false"] .chev { transform: rotate(-45deg); margin-bottom: 0; }
+.juict-sub { display: flex; flex-direction: column; gap: 4px; }
+.juict-sub[hidden] { display: none !important; }
+.chev { display: inline-block; width: 7px; height: 7px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg); margin: 0 4px 3px 2px; transition: transform .15s; flex: none; }
+.serie.closed .serie-t .chev, .fold.closed .fold-h .chev { transform: rotate(-45deg); margin-bottom: 0; }
+.serie-t { display: inline-flex; align-items: center; gap: 8px; }
+.serie.closed .serie-h { margin-bottom: 0; }
+.serie.closed + .serie { margin-top: 14px; }
+.fold-h { display: flex; align-items: center; gap: 8px; width: 100%; background: none; border: 0; box-shadow: none; padding: 0; color: var(--muted);
+  font: 500 11px/1.3 var(--mono); text-transform: uppercase; letter-spacing: .16em; margin-bottom: 14px; }
+.fold-h:hover:not(:disabled) { filter: none; box-shadow: none; color: var(--text); }
+.fold-h .fold-t { display: flex; align-items: center; gap: 8px; }
+.fold-h .fold-t::before { content: ""; width: 6px; height: 6px; border-radius: 2px; background: var(--a1); box-shadow: 0 0 10px rgb(var(--a1-rgb) / .8); }
+.fold-h .chev { margin-left: auto; }
+.fold.closed .fold-h { margin-bottom: 0; }
+.cols-juict.chat-closed { grid-template-columns: minmax(0, 1fr) minmax(0, 260px); }
+.side-h.juict::before { content: ""; width: 6px; height: 6px; border-radius: 2px; background: #ff3862; box-shadow: 0 0 8px rgb(255 56 98 / .8); }
+textarea { background: rgb(0 0 0 / .35); color: var(--text); border: 1px solid var(--line2); border-radius: var(--r-sm);
+  padding: 10px 12px; font: inherit; width: 100%; min-width: 0; resize: vertical; min-height: 130px; line-height: 1.5; }
+textarea::placeholder { color: var(--dim); }
+textarea:focus { outline: none; border-color: var(--a1); box-shadow: 0 0 0 3px rgb(var(--a1-rgb) / .18); }
+.cols-juict { grid-template-columns: minmax(0, 1fr) minmax(300px, 380px); align-items: start; }
+@media (max-width: 1150px) { .cols-juict, .cols-juict.chat-closed { grid-template-columns: minmax(0, 1fr); } .side-chat { position: static; } }
+.fmenu { position: fixed; inset: 0; z-index: 40; background: rgb(3 6 12 / .62); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  display: grid; place-items: center; padding: 16px; animation: fin .16s ease-out; }
+@keyframes fin { from { opacity: 0; } }
+.fmenu-panel { width: min(460px, 100%); max-height: calc(100vh - 32px); overflow: auto; background: var(--panel-solid); border: 1px solid var(--line2);
+  border-radius: 16px; padding: 16px; box-shadow: 0 30px 80px -20px #000, 0 0 0 1px rgb(255 56 98 / .15); }
+.fm-title { font: 600 18px/1.2 var(--display); }
+.fm-list { display: flex; flex-direction: column; gap: 2px; margin: 8px 0 12px; }
+.fm-item { display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: var(--r-sm); min-width: 0; }
+.fm-item:hover, .fm-item:focus-visible { background: var(--panel2); }
+.fm-item.on { background: rgb(var(--a1-rgb) / .08); }
+.fm-n { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 7px; flex: none; background: #002345; color: #fff;
+  font: 600 11.5px var(--mono); border: 1px solid rgb(255 56 98 / .55); }
+.fm-item .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.fm-item .t { font: 11px var(--mono); color: var(--dim); }
+.fm-main { display: block; text-align: center; padding: 10px; border-radius: var(--r-sm); border: 1px dashed var(--line2); color: var(--muted); font-size: 13px; }
+.fm-main:hover { color: var(--a1); border-color: rgb(var(--a1-rgb) / .5); }
+.poster-n { font: 600 12px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: #fbaf1f; }
+.poster-t { font: 600 clamp(20px, 3.4vw, 32px)/1.1 var(--display); }
+.nomp4 { display: flex; flex-direction: column; gap: 8px; aspect-ratio: 16/9; justify-content: center; padding: 26px; border-radius: 12px; color: #fff;
+  background: radial-gradient(600px 300px at 85% 10%, rgb(255 56 98 / .2), transparent 60%), #002345; box-shadow: 0 0 0 1px var(--line2); }
+.nomp4 ol { margin: 6px 0 0; padding-left: 20px; display: grid; gap: 8px; font-size: 14px; }
+.nomp4 a { color: #fbaf1f; text-decoration: underline; }
+.serie + .serie { margin-top: 26px; }
+.serie-h { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.serie-t { background: none; border: 0; box-shadow: none; padding: 0; color: var(--text); font: 600 18px/1.2 var(--display); }
+.serie-t span { color: rgb(var(--acc-rgb, 255 56 98)); font-size: 13px; }
+.serie-t:hover:not(:disabled) { filter: none; box-shadow: none; color: var(--a1); }
+.vgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.vcard { display: flex; flex-direction: column; border-radius: var(--r); overflow: hidden; background: var(--panel); border: 1px solid var(--line);
+  transition: transform .16s, border-color .16s, box-shadow .16s; min-width: 0; }
+.vcard:hover { transform: translateY(-3px); border-color: rgb(var(--acc-rgb, 255 56 98) / .5); box-shadow: 0 18px 40px -20px rgb(var(--acc-rgb, 255 56 98) / .5); }
+.vthumb { position: relative; aspect-ratio: 16/9; background: radial-gradient(260px 140px at 85% 0%, rgb(var(--acc-rgb, 255 56 98) / .25), transparent 65%), var(--acc-ground, #002345);
+  display: grid; place-items: center; overflow: hidden; }
+.vthumb video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 0; pointer-events: none; }
+.vt-n { font: 600 13px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--acc-2, #fbaf1f); }
+.vt-play { position: absolute; right: 10px; bottom: 10px; width: 30px; height: 30px; border-radius: 50%; background: rgb(var(--acc-rgb, 255 56 98)); box-shadow: 0 0 16px rgb(var(--acc-rgb, 255 56 98) / .7); }
+.vt-play::after { content: ""; position: absolute; left: 12px; top: 9px; border-left: 9px solid #fff; border-top: 6px solid transparent; border-bottom: 6px solid transparent; }
+.vt-d { position: absolute; left: 8px; bottom: 8px; font: 600 10px var(--mono); background: rgb(0 0 0 / .55); color: #fff; border-radius: 4px; padding: 1px 6px; }
+.vbody { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 7px; }
+.vname { font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.add-grid { display: grid; grid-template-columns: 2fr 1.4fr 1fr; gap: 12px; }
+.side-chat { position: sticky; top: 16px; }
+.vcard { position: relative; }
+.vadd { position: absolute; top: 8px; right: 8px; z-index: 2; width: 28px; height: 28px; padding: 0; border-radius: 8px; font: 600 17px/1 var(--font);
+  background: rgb(0 0 0 / .55); color: #fff; border: 1px solid rgb(255 255 255 / .25); box-shadow: none; opacity: 0; transition: opacity .15s; }
+.vcard:hover .vadd, .vcard:focus-within .vadd { opacity: 1; }
+@media (hover: none) { .vadd { opacity: 1; } }
+.vadd:hover:not(:disabled) { background: #ff3862; filter: none; box-shadow: none; }
+.vcard[draggable] { cursor: grab; }
+.mont-list { display: flex; flex-direction: column; gap: 6px; max-height: min(56vh, 540px); overflow-y: auto; }
+.mrow { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: var(--r-sm); background: var(--panel2); border: 1px solid var(--line);
+  position: relative; cursor: grab; min-width: 0; }
+.mrow.no-mp4 { border-style: dashed; opacity: .85; }
+.mrow.gone { opacity: .6; }
+.mrow.drop-before::before { content: ""; position: absolute; left: 0; right: 0; top: -5px; height: 2px; background: #ff3862; border-radius: 2px; box-shadow: 0 0 8px rgb(255 56 98 / .8); }
+.grip { color: var(--dim); font-size: 11px; letter-spacing: -2px; }
+.mi { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; flex: none; background: #002345; color: #fff; font: 600 10.5px var(--mono); border: 1px solid rgb(255 56 98 / .5); }
+.mtxt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.mtxt .nm { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mtxt select { padding: 4px 8px; font-size: 12px; max-width: 100%; }
+.mrow button.sm { padding: 4px 8px; }
+.mdrop { padding: 12px; text-align: center; font-size: 12.5px; color: var(--dim); border: 1.5px dashed var(--line2); border-radius: var(--r-sm); }
+.mdrop.empty-drop { padding: 34px 12px; }
+.mdrop.on, body.dragging .mdrop { border-color: rgb(255 56 98 / .6); color: var(--text); background: rgb(255 56 98 / .06); }
+.mont-foot { margin-top: 10px; flex-wrap: wrap; }
+label.btn.up-btn { cursor: pointer; color: var(--on-accent); font-size: 13px; }
+.drop-pdf { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 18px; border: 1.5px dashed var(--line2); border-radius: var(--r);
+  background: rgb(var(--grid-rgb) / .025); transition: border-color .15s, background .15s; }
+.drop-pdf.on { border-color: #ff3862; background: rgb(255 56 98 / .07); }
+.docs-grid { grid-template-columns: minmax(0, 340px) minmax(0, 1fr); align-items: start; }
+.doc-list { display: flex; flex-direction: column; gap: 4px; max-height: calc(100vh - 300px); overflow: auto; }
+.doc-row { display: flex; gap: 10px; align-items: center; padding: 9px 10px; border-radius: var(--r-sm); border: 1px solid transparent; min-width: 0; }
+.doc-row:hover { background: var(--panel2); }
+.doc-row.on { background: rgb(255 56 98 / .08); border-color: rgb(255 56 98 / .35); }
+.doc-ic { flex: none; width: 34px; height: 42px; border-radius: 5px; display: grid; place-items: center; font: 700 9.5px var(--mono);
+  background: #002345; color: #fff; border: 1px solid rgb(255 56 98 / .55); }
+.doc-t { display: flex; flex-direction: column; min-width: 0; }
+.doc-t b { font-weight: 600; font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.doc-card #dTitle { flex: 1; font-weight: 600; }
+.pdf-frame { height: min(72vh, 900px); border-radius: 10px; overflow: auto; background: #2a2f3a; border: 1px solid var(--line2);
+  display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 12px; }
+.pdf-page { width: 100%; height: auto; background: #fff; border-radius: 4px; box-shadow: 0 6px 20px rgb(0 0 0 / .4); }
+label.btn { display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, var(--a1), var(--a2));
+  color: var(--on-accent); border-radius: var(--r-sm); padding: 8px 14px; font-weight: 600; font-size: 13px; white-space: nowrap; flex-direction: row;
+  box-shadow: 0 10px 26px -12px rgb(var(--a1-rgb) / .8); }
+@media (max-width: 900px) { .docs-grid { grid-template-columns: minmax(0, 1fr); } .doc-list { max-height: none; } .pdf-frame { height: 60vh; } }
+.mrow.playing { border-color: #ff3862; box-shadow: 0 0 0 1px rgb(255 56 98 / .5); }
+.mprev { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+.mprev video { aspect-ratio: 16/9; }
+.scene { position: relative; cursor: pointer; transition: border-color .15s, background .15s; }
+.scene:hover, .scene:focus-visible { border-color: rgb(var(--a1-rgb) / .45); outline: none; }
+.scene.now { border-color: #ff3862; background: rgb(255 56 98 / .1); }
+.scene-add { position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; padding: 0; border-radius: 6px; font: 600 13px/1 var(--font);
+  background: rgb(0 0 0 / .4); color: #fff; border: 1px solid var(--line2); box-shadow: none; opacity: 0; }
+.scene:hover .scene-add, .scene:focus-within .scene-add { opacity: 1; }
+@media (hover: none) { .scene-add { opacity: 1; } }
+.scene-add:hover:not(:disabled) { background: #ff3862; filter: none; box-shadow: none; }
+.keys { font: 10.5px var(--mono); color: var(--dim); margin-left: 10px; }
+@media (max-width: 700px) { .keys { display: none; } }
+#offline .ghost.sm { margin-left: auto; }
+.own { --acc-rgb: 255 138 31; --acc-2: #ffffff; --acc-ground: #17120d; }
+.vthumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.vthumb img.log { filter: contrast(1.3) saturate(1.35) brightness(.9); }
+.own .serie-t .chev { color: rgb(var(--acc-rgb)); }
+.own .tag.acc { color: rgb(var(--acc-rgb)); border-color: rgb(var(--acc-rgb) / .4); background: rgb(var(--acc-rgb) / .08); }
+.own .progress i.next { background: rgb(var(--acc-rgb)); box-shadow: 0 0 10px rgb(var(--acc-rgb) / .9); }
+.own .progress i.done { background: #fff; box-shadow: 0 0 8px rgb(255 255 255 / .5); }
+.own .vbody .progress { margin-top: 0; }
+.prompt-page { max-width: 820px; }
+.prompt-page .chat-log { max-height: calc(100vh - 330px); min-height: 280px; }
+.vplayer video { aspect-ratio: 16/9; }
+.tag.up { cursor: pointer; color: var(--a1); border-color: rgb(var(--a1-rgb) / .35); }
+.tag.up.busy { opacity: .5; cursor: progress; }
+.scenes { display: flex; gap: 4px; min-width: 0; }
+.scene { min-width: 0; display: flex; flex-direction: column; gap: 2px; padding: 8px; border-radius: 8px; background: var(--panel2); border: 1px solid var(--line); }
+.scene b { font: 600 10.5px var(--mono); color: #ff3862; } .scene span { font-size: 12px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.scene i { font: 10.5px var(--mono); color: var(--dim); font-style: normal; }
+.chat { display: flex; flex-direction: column; gap: 10px; }
+.chat-log { display: flex; flex-direction: column; gap: 10px; max-height: min(58vh, 560px); min-height: 160px; overflow-y: auto; padding-right: 2px; }
+.chat-intro { color: var(--muted); font-size: 13px; padding: 12px; border: 1px dashed var(--line2); border-radius: var(--r-sm); }
+.msg { max-width: 92%; padding: 9px 12px; border-radius: 12px; font-size: 13.5px; overflow-wrap: anywhere; }
+.msg.me { align-self: flex-end; background: rgb(var(--a1-rgb) / .12); border: 1px solid rgb(var(--a1-rgb) / .25); border-bottom-right-radius: 4px; }
+.msg.ai { align-self: flex-start; background: var(--panel2); border: 1px solid var(--line); border-bottom-left-radius: 4px; width: 92%; }
+.msg p { margin: 0 0 6px; } .msg p:last-child { margin: 0; }
+.thinking { color: var(--muted); font-family: var(--mono); font-size: 12px; animation: blink 1.4s ease-in-out infinite; }
+code.ic { font: 12px var(--mono); background: rgb(0 0 0 / .3); border-radius: 4px; padding: 0 4px; }
+.pbox { margin: 6px 0; border: 1px solid rgb(255 56 98 / .4); border-radius: 10px; overflow: hidden; background: rgb(0 0 0 / .35); }
+.pbox-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 8px 6px 12px; border-bottom: 1px solid var(--line);
+  font: 600 10.5px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: #ff3862; }
+.pbox pre { margin: 0; padding: 10px 12px; font: 12.5px/1.55 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; max-height: 360px; overflow: auto; }
+.chat-chips { display: flex; flex-wrap: wrap; gap: 6px; } .chat-chips:empty { display: none; }
+.chip-s { background: var(--panel2); color: var(--text); border: 1px solid var(--line2); font: 500 12.5px var(--font); padding: 6px 11px; border-radius: 999px; box-shadow: none; }
+.chip-s:hover:not(:disabled) { filter: none; border-color: rgb(var(--a1-rgb) / .5); box-shadow: none; }
+.chat-in { display: flex; gap: 8px; align-items: flex-end; }
+.chat-in textarea { min-height: 42px; max-height: 180px; resize: none; padding: 10px 12px; }
+.chat-foot { display: flex; align-items: center; gap: 8px; } .chat-foot .why { color: var(--warn); }
+@media (max-width: 600px) { .add-grid { grid-template-columns: 1fr; } .vgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .scenes { flex-wrap: wrap; } .scene { flex: 1 1 30% !important; } }
+@media (max-width: 900px) { .cols-juict { grid-template-columns: minmax(0, 1fr); } .side-chat { position: static; } .side-h.juict { display: none; } .nav-juict, .juict-sub { flex-direction: row; } .juict-sub[hidden] { display: flex !important; } }
+/* ---- editor in the layout of DaVinci Resolve's Edit page: neutral greys, blue video clips, green audio, red playhead */
+body.nle-on .side { display: none; }
+body.nle-on .shell { grid-template-columns: minmax(0, 1fr); }
+body.nle-on main { padding: 0; max-width: none; height: 100vh; display: flex; flex-direction: column; }
+body.nle-on #view { flex: 1 1 auto; min-height: 0; }
+body.nle-on .atmo { display: none; }
+body.nle-on #offline, body.nle-on #conn { margin: 0; border-radius: 0; }
+.nle { --n0: #161618; --n1: #1e1e21; --n2: #252528; --n3: #2e2e32; --n4: #3a3a3f; --nt: #d4d4d8; --nd: #8d8d95; --nl: #0e0e10;
+  --vclip: #4a74b0; --vclip2: #3a5f94; --aclip: #3f8a56; --ph: #e8483b; --sel: #f2a33a;
+  display: flex; flex-direction: column; height: 100%; background: var(--n0); color: var(--nt); font: 12px/1.4 var(--font); user-select: none; }
+.nle svg { width: 15px; height: 15px; display: block; }
+.nle button { background: var(--n3); color: var(--nt); border: 1px solid var(--nl); border-radius: 4px; box-shadow: none; padding: 4px 8px;
+  font: 500 11.5px/1.2 var(--font); filter: none; transform: none; }
+.nle button:hover:not(:disabled) { background: var(--n4); filter: none; box-shadow: none; }
+.nle button.on { background: #4b4b52; color: #fff; box-shadow: inset 0 -2px 0 var(--sel); }
+.nle button:disabled { opacity: .35; }
+.nle-top { display: flex; align-items: center; gap: 10px; height: 38px; padding: 0 10px; background: var(--n2); border-bottom: 1px solid var(--nl); flex: none; }
+.nle-back { color: var(--nd); font-weight: 600; padding: 4px 6px; border-radius: 4px; } .nle-back:hover { color: #fff; background: var(--n3); }
+.nle-tg { display: flex; gap: 2px; }
+.nle-title { font-weight: 600; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.nle-title .muted { color: var(--nd); font-weight: 400; }
+.nle-kb { color: var(--nd); font: 10.5px var(--mono); white-space: nowrap; }
+.nle .nle-deliver { display: inline-flex; align-items: center; gap: 6px; background: #c2412f; border-color: #8f2a1d; color: #fff; font-weight: 600; }
+.nle .nle-deliver:hover:not(:disabled) { background: #d44a37; }
+.nle-main { display: grid; grid-template-columns: 250px minmax(0, 1fr) 290px; flex: 1.35 1 0; min-height: 0; gap: 1px; background: var(--nl); }
+.nle-main.no-pool { grid-template-columns: 0 minmax(0, 1fr) 290px; } .nle-main.no-insp { grid-template-columns: 250px minmax(0, 1fr) 0; }
+.nle-main.no-pool.no-insp { grid-template-columns: 0 minmax(0, 1fr) 0; }
+.nle-main.no-pool .nle-pool, .nle-main.no-insp .nle-insp { display: none; }
+.nle-pool, .nle-insp, .nle-viewer { background: var(--n1); min-height: 0; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
+.nle-ph { height: 26px; flex: none; display: flex; align-items: center; padding: 0 10px; background: var(--n2); border-bottom: 1px solid var(--nl);
+  font: 600 10.5px var(--font); letter-spacing: .04em; color: var(--nd); text-transform: uppercase; }
+.nle-pool-in { display: grid; grid-template-columns: 78px minmax(0, 1fr); flex: 1 1 60%; min-height: 0; }
+.nle-bins { border-right: 1px solid var(--nl); overflow: auto; padding: 6px 0; display: flex; flex-direction: column; }
+.nle .nle-bin { background: none; border: 0; border-radius: 0; text-align: left; padding: 4px 8px 4px 16px; color: var(--nd); font-size: 11px; white-space: normal; }
+.nle .nle-bin.root { padding-left: 8px; color: var(--nt); font-weight: 600; }
+.nle .nle-bin.on { background: #3d4a5e; color: #fff; box-shadow: none; }
+.nle-clips { overflow: auto; padding: 8px; display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; align-content: start; }
+.nle-tile { border-radius: 4px; padding: 3px; cursor: pointer; border: 1px solid transparent; }
+.nle-tile:hover { background: var(--n3); } .nle-tile.on { background: #3d4a5e; border-color: #5d7396; }
+.nle-tile.nomedia { opacity: .55; }
+.nle-tthumb { aspect-ratio: 16/9; background: #0b1a2e; border-radius: 2px; overflow: hidden; display: grid; place-items: center; }
+.nle-tthumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.nle-tthumb span { font: 600 9px var(--mono); color: #fbaf1f; letter-spacing: .1em; text-transform: uppercase; }
+.nle-tname { font-size: 10.5px; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nle-tmeta { font: 9.5px var(--mono); color: var(--nd); }
+.nle-scenes { flex: 1 1 40%; overflow: auto; padding: 4px; }
+.nle-scene { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; align-items: center; gap: 6px; padding: 4px 6px; border-radius: 3px; cursor: pointer; }
+.nle-scene:hover { background: var(--n3); }
+.nle-scene b { font: 600 10px var(--mono); color: var(--sel); } .nle-scene span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nle-scene i { font: 10px var(--mono); color: var(--nd); font-style: normal; }
+.nle-note { color: var(--nd); font-size: 11px; padding: 6px 10px; line-height: 1.45; }
+.nle-vh { height: 30px; flex: none; display: flex; align-items: center; gap: 10px; padding: 0 8px; background: var(--n2); border-bottom: 1px solid var(--nl); }
+.nle-modes { display: flex; gap: 2px; }
+.nle-vname { color: var(--nd); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.nle-tc { font: 600 13px var(--mono); color: #fff; letter-spacing: .02em; font-variant-numeric: tabular-nums; }
+.nle-tcs { font: 10.5px var(--mono); color: var(--nd); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.nle-screen { flex: 1 1 0; min-height: 0; background: #000; position: relative; overflow: hidden; }
+.nle-screen video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; border-radius: 0; background: #000; }
+.nle-empty { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; color: #ddd; font-size: 13px; padding: 20px; background: #050505; }
+.nle-scrub { position: relative; height: 18px; flex: none; background: var(--n2); border-top: 1px solid var(--nl); cursor: pointer; }
+.nle-range { position: absolute; top: 3px; bottom: 3px; background: rgb(242 163 58 / .28); border-left: 2px solid var(--sel); border-right: 2px solid var(--sel); }
+.nle-ticks i { position: absolute; top: 0; bottom: 0; width: 1px; background: rgb(255 255 255 / .18); }
+.nle-head { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--ph); }
+.nle-head::before { content: ""; position: absolute; top: 0; left: -4px; border: 5px solid transparent; border-top-color: var(--ph); }
+.nle-transport { height: 36px; flex: none; display: flex; align-items: center; gap: 4px; padding: 0 8px; background: var(--n2); border-top: 1px solid var(--nl); }
+.nle-transport button { width: 30px; height: 26px; padding: 0; display: grid; place-items: center; }
+.nle-transport button.wide { width: auto; padding: 0 9px; }
+.nle-transport .nle-play { width: 36px; }
+.nle-srcbtns { display: flex; gap: 4px; } .nle-srcbtns.off { opacity: .35; pointer-events: none; }
+.nle-tabs { display: flex; gap: 1px; background: var(--nl); flex: none; }
+.nle .nle-tabs button { flex: 1; border-radius: 0; border: 0; background: var(--n2); height: 26px; }
+.nle .nle-tabs button.on { background: var(--n1); box-shadow: inset 0 2px 0 var(--sel); }
+.nle-tab { overflow: auto; flex: 1; min-height: 0; }
+.nle-sec { padding: 10px; border-bottom: 1px solid var(--nl); display: flex; flex-direction: column; gap: 8px; }
+.nle-sh { font: 600 10.5px var(--font); letter-spacing: .04em; text-transform: uppercase; color: var(--nd); }
+.nle-kv { display: grid; grid-template-columns: 82px minmax(0, 1fr); gap: 4px 8px; font-size: 11.5px; }
+.nle-kv span { color: var(--nd); } .nle-kv b { font-weight: 500; overflow-wrap: anywhere; }
+.nle-num { flex-direction: row; justify-content: space-between; align-items: center; color: var(--nd); font-size: 11.5px; }
+.nle-num input { width: 92px; background: var(--n0); color: #fff; border: 1px solid var(--n4); border-radius: 3px; padding: 4px 6px; font: 12px var(--mono); }
+.nle-btns { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.nle .danger { color: #ff8b80; }
+.nle-up { display: inline-flex; align-items: center; background: var(--n3); border: 1px solid var(--nl); border-radius: 4px; padding: 4px 8px; cursor: pointer; color: var(--nt); font-size: 11.5px; }
+.nle-up.busy { opacity: .5; }
+.nle-lnk { color: #8fb6ff; font-size: 11.5px; } .nle-lnk:hover { text-decoration: underline; }
+.nle-doc { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 4px; background: var(--n2); }
+.nle-doc:hover { background: var(--n3); }
+.nle-tab .chat-log { max-height: none; min-height: 120px; }
+.nle-tab .chat { padding: 0 10px 10px; }
+.nle-tab .msg { font-size: 12px; }
+.nle-tlbar { height: 34px; flex: none; display: flex; align-items: center; gap: 4px; padding: 0 8px; background: var(--n2); border-top: 1px solid var(--nl); border-bottom: 1px solid var(--nl); }
+.nle-tlbar button { width: 30px; height: 26px; padding: 0; display: grid; place-items: center; }
+.nle-tlbar button.txt { width: auto; padding: 0 8px; }
+.nle-sep { width: 1px; height: 18px; background: var(--n4); margin: 0 6px; }
+.nle-tlname { font-weight: 600; margin-right: 8px; }
+.nle-zoom { flex-direction: row; align-items: center; gap: 6px; color: var(--nd); font-size: 13px; }
+.nle-zoom input[type=range] { width: 120px; height: 16px; }
+.nle-tl { flex: 1 1 0; min-height: 190px; display: grid; grid-template-columns: 112px minmax(0, 1fr); background: var(--n1); }
+.nle-heads { background: var(--n2); border-right: 1px solid var(--nl); display: grid; grid-template-rows: 24px 54px 40px 32px 32px; align-content: start; }
+.nle-hh { border-bottom: 1px solid var(--nl); }
+.nle-trh { display: flex; flex-direction: column; justify-content: center; padding: 0 10px; border-bottom: 1px solid var(--nl); }
+.nle-trh b { font: 700 11px var(--mono); } .nle-trh small { color: var(--nd); font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nle-trh.v b { color: #8fb6ff; } .nle-trh.a b { color: #8fdca6; }
+.nle-scroll { overflow-x: auto; overflow-y: hidden; position: relative; }
+.nle-lanes { position: relative; display: grid; grid-template-rows: 24px 54px 40px 32px 32px; min-width: 100%; }
+.nle-lanes.blade { cursor: crosshair; } .nle-lanes.blade .nle-clip { cursor: crosshair; }
+.nle-ruler { position: relative; background: var(--n2); border-bottom: 1px solid var(--nl); cursor: pointer; overflow: hidden; }
+.nle-ruler i { position: absolute; bottom: 0; width: 1px; height: 5px; background: var(--n4); }
+.nle-ruler i.mj { height: 10px; background: var(--nd); }
+.nle-ruler i span { position: absolute; left: 4px; bottom: 8px; font: 9.5px var(--mono); color: var(--nd); white-space: nowrap; }
+.nle-lane { position: relative; border-bottom: 1px solid var(--nl); }
+.nle-lane.v { background: #1a1d24; } .nle-lane.a { background: #19201b; } .nle-lane.empty { background: repeating-linear-gradient(90deg, #1b1d1c 0 40px, #1d201e 40px 80px); }
+.nle-clip { position: absolute; top: 3px; bottom: 3px; background: linear-gradient(var(--vclip), var(--vclip2)); border: 1px solid #23395a; border-radius: 3px;
+  overflow: hidden; cursor: grab; display: flex; align-items: flex-start; gap: 4px; }
+.nle-clip.sel { border-color: var(--sel); box-shadow: 0 0 0 1px var(--sel); z-index: 2; }
+.nle-clip.nomedia { background: repeating-linear-gradient(45deg, #3a3f4a 0 6px, #30343d 6px 12px); border-color: #555; }
+.nle-clip.moving { opacity: .55; }
+.nle-clip img { height: 100%; width: auto; aspect-ratio: 16/9; object-fit: cover; flex: none; pointer-events: none; border-right: 1px solid #23395a; }
+.nle-clip .nm { font-size: 10.5px; color: #fff; padding: 3px 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; text-shadow: 0 1px 2px #0008; pointer-events: none; }
+.nle-clip .du { position: absolute; right: 8px; bottom: 2px; font: 9.5px var(--mono); color: #dbe7ff; pointer-events: none; }
+.nle-clip u { position: absolute; top: 0; bottom: 0; width: 1px; background: rgb(255 255 255 / .5); pointer-events: none; }
+.nle-clip u::before { content: ""; position: absolute; top: 0; left: -3px; border: 3.5px solid transparent; border-top-color: #4fd1ff; }
+.nle-clip .h { position: absolute; top: 0; bottom: 0; width: 8px; z-index: 3; cursor: ew-resize; }
+.nle-clip .h.l { left: 0; } .nle-clip .h.r { right: 0; }
+.nle-clip .h:hover, .nle-clip.sel .h { background: rgb(242 163 58 / .55); }
+.nle-lanes.blade .nle-clip .h { cursor: crosshair; background: none; }
+.nle-aclip { position: absolute; top: 3px; bottom: 3px; background: #2f6b43; border: 1px solid #1e4a2d; border-radius: 3px; overflow: hidden; cursor: grab; }
+.nle-aclip.sel { border-color: var(--sel); } .nle-aclip.nomedia { background: #2c332e; }
+.nle-aclip canvas { width: 100%; height: 100%; display: block; pointer-events: none; }
+.nle-drop-hint { position: absolute; inset: 6px 10px; display: grid; place-items: center; color: var(--nd); border: 1px dashed var(--n4); border-radius: 4px; font-size: 11.5px; }
+.nle-ph-line { position: absolute; top: 0; bottom: 0; left: 0; width: 1px; background: var(--ph); z-index: 5; pointer-events: none; }
+.nle-ph-line::before { content: ""; position: absolute; top: 0; left: -6px; width: 13px; height: 12px; background: var(--ph); clip-path: polygon(0 0, 100% 0, 100% 55%, 50% 100%, 0 55%); }
+.nle-ins { position: absolute; top: 24px; bottom: 0; width: 2px; margin-left: -1px; background: #fff; z-index: 6; box-shadow: 0 0 6px #fff; pointer-events: none; }
+.nle nav.nle-pages { flex-direction: row; }
+.nle-pages { height: 42px; flex: none; display: flex; justify-content: center; align-items: stretch; gap: 4px; background: var(--n2); border-top: 1px solid var(--nl); }
+.nle .nle-pages a, .nle .nle-pages button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 76px; color: var(--nd);
+  font-size: 10.5px; background: none; border: 0; border-radius: 0; padding: 0 10px; box-shadow: none; }
+.nle .nle-pages a:hover, .nle .nle-pages button:hover:not(:disabled) { color: #fff; background: var(--n3); }
+.nle .nle-pages a.on { color: #fff; background: none; border: 0; box-shadow: inset 0 -2px 0 var(--sel); }
+.nle-pages svg { width: 17px; height: 17px; }
+@media (max-width: 1100px) { .nle-main { grid-template-columns: 200px minmax(0, 1fr) 250px; } .nle-kb { display: none; } }
+@media (max-width: 860px) {
+  body.nle-on main { height: auto; }
+  .nle { height: auto; min-height: 100vh; overflow-x: hidden; }
+  .nle-top { flex-wrap: nowrap; overflow: hidden; } .nle .nle-deliver span { display: none; }
+  .nle-tlbar { flex-wrap: wrap; height: auto; padding: 4px 8px; } .nle-zoom input[type=range] { width: 80px; }
+  .nle-tlname { display: none; }
+  .nle-main, .nle-main.no-pool, .nle-main.no-insp { display: flex; flex-direction: column; flex: none; }
+  .nle-viewer { order: 1; } .nle-screen { aspect-ratio: 16/9; flex: none; }
+  .nle-insp { order: 3; max-height: 60vh; } .nle-pool { order: 2; max-height: 50vh; display: flex !important; }
+  .nle-tg, .nle-title { display: none; }
+  .nle-tl { min-height: 220px; } .nle-transport { flex-wrap: wrap; height: auto; padding: 4px 8px; }
+  .nle-pages a, .nle .nle-pages button { min-width: 0; flex: 1; }
+}
+/* ---- project portal: Resolve's Color page (gallery | viewer | nodes, clip strip, primaries | scopes), Edit and Deliver */
+.portal-body { flex: 1 1 0; min-height: 0; display: flex; background: var(--nl); }
+.portal-body > * { flex: 1; min-width: 0; }
+.col-grid { display: grid; gap: 1px; grid-template-columns: 230px minmax(0, 1fr) 290px; grid-template-rows: minmax(0, 1.25fr) 96px minmax(210px, 1fr);
+  grid-template-areas: "gal view nodes" "clips clips clips" "prim prim scope"; }
+.col-gal { grid-area: gal; } .col-grid .nle-viewer { grid-area: view; } .col-nodes { grid-area: nodes; overflow: auto; }
+.col-clips { grid-area: clips; background: var(--n2); display: flex; align-items: center; gap: 8px; padding: 0 12px; }
+.col-prim { grid-area: prim; background: var(--n1); display: flex; flex-direction: column; min-height: 0; }
+.col-scope { grid-area: scope; background: var(--n1); display: flex; flex-direction: column; min-height: 0; }
+.col-scope canvas { flex: 1; width: 100%; min-height: 0; display: block; }
+.col-scope .nle-ph { gap: 8px; }
+.gal { overflow: auto; padding: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-content: start; }
+.nle .still { display: flex; flex-direction: column; gap: 3px; padding: 4px; background: var(--n2); border: 1px solid var(--nl); border-radius: 4px; text-align: left; white-space: normal; }
+.nle .still.on { border-color: #fff; background: #3d4a5e; box-shadow: none; }
+.nle .still.applied { box-shadow: inset 0 0 0 2px var(--sel); }
+.sthumb { aspect-ratio: 16/9; background: #000; border-radius: 2px; overflow: hidden; }
+.sthumb canvas { width: 100%; height: 100%; display: block; }
+.sname { font-size: 11px; font-weight: 600; } .slut { font: 9.5px var(--mono); color: var(--nd); overflow-wrap: anywhere; }
+.col-screen { display: grid; place-items: center; }
+.col-screen canvas { display: block; max-width: 100%; max-height: 100%; }
+.col-wipe { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: #fff; box-shadow: 0 0 0 1px #0008; cursor: ew-resize; pointer-events: none; }
+.col-screen:has(.col-wipe:not([hidden])) { cursor: ew-resize; }
+.nle svg.nodes { width: 100%; height: auto; display: block; padding: 8px; }
+.nodes .node { fill: #34343a; stroke: #55555c; } .nodes .node.sel { stroke: var(--sel); stroke-width: 1.5; }
+.nodes .nn { font: 700 10px var(--mono); fill: var(--sel); } .nodes .nt { font: 600 11.5px var(--font); fill: #e4e4e8; } .nodes .ns { font: 10.5px var(--mono); fill: #9a9aa2; }
+.nle .cclip { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 4px; background: var(--n3); border-radius: 4px; position: relative; }
+.nle .cclip canvas { width: 112px; height: 63px; display: block; border-radius: 2px; }
+.nle .cclip span { font: 600 10px var(--mono); color: var(--nd); } .nle .cclip i { position: absolute; right: 6px; top: 4px; font: 9px var(--mono); color: #8fb6ff; font-style: normal; }
+.nle .cclip.on { background: #4b4b52; box-shadow: inset 0 0 0 1px var(--sel); }
+.nle .col-clips .txt { width: auto; }
+.prim { flex: 1; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 20px; padding: 14px 18px; align-items: start; overflow: auto; }
+.wheel-box { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.wheel { width: 120px; height: 120px; border-radius: 50%; position: relative;
+  background: radial-gradient(circle, #2a2a2e 0 40%, transparent 41%), conic-gradient(from 90deg, #c0504d, #c0c04d, #4dc06a, #4dc0c0, #4d6ac0, #b04dc0, #c0504d);
+  box-shadow: inset 0 0 0 10px #1e1e21, 0 0 0 1px #000; opacity: .85; }
+.wheel-dot { position: absolute; left: 50%; top: 50%; width: 10px; height: 10px; margin: -5px; border-radius: 50%; border: 2px solid #fff; }
+.wl { font: 600 10.5px var(--font); text-transform: uppercase; letter-spacing: .05em; color: var(--nd); }
+.ring { display: flex; flex-direction: column; gap: 4px; width: 100%; color: var(--nd); font-size: 11px; }
+.ring b { color: #fff; font: 600 11.5px var(--mono); }
+.prim-r { display: flex; flex-direction: column; gap: 10px; }
+.ed-grid { display: grid; gap: 1px; grid-template-columns: minmax(0, 1fr) 300px; grid-template-rows: minmax(0, 1fr) 110px; }
+.ed-grid .nle-viewer { grid-row: 1; } .ed-grid .nle-insp { grid-row: 1 / span 2; grid-column: 2; overflow: auto; }
+.ed-sheet { max-width: 100%; max-height: 100%; object-fit: contain; display: block; margin: auto; }
+.ed-grid .nle-screen img.ed-sheet { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ed-tl { grid-row: 2; background: var(--n1); display: grid; grid-template-columns: 112px minmax(0, 1fr); }
+.ed-tl .nle-trh { background: var(--n2); border-right: 1px solid var(--nl); }
+.ed-strip { overflow-x: auto; padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+.ed-lane { position: relative; height: 58px; flex: none; }
+.ed-cut { position: absolute; top: 0; height: 56px; background: linear-gradient(var(--vclip), var(--vclip2)); border: 1px solid #23395a; border-radius: 3px;
+  overflow: hidden; display: flex; align-items: center; gap: 4px; cursor: pointer; }
+.ed-cut canvas { height: 46px; width: auto; flex: none; margin-left: 4px; border-radius: 2px; }
+.ed-cut span { font: 600 10px var(--mono); color: #fff; }
+.ed-cut.now { border-color: var(--sel); box-shadow: 0 0 0 1px var(--sel); }
+.ed-ph { position: absolute; top: -4px; bottom: -4px; width: 1px; background: var(--ph); pointer-events: none; }
+@media (max-width: 1000px) {
+  .col-grid { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; grid-template-areas: "view" "clips" "gal" "prim" "scope" "nodes"; }
+  .col-grid .nle-viewer .nle-screen { aspect-ratio: 16/9; flex: none; } .col-scope canvas { height: 180px; flex: none; }
+  .col-clips { overflow-x: auto; padding: 8px; } .gal { grid-template-columns: repeat(3, 1fr); } .prim { grid-template-columns: 1fr; }
+  .portal-body { flex: none; } .ed-grid { grid-template-columns: 1fr; grid-template-rows: auto; } .ed-grid .nle-insp { grid-row: auto; grid-column: auto; }
+  .ed-grid .nle-screen { aspect-ratio: 16/9; flex: none; }
+}
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -415,12 +798,16 @@ nav a i svg { width: 16px; height: 16px; display: block; fill: none; stroke: cur
     <nav>
       <a href="#/" data-nav="home"><i><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2" width="5" height="5" rx="1.2"/><rect x="9" y="2" width="5" height="5" rx="1.2"/><rect x="2" y="9" width="5" height="5" rx="1.2"/><rect x="9" y="9" width="5" height="5" rx="1.2"/></svg></i><span>Projecten</span></a>
       <a href="#/ssd" data-nav="ssd"><i><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="10" rx="1.6"/><path d="M5 10h6M5 7h3"/></svg></i><span>SSD</span></a>
-      <a id="navFotos" href="http://127.0.0.1:5080/#/fotos" target="_blank" rel="noopener" title="Foto's bewerken met LightCraft: opent de website op je PC (autoedit.bat moet draaien)"><i><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5"/><path d="M8 2.5v11" /><path d="M8 2.5a5.5 5.5 0 0 1 0 11z" fill="currentColor"/></svg></i><span>Foto's ↗</span></a>
-      <a href="https://remotedesktop.google.com/access" target="_blank" rel="noopener" title="LightCraft en je PC op afstand: Chrome Extern bureaublad (op elk apparaat)"><i><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="8.5" rx="1.4"/><path d="M5.5 13.5h5M8 11v2.5"/></svg></i><span>PC op afstand ↗</span></a>
-      <a href="#/taken" data-nav="taken"><i><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 8.5h3l2-5 3 9 2-4h3"/></svg></i><span>Taken</span><em id="jobBadge" hidden></em></a>
+      <a href="#/instellingen" data-nav="instellingen"><i><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.8v2M8 12.2v2M1.8 8h2M12.2 8h2M3.6 3.6l1.4 1.4M11 11l1.4 1.4M3.6 12.4 5 11M11 5l1.4-1.4"/></svg></i><span>Instellingen</span><em id="jobBadge" hidden></em></a>
     </nav>
-    <div class="side-sec" id="sideProjects"></div>
-    <div class="side-sec" id="sideActivity"></div>
+    <nav class="nav-juict" aria-label="JUICT">
+      <button class="side-h juict" id="juictFold" aria-expanded="true" aria-controls="juictSub"><span>JUICT</span><i class="chev" aria-hidden="true"></i></button>
+      <div class="juict-sub" id="juictSub">
+        <a href="#/juict" data-nav="juict"><i><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="3" width="13" height="10" rx="1.6"/><path d="M6.5 6v4l3.5-2z" fill="currentColor"/></svg></i><span>Video's</span></a>
+        <a href="#/instructies" data-nav="instructies"><i><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 1.8h5.5L12.5 5v9.2H4z"/><path d="M9.5 1.8V5h3M6 8h4.5M6 10.5h4.5"/></svg></i><span>Werkinstructies</span></a>
+        <a href="#/prompt" data-nav="prompt"><i><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z"/><path d="M5.5 6.5h5M5.5 8.5h3"/></svg></i><span>Promptgenerator</span></a>
+      </div>
+    </nav>
     <div class="side-status" id="sideStatus"><div><span class="dot"></span><span class="full">PC: onbekend</span></div></div>
   </aside>
   <main>
@@ -491,7 +878,31 @@ nav a i svg { width: 16px; height: 16px; display: block; fill: none; stroke: cur
 
   // Request text for the Studio session, exactly webapp/studio.py's format. Returns {text} or {error}.
   const SSD = ["ssd-ververs", "ssd-bekijk", "ssd-clip", "ssd-verplaats", "ssd-edit"];
-  const ACTIONS = ["plan", "grade", "goedkeuren", "preview", "render", "qa", "stills"].concat(SSD);
+  const ACTIONS = ["plan", "grade", "goedkeuren", "preview", "render", "qa", "stills", "uitleg", "juict-resolve", "juict-montage"].concat(SSD);
+  // JUICT explainer film (webapp/studio.py _parse_uitleg): no project; the PC session makes a Motion film in the JUICT look.
+  const UITLEG_LEN = [15, 20, 30, 45, 60];
+  const UITLEG_FMT = ["16:9", "9:16", "1:1"];
+  const CTRL_RE = /[\u0000-\u001f\u007f]/;
+  function uitlegText(extra) {
+    const titel = String(extra.titel == null ? "" : extra.titel).trim();
+    const doel = String(extra.doel == null ? "" : extra.doel).trim();
+    const notitie = String(extra.notitie == null ? "" : extra.notitie).trim();
+    const stappen = String(extra.stappen == null ? "" : extra.stappen).split(/\r?\n/).map((s) => s.trim().replace(/^(\d+[.)]|[-*•])\s*/, "")).filter(Boolean);
+    if (!titel) return { error: "geef de video een titel" };
+    if (titel.length > 80 || CTRL_RE.test(titel)) return { error: "de titel is te lang (max 80 tekens)" };
+    if (!doel) return { error: "schrijf wat de kijker moet leren" };
+    if (doel.length > 300 || CTRL_RE.test(doel)) return { error: "het doel is te lang (max 300 tekens, één regel)" };
+    if (!stappen.length) return { error: "zet minstens één stap in de lijst" };
+    if (stappen.length > 12) return { error: "hoogstens 12 stappen per video (maak er anders twee)" };
+    if (stappen.some((s) => s.length > 160 || s.includes("|") || CTRL_RE.test(s))) return { error: "een stap is te lang (max 160 tekens) of bevat een |" };
+    if (!UITLEG_LEN.includes(+extra.lengte)) return { error: "kies een lengte" };
+    if (!UITLEG_FMT.includes(extra.formaat)) return { error: "kies een formaat" };
+    if (notitie.length > 300 || CTRL_RE.test(notitie)) return { error: "de notitie is te lang (max 300 tekens, één regel)" };
+    let t = "[studio] actie=uitleg titel=" + quote(titel) + " doel=" + quote(doel) + " stappen=" + quote(stappen.join("|")) +
+      " lengte=" + (+extra.lengte) + " formaat=" + extra.formaat;
+    if (notitie) t += " notitie=" + quote(notitie);
+    return { text: t };
+  }
   const LOOKS = ["reference_film", "clean_warm", "moody", "daylight", "blue_hour", "vintage"];
   const SOORTEN = ["koken", "kleding", "smoken", "reizen", "klanten", "inbox"];
   const quote = (v) => '"' + String(v).replace(/[\\"]/g, (m) => "\\" + m) + '"';
@@ -533,6 +944,31 @@ nav a i svg { width: 16px; height: 16px; display: block; fill: none; stroke: cur
     extra = extra || {};
     if (!ACTIONS.includes(action)) return { error: "onbekende actie" };
     if (SSD.includes(action)) return ssdText(action, extra);
+    if (action === "uitleg") return uitlegText(extra);
+    if (action === "juict-montage") {
+      // webapp/studio.py _parse_juict_montage: one Resolve timeline from fragments asset@start+dur, in order
+      const parts = Array.isArray(extra.parts) ? extra.parts : [];
+      if (!parts.length) return { error: "de montage is leeg" };
+      if (parts.length > 60) return { error: "hoogstens 60 fragmenten" };
+      const out = [];
+      for (const p of parts) {
+        const a = String(p && p.asset || ""), st = +p.start, du = +p.dur, nm = String(p && p.name || "").replace(/[|@"\\]/g, " ").slice(0, 80);
+        if (!/^[0-9a-f]{8,64}$/.test(a)) return { error: "elke video in de montage heeft een MP4 nodig" };
+        if (!(st >= 0 && st < 3600) || !(du >= 0 && du < 3600) || CTRL_RE.test(nm)) return { error: "een fragment is onleesbaar" };
+        out.push(a + "@" + st + "+" + du + "@" + nm);
+      }
+      return { text: "[studio] actie=juict-montage stukken=" + quote(out.join("|")) };
+    }
+    if (action === "juict-resolve") {
+      // webapp/studio.py _parse_juict: fetch the MP4 asset, new timeline with scene markers + SFX/Muziek tracks in Resolve
+      const video = String(extra.video || ""), titel = String(extra.titel || "").trim(), asset = String(extra.asset || "");
+      const mk = String(extra.markers || "");
+      if (!/^[a-z0-9-]{1,40}$/.test(video)) return { error: "video onbekend" };
+      if (!titel || titel.length > 120 || CTRL_RE.test(titel)) return { error: "titel onbekend" };
+      if (!/^[0-9a-f]{8,64}$/.test(asset)) return { error: "voeg eerst een MP4 toe" };
+      if (mk.length > 2000 || CTRL_RE.test(mk) || /"/.test(mk)) return { error: "scènes onleesbaar" };
+      return { text: "[studio] actie=juict-resolve video=" + video + " titel=" + quote(titel) + " asset=" + asset + (mk ? " markers=" + quote(mk) : "") };
+    }
     if (!name || typeof name !== "string") return { error: "project onbekend" };
     let t = "[studio] actie=" + action + " project=" + quote(name);
     if (action === "grade") {
@@ -554,7 +990,7 @@ nav a i svg { width: 16px; height: 16px; display: block; fill: none; stroke: cur
     return { text: t };
   }
 
-  root.StudioMath = { clamp01, parseCube, sample, gradePixel, requestText, LOOKS, SOORTEN };
+  root.StudioMath = { clamp01, parseCube, sample, gradePixel, requestText, LOOKS, SOORTEN, UITLEG_LEN, UITLEG_FMT };
   root.gradePixel = gradePixel;
 })(typeof window !== "undefined" ? window : globalThis);
 </script>
@@ -571,7 +1007,7 @@ const LOOK_HINT = {
   daylight: "fris, natuurlijk", blue_hour: "koel, avond", vintage: "vaal, warm",
 };
 const ACT_NL = { plan: "Plan maken", grade: "Grade kiezen", goedkeuren: "Goedkeuren", preview: "Voorbeeld", render: "Renderen", qa: "QA", stills: "Stills verversen",
-  "ssd-ververs": "SSD verversen", "ssd-bekijk": "Beelden laden", "ssd-clip": "Clip-preview", "ssd-verplaats": "Verplaatsen", "ssd-edit": "Edit starten" };
+  "ssd-ververs": "SSD verversen", "ssd-bekijk": "Beelden laden", "ssd-clip": "Clip-preview", "ssd-verplaats": "Verplaatsen", "ssd-edit": "Edit starten", uitleg: "Uitleg video", "juict-resolve": "Naar Resolve", "juict-montage": "Montage naar Resolve" };
 const JOB_NL = { bezig: "bezig", klaar: "klaar", fout: "fout", vast: "vastgelopen? start opnieuw" };
 const STALE_MS = 3 * 3600 * 1000;       // a job still "bezig" after 3 h has most likely died on the PC
 // "bezig" | "klaar" | "fout" | "vast" (bezig for more than 3 h); the CSS class for "vast" is the one for "fout"
@@ -622,8 +1058,9 @@ function toast(msg, kind = "") {
 const S = {
   db: null, comments: null, user: null,
   projects: new Map(), projectsReady: false, jobs: [], pc: null, real: { projects: new Map(), jobs: [] },
+  jvideo: new Map(), jfilms: new Map(), jresolve: new Map(), jmontage: null, assets: null, jdocs: new Map(), jdocsReady: false,
   ssd: new Map(), ssdReady: false, ssdSel: new Map(), pendingEdit: "",   // ssdSel: "<Soort>/<map>/<clip>" -> {rel, folder, duration}
-  dbNote: "", canSend: "onbekend", owner: null,
+  dbNote: "", canSend: "onbekend", owner: null, pending: [], forceSend: false, promptSeed: "",
 };
 const drafts = new Map();               // per project id: grade draft, note, still index, split
 function draft(id, p) {
@@ -652,18 +1089,31 @@ function project(id) {
 }
 const projectList = () => [...S.projects.keys()].map(project).filter((p) => p && p.name)
   .sort((a, b) => (toDate(b.updated_at)?.getTime() || 0) - (toDate(a.updated_at)?.getTime() || 0) || a.name.localeCompare(b.name));
-const online = () => (S.comments && S.canSend === "available" && S.owner !== false);
+// studio/pc.seen_at is written when the Studio session starts and after each request (skill studio-session), not on a
+// timer, so an idle session looks old. It is shown as information only; a request the PC does not pick up within
+// PENDING_WARN_MS is what tells Timon the session is not running (pendingList, side status).
+const pcStale = () => false;
+const online = () => (S.comments && S.canSend === "available" && S.owner !== false && !pcStale());
 function applyData() {
   S.projects = S.real.projects;
   S.jobs = S.real.jobs.slice()
     .sort((a, b) => (toDate(b.started_at)?.getTime() || 0) - (toDate(a.started_at)?.getTime() || 0));
 }
 function offlineReason() {
-  if (!S.comments) return "Opdrachten sturen werkt niet in deze weergave.";
+  if (!S.comments) return "Dit is een kopie van de pagina, niet de Studio zelf: open AutoEdit Studio via je zijbalk (vastgepind).";
   if (S.owner === false || S.canSend === "writers_only") return "Alleen de eigenaar kan opdrachten naar de PC sturen.";
   if (S.canSend !== "available") return "Studio-sessie op je PC is niet bereikbaar.";
+  if (pcStale()) return "De Studio-sessie op je PC draait niet (laatst gezien " + ago(S.pc.seen_at) + ").";
   return "";
 }
+// Requests sent but not yet picked up: cleared when the PC writes a job for the same action after it was sent.
+const PENDING_WARN_MS = 90 * 1000;
+function pendingList() {
+  S.pending = S.pending.filter((r) => !S.jobs.some((j) => j.action === r.action && (toDate(j.started_at)?.getTime() || 0) >= r.at - 5000)
+    && Date.now() - r.at < 30 * 60 * 1000);
+  return S.pending;
+}
+setInterval(() => { if (S.pending.length) refresh(); }, 15000);
 function approvalState(p) {
   const a = p.approval;
   if (!p.plan) return { ok: false, cls: "", text: "Nog geen plan." };
@@ -702,11 +1152,12 @@ const SETUP = `<ol><li>Zet je PC aan en open <b>DaVinci Resolve</b>.</li>
 async function start() {
   const use = (name) => (window.claude && typeof window.claude.use === "function"
     ? Promise.resolve(window.claude.use(name)).catch(() => null) : Promise.resolve(null));
-  const [db, comments, user] = await Promise.all([use("db"), use("comments"), use("user")]);
-  S.db = db; S.comments = comments; S.user = user;
+  const [db, comments, user, assets] = await Promise.all([use("db"), use("comments"), use("user"), use("assets")]);
+  S.db = db; S.comments = comments; S.user = user; S.assets = assets;
   if (user && typeof user.isOwner === "function") user.isOwner().then((v) => { S.owner = !!v; refresh(); }).catch(() => {});
   await checkSend();
-  if (!db) { S.dbNote = "De gegevens van de Studio zijn in deze weergave niet te lezen."; S.projectsReady = true; render(); return; }
+  if (!db) { S.dbNote = "De gegevens van de Studio zijn in deze weergave niet te lezen. Open de Studio zelf (claude.ai/artifact/4YCCLgHK4KozydqGCpjLQR), niet een kopie van het bestand.";
+    S.projectsReady = S.ssdReady = S.jdocsReady = true; render(); return; }
   let loaded = false;
   const timer = setTimeout(() => { if (!loaded) { S.dbNote = "De gegevens zijn nog niet bereikbaar; wat je ziet kan verouderd zijn."; S.projectsReady = true; refresh(); } }, 10000);
   const fresh = (snap) => { if (!snap.metadata || !snap.metadata.fromCache) { loaded = true; clearTimeout(timer); S.dbNote = ""; } };
@@ -724,6 +1175,13 @@ async function start() {
     S.ssd = new Map(snap.docs.filter((d) => d.exists !== false).map((d) => [d.id, d.data() || {}]));
     S.ssdReady = true; refresh();
   }, () => { S.ssdReady = true; refresh(); });
+  const docsMap = (snap) => new Map(snap.docs.filter((d) => d.exists !== false).map((d) => [d.id, d.data() || {}]));
+  listen("juict_video", db.collection("juict_video"), (snap) => { S.jvideo = docsMap(snap); refresh(); });
+  listen("juict_films", db.collection("juict_films"), (snap) => { S.jfilms = docsMap(snap); refresh(); });
+  listen("juict_resolve", db.collection("juict_resolve"), (snap) => { S.jresolve = docsMap(snap); refresh(); });
+  listen("juict_montage", db.doc("juict_montage/main"), (snap) => { S.jmontage = snap.exists ? snap.data() || null : null; refresh(); });
+  listen("juict_docs", db.collection("juict_docs"), (snap) => { S.jdocs = docsMap(snap); S.jdocsReady = true; refresh(); },
+    () => { S.jdocsReady = true; refresh(); });
 }
 // A listener that ends with an error is subscribed again once, after 5 s; meanwhile the page says the connection is lost.
 const lost = new Map();                 // listener name -> "retry" (waiting to subscribe again) | "dead" (retry failed too)
@@ -754,15 +1212,17 @@ const COMMENT_ERR = {
   rate_limited: "Even rustig: wacht een paar seconden en probeer opnieuw.",
   unavailable: "Opmerkingen zijn even niet beschikbaar. Probeer het zo nog eens.",
 };
-async function send(btn, action, p, extra) {
+const sendText = (btn, action, text) => send(btn, action, null, null, text);
+async function send(btn, action, p, extra, preset) {
   if (!online()) { toast(offlineReason(), "err"); return false; }
-  const r = requestText(action, p ? p.name : "", extra);
+  const r = preset ? { text: preset } : requestText(action, p ? p.name : "", extra);
   if (r.error) { toast(r.error, "err"); return false; }
   btn.disabled = true; btn.dataset.sending = "1";
   try {
     const anchor = await S.comments.anchorFor(btn);
     await S.comments.sendToClaude({ anchor, text: r.text });
-    toast(ACT_NL[action] + ": naar je PC gestuurd.", "ok");
+    S.pending.push({ action, label: ACT_NL[action] || action, project: p ? p.name : "", at: Date.now() });
+    toast(ACT_NL[action] + ": naar je PC gestuurd. Je ziet linksonder of hij begint.", "ok");
     return true;
   } catch (e) {
     toast(COMMENT_ERR[e && e.code] || "Niet verstuurd (" + (e && e.code || "fout") + ").", "err");
@@ -783,26 +1243,35 @@ function renderShell() {
   const seen = S.pc && S.pc.seen_at ? ago(S.pc.seen_at) : "";
   off.hidden = online() || S.canSend === "onbekend";
   if (!off.hidden) {
-    const detail = !S.comments ? "Opdrachten sturen werkt niet in deze weergave."
+    const stale = pcStale() && S.canSend === "available";
+    const detail = !S.comments ? "Dit is een kopie van de pagina, niet de Studio zelf: open AutoEdit Studio via je zijbalk (vastgepind)."
       : S.owner === false || S.canSend === "writers_only" ? "Alleen de eigenaar kan opdrachten naar de PC sturen."
-      : "Start de Studio-sessie op je PC.";
-    off.innerHTML = `<span class="dot off"></span><b>Studio-sessie op je PC is niet bereikbaar</b>` +
-      `<span class="muted">${seen ? "Laatst gezien " + esc(seen) + ". " : ""}${esc(detail)} Het grade-voorbeeld werkt wel.</span>`;
+      : "Start de Studio-sessie op je PC (start-studio-sessie.bat) en laat het venster open.";
+    off.innerHTML = `<span class="dot off"></span><b>Studio-sessie op je PC draait niet</b>` +
+      `<span class="muted">${seen ? "Laatst gezien " + esc(seen) + ". " : ""}${esc(detail)}</span>` +
+      (stale ? `<button class="ghost sm" id="forceSend" title="Alleen als je zeker weet dat de sessie draait">Toch versturen</button>` : "");
+    const f = $("#forceSend"); if (f) f.onclick = () => { S.forceSend = true; refresh(); };
+  }
+  const pend = pendingList(), late = pend.filter((r) => Date.now() - r.at > PENDING_WARN_MS);
+  if (late.length && off.hidden) {                       // sent, but nobody on the PC picked it up
+    off.hidden = false;
+    off.innerHTML = `<span class="dot off"></span><b>${esc(late[0].label)}: je PC heeft niet gereageerd</b>` +
+      `<span class="muted">De Studio-sessie draait waarschijnlijk niet. Dubbelklik op start-studio-sessie.bat in je AutoEdit-map, laat het venster open en druk daarna opnieuw op de knop.</span>` +
+      `<button class="ghost sm" id="pendClear">Begrepen</button>`;
+    $("#pendClear").onclick = () => { S.pending = []; refresh(); };
   }
   // Photos live only in the website (decision 0014): link to it. The Tailscale address works on the PC, the laptop and
   // the phone alike, so it goes first; 127.0.0.1 only reaches the website on the PC itself.
-  const site = (u) => (typeof u === "string" && /^https?:\/\/[\w.\-]+(:\d{1,5})?\/?$/.test(u) ? u.replace(/\/$/, "") : "");
-  const web = (S.pc && (site(S.pc.phone) || site(S.pc.website))) || "http://127.0.0.1:5080";
-  $("#navFotos").href = web + "/#/fotos";
   const busy = S.jobs.filter(running).length;
   const badge = $("#jobBadge"); badge.hidden = !busy; badge.textContent = busy;
-  const pcOn = S.canSend === "available";
-  const pcLabel = pcOn ? "PC-sessie luistert" : "PC-sessie niet bereikbaar";
+  const pcOn = online();
+  const pcLabel = !pcOn ? "PC-sessie niet bereikbaar" : late.length ? "PC reageert niet: start de Studio-sessie" : "Klaar voor opdrachten";
   $("#sideStatus").innerHTML = `<div title="${pcLabel}"><span class="dot ${pcOn ? "on" : "off"}"></span><span class="short">PC</span><span class="full">${pcLabel}</span></div>` +
     (seen ? `<div class="full">laatst gezien ${esc(seen)}</div>` : "") +
     (S.pc && S.pc.host ? `<div class="full">${esc(S.pc.host)}</div>` : "") +
-    (busy ? `<div title="${busy} ${busy === 1 ? "taak" : "taken"} bezig"><span class="dot busy"></span><span class="short">${busy}</span><span class="full">${busy} ${busy === 1 ? "taak" : "taken"} bezig</span></div>` : "");
-  renderSide();
+    (busy ? `<div title="${busy} ${busy === 1 ? "taak" : "taken"} bezig"><span class="dot busy"></span><span class="short">${busy}</span><span class="full">${busy} ${busy === 1 ? "taak" : "taken"} bezig</span></div>` : "") +
+    (pend.length ? `<div title="${esc(pend.map((r) => r.label).join(", "))}"><span class="dot ${late.length ? "off" : "busy"}"></span><span class="short">${pend.length}</span>` +
+      `<span class="full">${late.length ? esc(late[0].label) + ": PC reageert niet" : pend.length + " onderweg naar PC"}</span></div>` : "");
 }
 function short(v) {
   const d = toDate(v);
@@ -812,24 +1281,6 @@ function short(v) {
   if (s < 3600) return Math.round(s / 60) + " min";
   if (s < 86400) return Math.round(s / 3600) + " u";
   return d.toLocaleDateString("nl-NL", { day: "numeric", month: "short" });
-}
-// Desktop sidebar: every project with what it waits for, and the last jobs on the PC.
-function renderSide() {
-  let cur = "";
-  if (location.hash.startsWith("#/p/")) { try { cur = decodeURIComponent(location.hash.split("/")[2] || ""); } catch (e) { cur = ""; } }
-  const list = projectList();
-  $("#sideProjects").innerHTML = list.length ? `<div class="side-h">Projecten</div>` + list.slice(0, 8).map((p) => {
-    const f = flow(p), busy = S.jobs.some((j) => running(j) && j.project === p.name);
-    const led = busy ? "bezig" : f.next.ok ? "klaar" : "next";
-    const what = busy ? "bezig" : f.next.ok ? "klaar" : TABS.find(([k]) => k === f.next.tab)[1].toLowerCase();
-    return `<a class="side-p${p.id === cur ? " on" : ""}" href="#/p/${enc(p.id)}/${f.next.tab}"><span class="led ${led}"></span>` +
-      `<span class="nm">${esc(p.name)}</span><span class="st">${esc(what)}</span></a>`;
-  }).join("") : "";
-  $("#sideActivity").innerHTML = S.jobs.length ? `<div class="side-h">Activiteit</div>` + S.jobs.slice(0, 5).map((j) => {
-    const st = jobState(j);
-    return `<a class="side-j" href="#/taken" title="${esc(st === "vast" ? JOB_NL.vast : j.message || "")}"><span class="led ${jobCls(st)}"></span>` +
-      `<span class="nm">${esc(ACT_NL[j.action] || j.action || "taak")} · ${esc(j.project || "")}</span><span class="t">${esc(short(j.finished_at || j.started_at))}</span></a>`;
-  }).join("") : "";
 }
 let openJob = null;
 function jobsStrip(el, projectName) {
@@ -857,11 +1308,11 @@ function jobsStrip(el, projectName) {
 let view = null;                                // {key, update()}
 function route() {
   const [, top = "", id = "", tab = "grade"] = location.hash.split("/").map((s) => { try { return decodeURIComponent(s); } catch (e) { return ""; } });
-  const key = top === "p" ? "p/" + id + "/" + tab : top === "ssd" ? "ssd" : top;
-  document.querySelectorAll("nav a").forEach((a) => a.classList.toggle("on", a.dataset.nav === (top === "taken" || top === "ssd" ? top : "home")));
+  const key = top === "p" ? "p/" + id + "/" + tab : top === "juict" ? "juict/" + id : top === "ssd" ? "ssd" : top;
+  document.querySelectorAll("nav a").forEach((a) => a.classList.toggle("on", a.dataset.nav === (["instellingen", "ssd", "juict", "prompt", "instructies"].includes(top) ? top : top === "taken" ? "instellingen" : "home")));
   if (view && view.key === key) return view.update(id);
   if (view && view.destroy) view.destroy();
-  view = top === "p" ? projectView(id, tab) : top === "taken" ? jobsView() : top === "ssd" ? ssdView() : homeView();
+  view = top === "p" ? projectView(id, tab) : top === "taken" || top === "instellingen" ? jobsView() : top === "ssd" ? ssdView() : top === "juict" ? (id ? juictVideoView(id) : juictDash()) : top === "prompt" ? promptView() : top === "instructies" ? docsView(id) : homeView();
   view.key = key;
   view.update(id);
 }
@@ -873,25 +1324,49 @@ window.addEventListener("hashchange", render);
 // ------------------------------------------------------------------ home
 function homeView() {
   const v = $("#view");
-  v.innerHTML = `<div class="head"><div><div class="crumb">AutoEdit Studio</div><h1>Projecten</h1></div></div>
+  v.innerHTML = `<div class="head"><div><div class="crumb">AutoEdit Studio</div><h1>Projecten</h1></div>
+      <span class="spacer"></span><a class="btn" href="#/ssd">+ Nieuw project uit SSD</a></div>
     <div class="jobs" id="jobs"></div><div class="jobmsg" hidden></div><div id="list"></div>`;
   return {
     update() {
       jobsStrip($("#jobs"), null);
+      setTimeout(() => foldButtons($("#list")), 0);
       const list = projectList();
       const todo = list.map((p) => [p, flow(p)]).filter(([, f]) => !f.next.ok);
       const todoHtml = `<div class="card todo"><h2>Te doen</h2>${todo.length ? todo.map(([p, f]) =>
         `<a class="todo-row" href="#/p/${enc(p.id)}/${f.next.tab}"><span class="led next"></span><span class="nm">${esc(p.name)}</span>` +
         `<span class="what">${esc(f.next.text)}</span><span class="go">${esc(TABS.find(([k]) => k === f.next.tab)[1])} →</span></a>`).join("")
         : '<div class="muted">Niets wacht op jou: alle projecten zijn gerenderd.</div>'}</div>`;
+      const groups = [["bezig", "Bezig", list.filter((p) => !flow(p).next.ok)], ["klaar", "Klaar", list.filter((p) => flow(p).next.ok)]].filter(([, , l]) => l.length);
+      const secs = groups.map(([k, title, l]) => {
+        const open = !collapsed("proj:" + k);
+        return `<section class="serie${open ? "" : " closed"}"><div class="serie-h">
+          <button class="serie-t" data-fold="proj:${k}" aria-expanded="${open}"><i class="chev" aria-hidden="true"></i>${title}</button>
+          <span class="muted small">${l.length} ${l.length === 1 ? "project" : "projecten"}</span></div>
+          <div class="vgrid"${open ? "" : " hidden"}>${l.map(ocard).join("")}</div></section>`;
+      }).join("");
+      void todoHtml;
       $("#list").innerHTML = !S.projectsReady ? '<div class="loading">Projecten laden…</div>'
         : (S.dbNote ? `<div class="banner warn" style="margin-bottom:16px">${S.dbNote}</div>` : "") +
-          (list.length ? todoHtml + `<h2>Alle projecten</h2><div class="grid projects">${list.map(pcard).join("")}</div>`
+          (list.length ? `<div class="own">${secs}</div>`
             : `<div class="empty"><div class="setup"><b>Nog geen projecten.</b> Start de Studio-sessie op je PC
                 (<code>start-studio-sessie.bat</code>), dan verschijnen je projecten hier.
                 ${online() ? "" : SETUP}</div></div>`);
     },
   };
+}
+// project card in the JUICT card layout, own accent: white + orange (.own)
+function ocard(p) {
+  const f = flow(p), st0 = p.stills[0];
+  const look = p.grade && p.grade.look, thumb = (look && p.previews[look]) || (st0 && st0.url) || (p.render && safeUrl(p.render.review_url)) || (p.plan && safeUrl(p.plan.sheet_url)) || "";
+  const busy = S.jobs.some((j) => running(j) && j.project === p.name);
+  return `<a class="vcard" href="#/p/${enc(p.id)}/${nextStep(p).page}">
+    <div class="vthumb">${thumb ? `<img src="${esc(thumb)}" alt=""${thumb === (st0 && st0.url) && st0.is_log ? ' class="log"' : ""} loading="lazy">` : '<span class="vt-n">${esc(p.name.slice(0, 2).toUpperCase())}</span>'}
+      <span class="vt-play" aria-hidden="true"></span>${p.plan ? `<span class="vt-d">${+p.plan.shots || 0} shots</span>` : ""}</div>
+    <div class="vbody"><div class="vname">${esc(p.name)}</div>
+      <div class="row" style="gap:6px">${busy ? '<span class="tag warn">bezig op PC</span>' : f.next.ok ? '<span class="tag ok">gerenderd</span>'
+        : `<span class="tag acc">${esc(TABS.find(([k]) => k === f.next.tab)[1])}</span>`}${p.grade && p.grade.look ? `<span class="tag">${esc(lookName(p.grade.look))}</span>` : ""}</div>
+      <div class="progress" aria-hidden="true">${TABS.map(([k]) => `<i class="${f.done[k] ? "done" : k === f.next.tab && !f.next.ok ? "next" : ""}"></i>`).join("")}</div></div></a>`;
 }
 function pcard(p) {
   const f = flow(p);
@@ -911,11 +1386,15 @@ function pcard(p) {
 // ------------------------------------------------------------------ jobs page
 function jobsView() {
   const v = $("#view");
-  v.innerHTML = `<div class="head"><div><div class="crumb"><a href="#/">AutoEdit Studio</a></div><h1>Taken</h1></div></div><div id="jl"></div>`;
+  v.innerHTML = `<div class="head"><div><div class="crumb"><a href="#/">AutoEdit Studio</a></div><h1>Instellingen</h1></div></div>
+    <div class="card" style="margin-bottom:16px"><h2>PC</h2><div id="pcInfo"></div></div><h2>Activiteit</h2><div id="jl"></div>`;
   const open = new Set();                        // rows Timon opened stay open across live updates
   const clock = (t) => { const d = toDate(t); return d ? d.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" }) : ""; };
   return {
     update() {
+      const seen = S.pc && S.pc.seen_at ? ago(S.pc.seen_at) : "";
+      $("#pcInfo").innerHTML = `<dl class="kv"><dt>Studio-sessie</dt><dd><span class="dot ${online() ? "on" : "off"}"></span>${online() ? "luistert" : esc(offlineReason() || "onbekend")}</dd>` +
+        (seen ? `<dt>Laatst gezien</dt><dd>${esc(seen)}</dd>` : "") + (S.pc && S.pc.host ? `<dt>Computer</dt><dd>${esc(S.pc.host)}</dd>` : "") + `</dl>`;
       $("#jl").innerHTML = S.jobs.length ? `<div class="card jlist">${S.jobs.slice(0, 50).map((j) => {
         const st = jobState(j);
         return `<details class="jrow" data-id="${esc(j.id)}"${open.has(j.id) ? " open" : ""}><summary><span class="led ${jobCls(st)}"></span>` +
@@ -1053,50 +1532,1478 @@ function ssdView() {
   };
 }
 
-// ------------------------------------------------------------------ project
-function projectView(id, tab) {
-  if (!TABS.some(([k]) => k === tab)) tab = "grade";
+// ------------------------------------------------------------------ JUICT dash
+// Explainer videos for JUICT, MP4 first. A video starts as a Motion film (a claude.ai page); its exported MP4 is added here
+// (assets) and plays in this page; "Naar DaVinci Resolve" asks the PC session to put it on its own timeline with scene
+// markers and empty SFX/Muziek tracks. Two small chats run on the viewer's own Claude (sample): the prompt generator on
+// the dash and a cheap "kleine aanpassing" chat per video; both end in a copyable prompt.
+// db: juict_films/<id> {titel, url, serie, at} (videos Timon added) · juict_video/<id> {ref, asset, mime, name, at}
+//     juict_resolve/<id> {status: bezig|klaar|fout, timeline, project, at, message} (written by the PC session)
+const JUICT_SERIES = [{ id: "laptop", titel: "Je nieuwe laptop", url: "https://claude.ai/code/artifact/352566e6-3e95-4d05-84e2-22eb65aa02b8" }];
+const JUICT_BUILTIN = [
+  ["Authenticator installeren", "RhVvPHCkho3uHJB8kXc3t4", "Stap 1:4|Downloaden:7|Openen:5|Meldingen:5|Klaar voor later:5|Gelukt:4"],
+  ["Laptop aan en wifi", "5aLQBMkQzAgAqpRjXfPUsK", "Stap 2:4|Oplader:5|Aanzetten:5|Wifi kiezen:7|Updates:5|Gelukt:4"],
+  ["Inloggen en koppelen", "QBvk4zZsgYV3b1vDe5Xs4D", "Stap 3:4|Inloggen:6|QR-code:5|Scannen:6|Getal overnemen:5|Gelukt:4"],
+  ["Wachten en pincode", "YEPb7aghAx3zmL7rPZu93Y", "Stap 4:4|Voorbereiden:7|Pincode kiezen:6|Inloggen:5|Bureaublad:4|Gelukt:4"],
+  ["Outlook", "MkrqWYsKWvKm1fCrvwCefk", "Stap 5:4|Zoeken:6|Doorgaan:5|Je mail:7|Agenda:4|Gelukt:4"],
+  ["Teams", "6p4UYDK3fX4GE1P5oXB18Q", "Stap 6:4|Zoeken:5|Je account:5|Chat:7|Teams:5|Gelukt:4"],
+  ["Bestanden en SharePoint", "RHD1qagZjxrTvaCEv9mSHU", "Stap 7:4|OneDrive:6|Het wolkje:5|Teammappen:7|In de Verkenner:4|Gelukt:4"],
+  ["Printix", "GkzS79uBAk3dXfWpsfxPma", "Stap 8:4|Het icoontje:6|Afdrukken:6|Onderweg:4|Ophalen:6|Gelukt:4"],
+  ["Extra apps", "TMpmMxPLwoMAkpzopnbiga", "Stap 9:4|Zoeken:5|Apps:6|Installeren:7|Openen:4|Alles klaar:4"],
+].map(([titel, id, sc], i) => {
+  const scenes = sc.split("|").map((s) => { const [name, dur] = s.split(":"); return { name, dur: +dur }; });
+  return { id: String(i + 1), n: i + 1, label: "Stap " + (i + 1), titel, serie: "laptop", url: "https://claude.ai/artifact/" + id,
+    scenes, dur: scenes.reduce((a, s) => a + s.dur, 0) };
+});
+const JUICT_LOOK = "JUICT-stijl: getekend, vlak en strak, zachte gloed, rustige beweging, grote tekst; kleuren donkerblauw #002345 " +
+  "(achtergrond), roze #FF3862, wit, geel #FBAF1F; lettertype Libre Franklin; JUICT-logo op de eindkaart; 16:9; Nederlands; " +
+  "rustige muziek, geen voice-over.";
+const filmUrl = (u) => (typeof u === "string" && /^https:\/\/claude\.ai\/(code\/)?artifact\/[\w-]{8,64}\/?$/.test(u.trim()) ? u.trim() : "");
+const ID_RE = /^[a-z0-9-]{1,40}$/;
+function juictVideos() {
+  const added = [...S.jfilms.entries()].filter(([id]) => ID_RE.test(id)).map(([id, d]) => ({
+    id, n: 0, label: "", titel: str(d.titel).slice(0, 80) || "Zonder titel", serie: str(d.serie).slice(0, 60) || "Losse video's",
+    url: filmUrl(d.url), scenes: [], dur: 0, added: true, at: d.at,
+  })).sort((a, b) => (toDate(a.at)?.getTime() || 0) - (toDate(b.at)?.getTime() || 0));
+  return JUICT_BUILTIN.concat(added);
+}
+const juictVideo = (id) => juictVideos().find((v) => v.id === String(id)) || null;
+const serieName = (sid) => (JUICT_SERIES.find((s) => s.id === sid) || {}).titel || sid;
+const fullTitle = (v) => (v.label ? v.label + ": " : "") + v.titel;
+const exportBlocked = (id) => { const d = obj(S.jvideo.get(String(id))); return !!(d && d.blocked && !safeUrl(d.ref)); };
+function vidRef(id) {
+  const d = obj(S.jvideo.get(String(id))), u = d && safeUrl(d.ref);
+  return u && /^video\//.test(str(d.mime)) ? { url: u, name: str(d.name), asset: /^[0-9a-f]{8,64}$/.test(str(d.asset)) ? d.asset : (u.match(/\/_blob\/([0-9a-f]{8,64})$/) || [])[1] || "" } : null;
+}
+function resolveState(id) {
+  const d = obj(S.jresolve.get(String(id)));
+  if (!d) return null;
+  const st = ["bezig", "klaar", "fout"].includes(d.status) ? d.status : "bezig";
+  return { st, timeline: str(d.timeline), project: str(d.project), at: d.at, message: str(d.message) };
+}
+// scene markers for Resolve: "name@startSeconds|…"
+const markers = (v) => { let t = 0; return v.scenes.map((s) => { const m = s.name.replace(/[|@"\\]/g, " ") + "@" + t; t += s.dur; return m; }).join("|"); };
+
+// --- floating menu: the videos of one series
+function juictMenu(serie, current) {
+  closeMenu();
+  const list = juictVideos().filter((v) => v.serie === serie), sObj = JUICT_SERIES.find((s) => s.id === serie);
+  const wrap = document.createElement("div");
+  wrap.className = "fmenu"; wrap.id = "fmenu";
+  wrap.innerHTML = `<div class="fmenu-panel" role="dialog" aria-modal="true" aria-label="${esc(serieName(serie))}">
+    <div class="row" style="margin-bottom:6px"><div><div class="crumb" style="margin:0">JUICT · serie</div>
+      <div class="fm-title">${esc(serieName(serie))}</div></div><span class="spacer"></span>
+      <button class="ghost sm" data-close aria-label="Sluiten">✕</button></div>
+    <div class="fm-list">${list.map((v, i) => `<a class="fm-item${v.id === current ? " on" : ""}" href="#/juict/${enc(v.id)}">
+      <span class="fm-n">${v.n || i + 1}</span><span class="nm">${esc(v.titel)}</span>
+      ${vidRef(v.id) ? '<span class="tag ok">mp4</span>' : '<span class="tag">geen mp4</span>'}${v.dur ? `<span class="t">${v.dur} s</span>` : ""}</a>`).join("")}</div>
+    ${sObj && sObj.url ? `<a class="fm-main" href="${esc(sObj.url)}" target="_blank" rel="noopener">Hoofdpagina “${esc(sObj.titel)}” openen ↗</a>` : ""}</div>`;
+  document.body.append(wrap);
+  wrap.onclick = (e) => { if (e.target === wrap || e.target.closest("[data-close]") || e.target.closest(".fm-item")) closeMenu(); };
+  menuKey = (e) => { if (e.key === "Escape") closeMenu(); };
+  document.addEventListener("keydown", menuKey);
+  const f = wrap.querySelector(".fm-item.on") || wrap.querySelector(".fm-item"); if (f) f.focus();
+}
+// --- folding: series and chat panels; per viewer, remembered in this browser
+const FOLD_KEY = "juict-folded";
+let foldedSet = null;
+const folded = () => (foldedSet || (foldedSet = new Set(store.get(FOLD_KEY) || [])));
+const collapsed = (k) => folded().has(k);
+function foldCard(k, title, body) {
+  const open = !collapsed(k);
+  return `<div class="card side-chat fold${open ? "" : " closed"}"><button class="fold-h" data-fold="${esc(k)}" aria-expanded="${open}">
+    <span class="fold-t">${esc(title)}</span><i class="chev" aria-hidden="true"></i></button><div class="fold-b"${open ? "" : " hidden"}>${body}</div></div>`;
+}
+function foldButtons(root) {
+  root.querySelectorAll("[data-fold]").forEach((b) => (b.onclick = () => {
+    const k = b.dataset.fold, open = collapsed(k);
+    open ? folded().delete(k) : folded().add(k);
+    store.set(FOLD_KEY, [...folded()]);
+    b.setAttribute("aria-expanded", open);
+    const box = b.closest(".serie, .fold");
+    box.classList.toggle("closed", !open);
+    const body = box.querySelector(".vgrid, .fold-b"); if (body) body.hidden = !open;
+    const grid = b.closest(".cols-juict"); if (grid && box.classList.contains("fold")) grid.classList.toggle("chat-closed", !open);
+  }));
+}
+let menuKey = null;
+function closeMenu() {
+  const m = $("#fmenu"); if (m) m.remove();
+  if (menuKey) { document.removeEventListener("keydown", menuKey); menuKey = null; }
+}
+
+// --- chat: one component, two uses. Answers may hold ```prompt … ``` blocks: shown as a box with a copy button.
+const SAMPLE_ERR = {
+  not_granted: "Claude mag op deze pagina niet gebruikt worden (toestemming geweigerd).",
+  sampling_disabled: "Claude is niet beschikbaar voor dit account.", not_declared: "Chat staat uit op deze pagina.",
+  capability_disabled: "Chat werkt niet in deze weergave.", capability_removed: "Chat werkt niet in deze versie van de app.",
+  rate_limited: "Even rustig: je limiet is bereikt. Probeer het straks opnieuw.", session_expired: "Log opnieuw in bij Claude.",
+  refused: "Claude wilde hier niet op antwoorden. Formuleer het anders.", empty_completion: "Geen antwoord gekregen. Probeer het korter.",
+  prompt_too_large: "Het gesprek is te lang geworden: begin een nieuw gesprek.",
+};
+const HIDE_CODES = ["not_granted", "sampling_disabled", "not_declared", "capability_disabled", "capability_removed"];
+const store = {
+  get(k) { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* private window: keep in memory */ } },
+};
+function inlineMd(s) {
+  return esc(s).replace(/\*\*([^*\n]+)\*\*/g, "<b>$1</b>").replace(/`([^`\n]+)`/g, '<code class="ic">$1</code>');
+}
+function renderAnswer(text) {
+  const parts = String(text).split(/```(?:prompt|text|markdown|md)?[ \t]*\n?/);
+  return parts.map((p, i) => {
+    if (i % 2 === 1) {
+      const body = p.replace(/\n$/, "");
+      return `<div class="pbox"><div class="pbox-h"><span>Prompt</span><button class="sm" data-copy>Kopiëren</button></div><pre>${esc(body)}</pre></div>`;
+    }
+    const t = p.trim();
+    return t ? `<div class="ptext">${t.split(/\n{2,}/).map((para) => "<p>" + inlineMd(para).replace(/\n/g, "<br>") + "</p>").join("")}</div>` : "";
+  }).join("");
+}
+async function copyText(text, btn) {
+  let ok = false;
+  try { await navigator.clipboard.writeText(text); ok = true; } catch (e) {
+    const ta = document.createElement("textarea"); ta.value = text; ta.style.cssText = "position:fixed;opacity:0;top:0";
+    document.body.append(ta); ta.select();
+    try { ok = document.execCommand("copy"); } catch (e2) { ok = false; }
+    ta.remove();
+  }
+  if (ok) { btn.textContent = "Gekopieerd ✓"; setTimeout(() => (btn.textContent = "Kopiëren"), 1800); }
+  else toast("Kopiëren lukt hier niet: selecteer de tekst en kopieer met Ctrl+C.", "err");
+}
+// opts: {key, rules(): string, tier, intro, chips: [label, text][], placeholder}
+function makeChat(el, opts) {
+  let turns = (store.get(opts.key) || []).filter((t) => t && (t.role === "user" || t.role === "assistant") && typeof t.content === "string").slice(-20);
+  let ctl = null, live = "", busy = false, dead = "";
+  el.innerHTML = `<div class="chat">
+    <div class="chat-log" aria-live="polite"></div>
+    <div class="chat-chips"></div>
+    <form class="chat-in"><textarea rows="1" placeholder="${esc(opts.placeholder)}" aria-label="${esc(opts.placeholder)}"></textarea>
+      <button type="submit" class="send">Stuur</button><button type="button" class="ghost stop" hidden>Stop</button></form>
+    <div class="chat-foot"><span class="why"></span><span class="spacer"></span><button type="button" class="ghost sm reset">Nieuw gesprek</button></div></div>`;
+  const log = $(".chat-log", el), box = $("textarea", el), why = $(".chat-foot .why", el);
+  const save = () => store.set(opts.key, turns.slice(-20));
+  function paint() {
+    const msgs = turns.map((t) => t.role === "user" ? `<div class="msg me">${inlineMd(t.content).replace(/\n/g, "<br>")}</div>`
+      : `<div class="msg ai">${renderAnswer(t.content)}</div>`);
+    if (busy) msgs.push(`<div class="msg ai">${live ? renderAnswer(live) : '<span class="thinking">Denkt na…</span>'}</div>`);
+    log.innerHTML = msgs.length ? msgs.join("") : `<div class="chat-intro">${opts.intro}</div>`;
+    log.querySelectorAll("[data-copy]").forEach((b) => (b.onclick = () => copyText(b.closest(".pbox").querySelector("pre").textContent, b)));
+    $(".chat-chips", el).innerHTML = !turns.length && !busy ? opts.chips.map(([l], i) => `<button type="button" class="chip-s" data-chip="${i}">${esc(l)}</button>`).join("") : "";
+    el.querySelectorAll("[data-chip]").forEach((b) => (b.onclick = () => ask(opts.chips[+b.dataset.chip][1])));
+    log.scrollTop = log.scrollHeight;
+    $(".send", el).hidden = busy; $(".stop", el).hidden = !busy;
+    $(".send", el).disabled = !!dead; box.disabled = !!dead;
+    why.textContent = dead;
+  }
+  async function ask(text) {
+    text = String(text || "").trim();
+    if (!text || busy || dead) return;
+    const sample = await claude_use("sample");
+    if (!sample) { dead = "De chat werkt alleen als je deze pagina in Claude opent."; paint(); return; }
+    turns.push({ role: "user", content: text.slice(0, 4000) }); save();
+    box.value = ""; autosize(); busy = true; live = ""; paint();
+    ctl = new AbortController();
+    try {
+      const { text: answer, truncated } = await sample([{ role: "user", content: opts.rules() }, ...turns.slice(-16)], {
+        cache: false, signal: ctl.signal, modelTier: opts.tier, onText: ({ text: t }) => { live = t; paint(); },
+      });
+      turns.push({ role: "assistant", content: answer + (truncated ? "\n\n(afgekapt)" : "") });
+    } catch (e) {
+      const keep = e && e.code !== "refused" && e.text;
+      if (keep) turns.push({ role: "assistant", content: e.text + "\n\n(onderbroken)" });
+      if (e && HIDE_CODES.includes(e.code)) dead = SAMPLE_ERR[e.code];
+      else if (e && e.code !== "cancelled") toast(SAMPLE_ERR[e.code] || "Verbinding met Claude mislukt. Probeer het nog eens.", "err");
+    } finally {
+      busy = false; live = ""; ctl = null; save(); paint();
+    }
+  }
+  const autosize = () => { box.style.height = "auto"; box.style.height = Math.min(box.scrollHeight, 180) + "px"; };
+  box.oninput = autosize;
+  box.onkeydown = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ask(box.value); } };
+  $("form", el).onsubmit = (e) => { e.preventDefault(); ask(box.value); };
+  $(".stop", el).onclick = () => ctl && ctl.abort();
+  $(".reset", el).onclick = () => { if (ctl) ctl.abort(); turns = []; save(); paint(); box.focus(); };
+  paint();
+  return { destroy() { if (ctl) ctl.abort(); } };
+}
+const claude_use = (name) => (window.claude && typeof window.claude.use === "function"
+  ? Promise.resolve(window.claude.use(name)).catch(() => null) : Promise.resolve(null));
+
+const PROMPT_RULES = () => `Je bent de promptcoach op het JUICT-dashboard van Timon (JUICT, een IT-dienstverlener). Je helpt hem een goede prompt te schrijven die hij daarna in een nieuwe Claude-chat (Claude Cowork) plakt. Meestal gaat het om korte uitlegvideo's (Motion-animaties, later als MP4 afgewerkt in DaVinci Resolve met geluidseffecten), maar het mag over alles gaan.
+
+Werkwijze:
+- Spreek Nederlands, kort en vriendelijk. Stel één vraag per keer, en hoogstens drie vragen in totaal; vraag alleen wat je echt nodig hebt (doel, publiek, inhoud/stappen, lengte, formaat).
+- Weet je genoeg, of vraagt Timon erom, schrijf dan de prompt. Zet de prompt ALTIJD in één codeblok dat begint met \`\`\`prompt en eindigt met \`\`\`. Daarbuiten hoogstens één korte zin.
+- Een goede prompt: wat er gemaakt moet worden, voor wie, de inhoud of stappen in volgorde met de duur per scène, lengte en formaat, de stijl, en wat er NIET moet. Concreet, geen vulwoorden.
+- Bij een uitlegvideo: neem de huisstijl op tenzij Timon iets anders wil (${JUICT_LOOK}), vraag om duidelijke scènewissels (daar komen in Resolve de geluidseffecten), en zet erin dat de film daarna via Export als MP4 wordt opgeslagen.
+- Bestaande video's (ter info): ${juictVideos().map((v) => fullTitle(v) + " [" + serieName(v.serie) + "]" + (v.url ? " " + v.url : "")).join("; ")}.
+- Werkinstructies die Timon heeft geüpload (PDF, titels): ${docList().map((d) => d.titel).join("; ") || "nog geen"}. Jij kunt de PDF's niet lezen: vraag om de stappen als je ze nodig hebt, en zet in de prompt dat Timon de PDF bij de nieuwe chat voegt.
+- Wil Timon de prompt anders, pas hem aan en geef hem opnieuw helemaal in een codeblok.`;
+function videoRules(v) {
+  return () => `Je helpt Timon (JUICT) met een KLEINE aanpassing aan één bestaande uitlegvideo (een Motion-animatie die als MP4 in DaVinci Resolve wordt afgewerkt). Jij kunt de video niet zelf aanpassen: jij schrijft een korte, precieze opdracht die hij in een Claude-chat plakt.
+
+De video: "${fullTitle(v)}"${v.url ? ", bronfilm " + v.url : ""}.${v.scenes.length ? " Totaal " + v.dur + " s. Scènes in volgorde: " + v.scenes.map((s, i) => (i + 1) + ". " + s.name + " (" + s.dur + " s)").join(", ") + "." : ""}
+Stijl: ${JUICT_LOOK}
+
+Werkwijze:
+- Nederlands, heel kort. Is de wens duidelijk, geef meteen de opdracht; anders één korte vraag.
+- Gaat de wens over geluid (effecten, muziek, volume), zeg dan in één zin dat dat in DaVinci Resolve gebeurt, op de scènemarkers, en schrijf geen opdracht.
+- Anders staat de opdracht in één codeblok dat begint met \`\`\`prompt en eindigt met \`\`\`, en volgt dit patroon: "Open de Motion-film ${v.url || "<link>"} (${fullTitle(v)}). Pas alleen dit aan: <scène nummer en naam> — <wat er precies verandert>. Laat al het andere (stijl, timing, andere scènes, muziek) zoals het is."
+- Buiten het codeblok hoogstens één zin. Is de wens geen kleine aanpassing (een hele nieuwe video), zeg dat in één zin en verwijs naar de promptgenerator op het JUICT-dashboard.`;
+}
+
+const PROMPT_CHAT = () => ({
+  key: "juict-prompt-chat", tier: "default", rules: PROMPT_RULES, placeholder: "Wat wil je laten maken?",
+  intro: "Vertel wat je wilt maken. Ik stel een paar korte vragen en geef je daarna een prompt om te kopiëren en in een nieuwe Claude-chat te plakken.",
+  chips: [["Nieuwe uitlegvideo", "Ik wil een nieuwe uitlegvideo in JUICT-stijl maken."],
+    ["Nieuwe serie", "Ik wil een nieuwe serie korte uitlegvideo's maken."], ["Iets anders", "Ik wil een prompt voor iets anders dan een video."]],
+});
+function vcard(v) {
+  const ref = vidRef(v.id), rs = resolveState(v.id);
+  const rTag = rs ? (rs.st === "klaar" ? '<span class="tag ok">in Resolve</span>' : rs.st === "fout" ? '<span class="tag fail">Resolve mislukt</span>' : '<span class="tag warn">naar Resolve…</span>') : "";
+  return `<a class="vcard" href="#/juict/${enc(v.id)}" draggable="true" data-drag-video="${esc(v.id)}">
+    <button class="vadd" data-add="${esc(v.id)}" title="Aan montage toevoegen" aria-label="${esc(v.titel)} aan montage toevoegen">+</button>
+    <div class="vthumb">${ref ? `<video src="${esc(ref.url)}#t=3" muted preload="metadata" playsinline tabindex="-1"></video>`
+      : `<span class="vt-n">${esc(v.label || "Video")}</span>`}<span class="vt-play" aria-hidden="true"></span>
+      ${v.dur ? `<span class="vt-d">${v.dur} s</span>` : ""}</div>
+    <div class="vbody"><div class="vname">${esc(v.titel)}</div>
+      <div class="row" style="gap:6px">${ref ? '<span class="tag ok">mp4</span>' : exportBlocked(v.id) ? '<span class="tag warn" title="Je mag deze film alleen bekijken: vraag de maker om bewerkrechten">geen exportrechten</span>' : '<span class="tag">nog geen mp4</span>'}${rTag}</div></div></a>`;
+}
+
+// --- montage: an ordered list of fragments (a whole video or one of its scenes), kept in db juict_montage/main
+// {items: [{v: videoId, s: sceneIndex | -1}], at}. "Naar DaVinci Resolve" sends one juict-montage request.
+const MONT_MAX = 60;
+function montageSave(items) {
+  const ab = (it) => (Number.isFinite(it.a) && Number.isFinite(it.b) && it.b > it.a ? { a: Math.round(it.a * 1000) / 1000, b: Math.round(it.b * 1000) / 1000 } : {});
+  const data = { items: items.slice(0, MONT_MAX).map((it) => ({ v: it.v, s: Number.isInteger(it.s) ? it.s : -1, ...ab(it) })), at: new Date().toISOString() };
+  S.jmontage = data;
+  if (S.db && S.owner !== false) return S.db.doc("juict_montage/main").set(data).catch((e) => toast("Montage niet opgeslagen (" + (e && e.code || "fout") + ").", "err"));
+  return Promise.resolve();
+}
+function montageAdd(it) {
+  const items = montageItems();
+  if (items.length >= MONT_MAX) return toast("Hoogstens " + MONT_MAX + " fragmenten.", "err");
+  items.push(it); montageSave(items); refresh();
+  toast("Toegevoegd aan de montage (" + items.length + ").", "ok");
+}
+function montageItems() {
+  const d = obj(S.jmontage), raw = d && Array.isArray(d.items) ? d.items : [];
+  return raw.map(obj).filter((it) => it && typeof it.v === "string" && ID_RE.test(it.v)).slice(0, MONT_MAX)
+    .map((it) => { const o = { v: it.v, s: Number.isInteger(it.s) ? it.s : -1 };
+      if (Number.isFinite(it.a) && Number.isFinite(it.b) && it.a >= 0 && it.b > it.a && it.b <= 3600) { o.a = it.a; o.b = it.b; }
+      return o; });
+}
+function fragment(it) {
+  const vid = juictVideo(it.v);
+  if (!vid) return null;
+  if (Number.isFinite(it.a) && Number.isFinite(it.b) && it.b > it.a) {          // in/out set on the timeline
+    const sc = it.s >= 0 && vid.scenes[it.s], sb = sc ? sceneBounds(vid, it.s) : [0, vidDur(vid)];
+    const exact = Math.abs(sb[0] - it.a) < 0.02 && Math.abs(sb[1] - it.b) < 0.02;
+    return { vid, start: it.a, dur: Math.round((it.b - it.a) * 1000) / 1000, custom: !exact,
+      name: exact ? (sc ? sc.name : "hele video") : (sc ? sc.name + " (geknipt)" : "knip " + clock(it.a) + "–" + clock(it.b)) };
+  }
+  if (it.s >= 0 && vid.scenes[it.s]) {
+    const start = vid.scenes.slice(0, it.s).reduce((a, x) => a + x.dur, 0);
+    return { vid, start, dur: vid.scenes[it.s].dur, name: vid.scenes[it.s].name };
+  }
+  return { vid, start: 0, dur: vid.dur, name: "hele video" };
+}
+function montagePanel(el) {
+  let items = montageItems(), saving = Promise.resolve(), dropAt = -1, key = null;
+  const history = [];                                   // undo stack of earlier item lists (this page view)
+  el.innerHTML = `<div class="why" style="margin:-6px 0 10px">Sleep video's hierheen (of druk op + op een kaart). Knippen en trimmen doe je in de editor: klik op een video.</div>
+    <div class="mont-list" id="mList" aria-label="Montage"></div>
+    <div class="row mont-foot"><span class="muted small" id="mTotal"></span><span class="spacer"></span>
+      <button class="ghost sm" id="mUndo" title="Ongedaan maken (Ctrl+Z)">↶</button>
+      <button class="ghost sm" id="mClear">Leegmaken</button><button class="dark sm" id="mPlay">▶ Afspelen</button><button class="sm" data-pc id="mGo">Naar DaVinci Resolve</button></div>
+    <div class="why" id="mWhy"></div>
+    <div class="mprev" id="mPrev" hidden><video playsinline preload="auto"></video>
+      <div class="row small muted"><span id="mNow"></span><span class="spacer"></span><button class="ghost sm" id="mStop">Stop</button></div></div>`;
+  const list = $("#mList", el);
+  let last = JSON.stringify(items);
+  const save = () => {
+    history.push(JSON.parse(last)); if (history.length > 50) history.shift();
+    last = JSON.stringify(items);
+    saving = saving.then(() => montageSave(items));
+    key = null; paint();
+  };
+  const undo = () => {
+    if (!history.length) return toast("Niets om ongedaan te maken.");
+    items = history.pop(); last = JSON.stringify(items); saving = saving.then(() => montageSave(items)); key = null; paint();
+    toast("Ongedaan gemaakt.", "ok");
+  };
+  function paint() {
+    const k = JSON.stringify([items, dropAt, online(), [...S.jvideo.keys()], juictVideos().length]);
+    if (k === key) return;
+    key = k;
+    const frags = items.map(fragment);
+    const rows = items.map((it, i) => {
+      const f = frags[i];
+      if (!f) return `<div class="mrow gone" data-i="${i}"><span class="mi">${i + 1}</span><span class="nm">Video niet meer gevonden</span><button class="ghost sm" data-del="${i}" aria-label="Weghalen">✕</button></div>`;
+      const cut = f.custom ? `<option value="c" selected>${esc(f.name)} · ${f.dur} s</option>` : "";
+      const opts = [cut + `<option value="-1"${it.s < 0 && !f.custom ? " selected" : ""}>Hele video${f.vid.dur ? " · " + f.vid.dur + " s" : ""}</option>`]
+        .concat(f.vid.scenes.map((sc, j) => `<option value="${j}"${it.s === j && !f.custom ? " selected" : ""}>${j + 1}. ${esc(sc.name)} · ${sc.dur} s</option>`)).join("");
+      return `<div class="mrow${dropAt === i ? " drop-before" : ""}${vidRef(f.vid.id) ? "" : " no-mp4"}" draggable="true" data-i="${i}">
+        <span class="grip" aria-hidden="true">⋮⋮</span><span class="mi">${i + 1}</span>
+        <span class="mtxt"><span class="nm">${esc(fullTitle(f.vid))}</span>
+          <select data-scene="${i}" aria-label="Fragment van ${esc(f.vid.titel)}"${f.vid.scenes.length ? "" : " disabled"}>${opts}</select></span>
+        <button class="ghost sm" data-dup="${i}" title="Nog een keer gebruiken" aria-label="Dupliceren">⧉</button>
+        <button class="ghost sm" data-del="${i}" title="Weghalen" aria-label="Weghalen">✕</button></div>`;
+    });
+    list.innerHTML = rows.length ? rows.join("") + `<div class="mdrop${dropAt === items.length ? " on" : ""}" data-i="${items.length}">Sleep hier nog een video</div>`
+      : `<div class="mdrop empty-drop${dropAt === 0 ? " on" : ""}" data-i="0">Sleep een video hierheen</div>`;
+    const total = frags.reduce((a, f) => a + (f ? f.dur : 0), 0);
+    $("#mTotal", el).textContent = items.length ? items.length + (items.length === 1 ? " fragment" : " fragmenten") + " · " + total + " s" : "";
+    $("#mClear", el).hidden = !items.length;
+    $("#mUndo", el).hidden = !history.length;
+    $("#mPlay", el).disabled = !frags.some((f) => f && vidRef(f.vid.id));
+    const missing = frags.filter((f) => f && !vidRef(f.vid.id)).map((f) => f.vid.label || f.vid.titel);
+    const r = montageRequest();
+    $("#mGo", el).dataset.block = r.error ? "1" : "";
+    $("#mWhy", el).textContent = !items.length ? "" : missing.length ? "Nog geen MP4: " + [...new Set(missing)].join(", ") + "."
+      : !online() ? offlineReason() : r.error || "Eén tijdlijn met deze fragmenten achter elkaar, markers per fragment, sporen SFX en Muziek.";
+    $("#mWhy", el).className = "why" + (items.length && (missing.length || !online()) ? " warn" : "");
+    pcButtons(el);
+  }
+  function montageRequest() {
+    const parts = [];
+    for (const it of items) {
+      const f = fragment(it), ref = f && vidRef(f.vid.id);
+      if (!f || !ref || !ref.asset) return { error: "elke video in de montage heeft een MP4 nodig" };
+      parts.push({ asset: ref.asset, start: f.start, dur: f.dur || 0, name: fullTitle(f.vid) + (it.s >= 0 ? " – " + f.name : "") });
+    }
+    return requestText("juict-montage", "", { parts });
+  }
+  const at = (e) => { const row = e.target.closest && e.target.closest("[data-i]"); if (!row) return items.length;
+    const i = +row.dataset.i; if (row.classList.contains("mdrop")) return i;
+    const r = row.getBoundingClientRect(); return e.clientY > r.top + r.height / 2 ? i + 1 : i; };
+  list.addEventListener("dragstart", (e) => {
+    const row = e.target.closest && e.target.closest(".mrow[draggable]"); if (!row) return;
+    e.dataTransfer.setData("application/x-juict", JSON.stringify({ from: +row.dataset.i }));
+    e.dataTransfer.effectAllowed = "move";
+  });
+  list.addEventListener("dragover", (e) => {
+    if (![...e.dataTransfer.types].includes("application/x-juict")) return;
+    e.preventDefault();
+    const i = at(e); if (i !== dropAt) { dropAt = i; key = null; paint(); }
+  });
+  list.addEventListener("dragleave", (e) => { if (!list.contains(e.relatedTarget)) { dropAt = -1; key = null; paint(); } });
+  list.addEventListener("drop", (e) => {
+    e.preventDefault();
+    let d = null; try { d = JSON.parse(e.dataTransfer.getData("application/x-juict")); } catch (err) { d = null; }
+    let i = at(e); dropAt = -1;
+    if (d && Number.isInteger(d.from) && items[d.from]) {
+      const [moved] = items.splice(d.from, 1); if (d.from < i) i--; items.splice(i, 0, moved); save();
+    } else if (d && typeof d.v === "string" && juictVideo(d.v)) {
+      if (items.length >= MONT_MAX) return toast("Hoogstens " + MONT_MAX + " fragmenten.", "err");
+      items.splice(i, 0, { v: d.v, s: -1 }); save();
+    } else { key = null; paint(); }
+    document.body.classList.remove("dragging");
+  });
+  list.addEventListener("change", (e) => { const sel = e.target.closest("[data-scene]"); if (!sel) return; if (sel.value === "c") return; const i = +sel.dataset.scene; items[i] = { v: items[i].v, s: +sel.value }; save(); });
+  list.addEventListener("click", (e) => {
+    const dup = e.target.closest("[data-dup]"), del = e.target.closest("[data-del]");
+    if (dup) { if (items.length >= MONT_MAX) return toast("Hoogstens " + MONT_MAX + " fragmenten.", "err"); const i = +dup.dataset.dup; items.splice(i + 1, 0, { ...items[i] }); save(); }
+    if (del) { items.splice(+del.dataset.del, 1); save(); }
+  });
+  $("#mClear", el).onclick = () => { items = []; save(); toast("Montage leeg. Ctrl+Z zet hem terug."); };
+  $("#mUndo", el).onclick = undo;
+  // live preview: play the fragments one after another from their MP4s, in this page (no Resolve needed)
+  const pv = $("#mPrev video", el); let seq = [], pos = 0;
+  const playAt = (i) => {
+    pos = i;
+    if (i >= seq.length) { $("#mNow", el).textContent = "Klaar · " + seq.length + " fragmenten"; return; }
+    const f = seq[i];
+    $("#mNow", el).textContent = (i + 1) + "/" + seq.length + " · " + fullTitle(f.vid) + (f.name !== "hele video" ? " – " + f.name : "");
+    const go = () => { pv.currentTime = f.start; pv.play().catch(() => {}); };
+    if (pv.getAttribute("src") !== f.url) { pv.src = f.url; pv.onloadedmetadata = go; } else go();
+    list.querySelectorAll(".mrow").forEach((r) => r.classList.toggle("playing", +r.dataset.i === f.i));
+  };
+  pv.ontimeupdate = () => { const f = seq[pos]; if (f && f.dur && pv.currentTime >= f.start + f.dur - 0.05) playAt(pos + 1); };
+  pv.onended = () => playAt(pos + 1);
+  $("#mPlay", el).onclick = () => {
+    seq = items.map((it, i) => { const f = fragment(it), r = f && vidRef(f.vid.id); return r ? { ...f, url: r.url, i } : null; }).filter(Boolean);
+    if (!seq.length) return toast("Nog geen fragmenten met een MP4.", "err");
+    const skipped = items.length - seq.length;
+    if (skipped) toast(skipped + " fragment(en) zonder MP4 overgeslagen.");
+    $("#mPrev", el).hidden = false; playAt(0);
+  };
+  $("#mStop", el).onclick = () => { pv.pause(); $("#mPrev", el).hidden = true; list.querySelectorAll(".mrow.playing").forEach((r) => r.classList.remove("playing")); };
+  const onKey = (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z" && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) { e.preventDefault(); undo(); }
+  };
+  document.addEventListener("keydown", onKey);
+  $("#mGo", el).onclick = (e) => { const r = montageRequest(); if (r.error) return toast(r.error, "err"); sendText(e.currentTarget, "juict-montage", r.text); };
+  paint();
+  return {
+    add(it) { if (items.length >= MONT_MAX) return toast("Hoogstens " + MONT_MAX + " fragmenten.", "err"); items.push(it); save(); toast("Toegevoegd aan de montage (" + items.length + ").", "ok"); },
+    update() { const fresh = montageItems(); if (JSON.stringify(fresh) !== JSON.stringify(items) && dropAt < 0) { items = fresh; last = JSON.stringify(items); } paint(); },
+    clearDrop() { if (dropAt >= 0) { dropAt = -1; key = null; paint(); } },
+    destroy() { document.removeEventListener("keydown", onKey); pv.pause(); },
+  };
+}
+
+function juictDash() {
   const v = $("#view");
-  v.innerHTML = `<div class="head"><div style="min-width:0"><div class="crumb"><a href="#/">Projecten</a> / <span id="pcrumb"></span></div>
-      <h1 id="ptitle"></h1></div><span class="spacer"></span><div class="row" id="ptags" style="gap:6px"></div></div>
-    <div class="jobs" id="jobs"></div><div class="jobmsg" hidden></div>
-    <div id="next"></div>
-    <div class="steps" id="steps" role="navigation" aria-label="Stappen">${TABS.map(([k, l], i) => `<a href="#/p/${enc(id)}/${k}" data-step="${k}" class="${k === tab ? "on" : ""}"${k === tab ? ' aria-current="page"' : ""}><b>${i + 1}</b><span>${l}</span></a>`).join("")}</div>
-    <div id="tab"></div>`;
-  let inner = null, missing = null;
+  v.innerHTML = `<div class="head"><div><div class="crumb"><a href="#/">AutoEdit Studio</a> / JUICT</div><h1>JUICT video's</h1></div>
+      <span class="spacer"></span><button class="ghost sm" id="addBtn">+ Video toevoegen</button></div>
+    <div class="card stack" id="addCard" hidden><h2 style="margin:0">Video toevoegen</h2>
+      <div class="add-grid"><label>Link van de Motion-film<input type="text" id="aUrl" autocomplete="off" placeholder="https://claude.ai/artifact/…"></label>
+        <label>Titel<input type="text" id="aTitel" maxlength="80" autocomplete="off" placeholder="bijv. VPN aanzetten"></label>
+        <label>Serie<input type="text" id="aSerie" maxlength="60" autocomplete="off" list="aSeries" placeholder="bijv. Thuiswerken"><datalist id="aSeries"></datalist></label></div>
+      <div class="row"><button id="aGo">Toevoegen</button><button class="ghost" id="aCancel">Annuleren</button><span class="why" id="aWhy"></span></div></div>
+    <div class="grid cols-juict" style="margin-top:16px">
+      <div id="series"></div>
+      ${foldCard("chat:montage", "Montage", '<div id="mont"></div>')}
+    </div>`;
+  const add = $("#addCard", v);
+  $("#addBtn", v).onclick = () => { add.hidden = !add.hidden; if (!add.hidden) $("#aUrl", v).focus(); };
+  $("#aCancel", v).onclick = () => { add.hidden = true; };
+  $("#aGo", v).onclick = async (e) => {
+    const url = filmUrl($("#aUrl", v).value), titel = $("#aTitel", v).value.trim(), serie = $("#aSerie", v).value.trim() || "Losse video's";
+    const why = $("#aWhy", v);
+    if (!url) { why.textContent = "Plak de link van een Motion-film (claude.ai/artifact/…)."; return; }
+    if (!titel) { why.textContent = "Geef de video een titel."; return; }
+    if (!S.db || S.owner === false) { why.textContent = "Alleen de eigenaar kan video's toevoegen."; return; }
+    if (juictVideos().some((x) => x.url === url)) { why.textContent = "Die video staat er al in."; return; }
+    const id = "v-" + Date.now().toString(36);
+    e.currentTarget.disabled = true;
+    try {
+      await S.db.doc("juict_films/" + id).set({ titel, url, serie, at: new Date().toISOString() });
+      ["#aUrl", "#aTitel"].forEach((s) => ($(s, v).value = "")); why.textContent = ""; add.hidden = true;
+      toast("Video toegevoegd.", "ok");
+    } catch (err) { why.textContent = "Toevoegen mislukt (" + (err && err.code || "fout") + ")."; }
+    finally { e.currentTarget.disabled = false; }
+  };
+  const mont = montagePanel($("#mont", v));
+  foldInit(v);
+  // drag a card (or press its +) into the montage; the same video or scene may go in more than once
+  $("#series", v).addEventListener("dragstart", (e) => {
+    const c = e.target.closest && e.target.closest("[data-drag-video]");
+    if (!c) return;
+    e.dataTransfer.setData("application/x-juict", JSON.stringify({ v: c.dataset.dragVideo }));
+    e.dataTransfer.setData("text/plain", c.dataset.dragVideo);
+    e.dataTransfer.effectAllowed = "copy";
+    document.body.classList.add("dragging");
+  });
+  const endDrag = () => { document.body.classList.remove("dragging"); mont.clearDrop(); };
+  $("#series", v).addEventListener("dragend", endDrag);
+  $("#mont", v).addEventListener("dragend", endDrag);
+  $("#series", v).addEventListener("click", (e) => {
+    const b = e.target.closest && e.target.closest("[data-add]");
+    if (!b) return;
+    e.preventDefault(); e.stopPropagation();
+    mont.add({ v: b.dataset.add, s: -1 });
+  });
+  let key = null;
+  return {
+    update() {
+      const all = juictVideos();
+      const groups = [...new Set(all.map((x) => x.serie))].map((sid) => [sid, all.filter((x) => x.serie === sid)]);
+      mont.update();
+      const k = JSON.stringify([all.map((x) => x.id + x.titel), [...S.jvideo.keys()], [...S.jresolve.entries()]]);
+      if (k === key) return;
+      key = k;
+      $("#aSeries", v).innerHTML = groups.map(([sid]) => `<option value="${esc(serieName(sid))}">`).join("");
+      $("#series", v).innerHTML = groups.map(([sid, list]) => {
+        const mp4 = list.filter((x) => vidRef(x.id)).length, sObj = JUICT_SERIES.find((s) => s.id === sid);
+        const open = !collapsed("serie:" + sid);
+        return `<section class="serie${open ? "" : " closed"}"><div class="serie-h">
+          <button class="serie-t" data-fold="serie:${esc(sid)}" aria-expanded="${open}"><i class="chev" aria-hidden="true"></i>${esc(serieName(sid))}</button>
+          <span class="muted small">${list.length} video's · ${mp4} als mp4</span><span class="spacer"></span>
+          <button class="ghost sm" data-serie="${esc(sid)}" aria-haspopup="dialog">Snel kiezen</button>
+          ${sObj && sObj.url ? `<a class="tag" href="${esc(sObj.url)}" target="_blank" rel="noopener">Hoofdpagina ↗</a>` : ""}</div>
+          <div class="vgrid"${open ? "" : " hidden"}>${list.map(vcard).join("")}</div></section>`;
+      }).join("");
+      $("#series", v).querySelectorAll("[data-serie]").forEach((b) => (b.onclick = () => juictMenu(b.dataset.serie, "")));
+      foldButtons($("#series", v));
+    },
+    destroy() { mont.destroy(); closeMenu(); },
+  };
+}
+
+// ------------------------------------------------------------------ JUICT: werkinstructies (PDF)
+// PDFs go straight into the artifact's asset store (no PC, no Claude turn); db juict_docs/<id>
+// {titel, name, asset, ref, size, at, video?, serie?}. Only the owner uploads, renames and deletes.
+const DOC_MAX = 20 * 1024 * 1024;
+const fmtSize = (b) => (b >= 1048576 ? (b / 1048576).toFixed(1).replace(".", ",") + " MB" : Math.max(1, Math.round(b / 1024)) + " kB");
+function docList() {
+  return [...S.jdocs.entries()].filter(([id]) => /^[a-z0-9-]{1,40}$/.test(id)).map(([id, d]) => ({
+    id, titel: str(d.titel).slice(0, 120) || str(d.name) || "Werkinstructie", name: str(d.name).slice(0, 160),
+    ref: safeUrl(d.ref), asset: /^[0-9a-f]{8,64}$/.test(str(d.asset)) ? d.asset : "", size: +d.size || 0, at: d.at,
+    video: str(d.video), serie: str(d.serie).slice(0, 60),
+  })).filter((d) => d.ref).sort((a, b) => (toDate(b.at)?.getTime() || 0) - (toDate(a.at)?.getTime() || 0));
+}
+const docTitle = (name) => String(name).replace(/\.pdf$/i, "").replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 120) || "Werkinstructie";
+// PDF preview: pdf.js draws the pages on canvases (the viewer's sandbox shows no built-in PDF viewer in a frame).
+const PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+let pdfjsP = null;
+const loadPdfjs = () => pdfjsP || (pdfjsP = new Promise((res, rej) => {
+  if (window.pdfjsLib) return res(window.pdfjsLib);
+  const sc = document.createElement("script"); sc.src = PDFJS + "pdf.min.js";
+  sc.onload = () => { window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + "pdf.worker.min.js"; res(window.pdfjsLib); };
+  sc.onerror = () => { pdfjsP = null; rej(new Error("pdf.js niet geladen")); };
+  document.head.append(sc);
+}));
+let pdfRun = 0;
+async function renderPdf(url, box, why) {
+  const run = ++pdfRun;
+  try {
+    const lib = await loadPdfjs();
+    const data = await (await fetch(url)).arrayBuffer();
+    if (run !== pdfRun) return;
+    const doc = await lib.getDocument({ data }).promise;
+    box.innerHTML = "";
+    const n = Math.min(doc.numPages, 40), w = Math.max(320, box.clientWidth - 24);
+    for (let i = 1; i <= n; i++) {
+      if (run !== pdfRun) return;
+      const page = await doc.getPage(i), vp0 = page.getViewport({ scale: 1 });
+      const scale = (w / vp0.width) * Math.min(2, window.devicePixelRatio || 1), vp = page.getViewport({ scale });
+      const c = document.createElement("canvas"); c.width = vp.width; c.height = vp.height; c.className = "pdf-page";
+      box.append(c);
+      await page.render({ canvasContext: c.getContext("2d"), viewport: vp }).promise;
+    }
+    why.textContent = doc.numPages + (doc.numPages === 1 ? " pagina" : " pagina's") + (doc.numPages > n ? " (eerste " + n + " getoond: download voor de rest)" : "");
+  } catch (e) {
+    if (run !== pdfRun) return;
+    box.innerHTML = `<div class="empty" style="margin:16px">Voorbeeld niet beschikbaar. Gebruik <b>Downloaden</b> en open de PDF op je computer.</div>`;
+    why.textContent = "";
+  }
+}
+function docsView(openId) {
+  const v = $("#view");
+  const canEdit = () => !!(S.assets && S.db && S.owner !== false);
+  v.innerHTML = `<div class="head"><div><div class="crumb"><a href="#/juict">JUICT</a></div><h1>Werkinstructies</h1></div>
+      <span class="spacer"></span><label class="btn up-btn" id="dUpBtn">+ PDF uploaden<input type="file" id="dFile" accept="application/pdf,.pdf" multiple hidden></label></div>
+    <div class="drop-pdf" id="dDrop"><b>Sleep PDF's hierheen</b><span class="muted small">of gebruik + PDF uploaden · tot 20 MB per bestand</span></div>
+    <div class="row" style="margin:14px 0 10px"><input type="text" id="dSearch" placeholder="Zoek op titel…" autocomplete="off" style="max-width:320px"><span class="muted small" id="dCount"></span></div>
+    <div class="grid docs-grid"><div id="dList" class="doc-list"></div><div id="dView"></div></div>`;
+  let cur = openId || "", busy = 0, key = null;
+  async function upload(files) {
+    if (!canEdit()) return toast("Alleen de eigenaar kan uploaden.", "err");
+    const list = [...files].filter((f) => f);
+    for (const f of list) {
+      if (!(/pdf$/i.test(f.type) || /\.pdf$/i.test(f.name))) { toast(f.name + ": geen PDF.", "err"); continue; }
+      if (f.size > DOC_MAX) { toast(f.name + " is groter dan 20 MB.", "err"); continue; }
+      busy++; paint(true);
+      try {
+        const blob = f.type === "application/pdf" ? f : new Blob([f], { type: "application/pdf" });
+        const a = await S.assets.upload(blob);
+        const id = "d-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+        await S.db.doc("juict_docs/" + id).set({ titel: docTitle(f.name), name: f.name.slice(0, 160), asset: a.id, ref: a.url, size: f.size, at: new Date().toISOString() });
+        cur = id; toast("Geüpload: " + docTitle(f.name), "ok");
+      } catch (e) { toast(f.name + ": uploaden mislukt (" + (e && e.code || "fout") + ").", "err"); }
+      finally { busy--; paint(true); }
+    }
+  }
+  $("#dFile", v).onchange = (e) => { upload(e.target.files); e.target.value = ""; };
+  const drop = $("#dDrop", v);
+  ["dragenter", "dragover"].forEach((t) => v.addEventListener(t, (e) => { if ([...e.dataTransfer.types].includes("Files")) { e.preventDefault(); drop.classList.add("on"); } }));
+  v.addEventListener("dragleave", (e) => { if (!v.contains(e.relatedTarget)) drop.classList.remove("on"); });
+  v.addEventListener("drop", (e) => { if (!e.dataTransfer.files.length) return; e.preventDefault(); drop.classList.remove("on"); upload(e.dataTransfer.files); });
+  $("#dSearch", v).oninput = () => paint(true);
+  function paint(force) {
+    const docs = docList(), q = $("#dSearch", v).value.trim().toLowerCase();
+    const shown = q ? docs.filter((d) => (d.titel + " " + d.name).toLowerCase().includes(q)) : docs;
+    if (!cur && docs.length && innerWidth > 900) cur = docs[0].id;
+    const k = JSON.stringify([shown.map((d) => d.id + d.titel + d.video), cur, busy, canEdit()]);
+    if (k === key && !force) return;
+    key = k;
+    $("#dUpBtn", v).style.display = canEdit() ? "" : "none";
+    drop.style.display = canEdit() ? "" : "none";
+    $("#dCount", v).textContent = !S.jdocsReady ? "" : docs.length + (docs.length === 1 ? " instructie" : " instructies") + (busy ? " · uploaden…" : "");
+    $("#dList", v).innerHTML = !S.jdocsReady ? '<div class="loading">Laden…</div>' : !docs.length
+      ? `<div class="empty">Nog geen werkinstructies. ${canEdit() ? "Sleep een PDF hierheen of klik op <b>+ PDF uploaden</b>." : ""}</div>`
+      : !shown.length ? '<div class="muted">Niets gevonden.</div>'
+      : shown.map((d) => `<a class="doc-row${d.id === cur ? " on" : ""}" href="#/instructies/${enc(d.id)}">
+          <span class="doc-ic" aria-hidden="true">PDF</span><span class="doc-t"><b>${esc(d.titel)}</b>
+          <span class="muted small">${esc(fmtSize(d.size))}${d.at ? " · " + esc(when(d.at)) : ""}${d.video && juictVideo(d.video) ? " · hoort bij " + esc(fullTitle(juictVideo(d.video))) : ""}</span></span></a>`).join("");
+    const d = docs.find((x) => x.id === cur);
+    const box = $("#dView", v);
+    if (!d) { box.innerHTML = docs.length ? '<div class="empty">Kies links een werkinstructie.</div>' : ""; return; }
+    const vids = juictVideos();
+    box.innerHTML = `<div class="card stack doc-card">
+      <div class="row"><input type="text" id="dTitle" maxlength="120" value="${esc(d.titel)}" aria-label="Titel"${canEdit() ? "" : " readonly"}>
+        <button class="sm" id="dPrompt" title="Open de promptgenerator met deze werkinstructie">Video-prompt maken</button>
+        <button class="ghost sm" id="dSave" title="PDF op je computer opslaan">Downloaden</button></div>
+      <div class="row small muted"><span>${esc(d.name)}</span><span>·</span><span>${esc(fmtSize(d.size))}</span><span class="spacer"></span>
+        ${canEdit() ? `<label class="row" style="gap:6px;flex-direction:row;align-items:center">Hoort bij <select id="dVideo"><option value="">geen video</option>${vids.map((x) => `<option value="${esc(x.id)}"${x.id === d.video ? " selected" : ""}>${esc(fullTitle(x))}</option>`).join("")}</select></label>
+          <button class="ghost sm" id="dDel">Verwijderen</button>` : ""}</div>
+      <div class="confirm" id="dConfirm" hidden><span>“${esc(d.titel)}” definitief verwijderen? Dit kan niet ongedaan worden gemaakt.</span>
+        <div class="row"><button id="dDelYes">Ja, verwijderen</button><button class="ghost" id="dDelNo">Annuleren</button></div></div>
+      <div class="pdf-frame" id="dPages"><div class="loading" style="padding:20px">PDF laden…</div></div>
+      <div class="why" id="dPdfWhy"></div></div>`;
+    renderPdf(d.ref, $("#dPages", box), $("#dPdfWhy", box));
+    $("#dSave", box).onclick = async (e) => {
+      const btn = e.currentTarget, dl = await claude_use("downloads");
+      if (!dl) return toast("Downloaden werkt niet in deze weergave.", "err");
+      btn.disabled = true;
+      try {
+        const blob = await (await fetch(d.ref)).blob();
+        const name = (d.name && /\.pdf$/i.test(d.name) ? d.name : docTitle(d.titel) + ".pdf").replace(/[\\/:*?"<>|]/g, "_");
+        await dl.save({ filename: name, data: blob });
+      } catch (err) { if (!(err && err.code === "cancelled")) toast("Downloaden mislukt (" + (err && err.code || "fout") + ").", "err"); }
+      finally { btn.disabled = false; }
+    };
+    $("#dPrompt", box).onclick = () => {
+      S.promptSeed = "Ik wil een uitlegvideo in JUICT-stijl maken op basis van de werkinstructie “" + d.titel + "”" +
+        (d.video && juictVideo(d.video) ? " (hoort bij " + fullTitle(juictVideo(d.video)) + ")" : "") +
+        ". Vraag me naar de stappen uit die instructie als je ze nodig hebt.";
+      location.hash = "#/prompt";
+    };
+    if (!canEdit()) return;
+    const t = $("#dTitle", box);
+    const saveTitle = () => { const val = t.value.trim().slice(0, 120); if (val && val !== d.titel) S.db.doc("juict_docs/" + d.id).update({ titel: val }).catch(() => toast("Titel niet opgeslagen.", "err")); };
+    t.onblur = saveTitle; t.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); t.blur(); } };
+    $("#dVideo", box).onchange = (e) => S.db.doc("juict_docs/" + d.id).update({ video: e.target.value }).catch(() => toast("Niet opgeslagen.", "err"));
+    $("#dDel", box).onclick = () => { $("#dConfirm", box).hidden = false; };
+    $("#dDelNo", box).onclick = () => { $("#dConfirm", box).hidden = true; };
+    $("#dDelYes", box).onclick = async (e) => {
+      e.currentTarget.disabled = true;
+      try {
+        await S.db.doc("juict_docs/" + d.id).delete();
+        if (d.asset) await S.assets.delete(d.asset).catch(() => {});
+        cur = ""; toast("Verwijderd.", "ok");
+      } catch (err) { toast("Verwijderen mislukt (" + (err && err.code || "fout") + ").", "err"); }
+    };
+  }
+  return { update(id) { if (id !== undefined && id !== cur && id) cur = id; paint(); } };
+}
+
+function promptView() {
+  const v = $("#view");
+  v.innerHTML = `<div class="head"><div><div class="crumb"><a href="#/juict">JUICT</a></div><h1>Promptgenerator</h1></div></div>
+    <div class="card prompt-page"><div id="pg"></div></div>`;
+  const chat = makeChat($("#pg", v), PROMPT_CHAT());
+  if (S.promptSeed) { const seed = S.promptSeed; S.promptSeed = ""; const box = $("#pg textarea", v); box.value = seed; box.dispatchEvent(new Event("input")); box.focus(); }
+  return { update() {}, destroy() { chat.destroy(); } };
+}
+function foldInit(v) {
+  foldButtons(v);
+  const grid = $(".cols-juict", v), f = $(".fold", v);
+  if (grid && f) grid.classList.toggle("chat-closed", f.classList.contains("closed"));
+}
+// ------------------------------------------------------------------ JUICT: editor in the layout of DaVinci Resolve's Edit page
+// Media Pool | Viewer (Bron / Tijdlijn) | Inspector; timeline below; page bar at the bottom. The timeline IS the montage
+// (db juict_montage/main, items {v, s, a, b}: a/b = in/out seconds in the source MP4, ripple: no gaps). Editing: select,
+// move, trim the edges, blade, delete, duplicate, undo/redo; sources go in from the Media Pool (drag, double-click) or with
+// I/O marks in the Bron viewer (F9 insert at the playhead, Shift+F12 append). Same shortcuts as Resolve where it has them.
+const FPS = 30, TL_BASE = 3600;                        // Resolve timelines start at 01:00:00:00
+const p2 = (n) => String(n).padStart(2, "0");
+const tc = (t, base = 0) => { const f = Math.max(0, Math.round((t + base) * FPS)), s = Math.floor(f / FPS);
+  return p2(Math.floor(s / 3600)) + ":" + p2(Math.floor(s / 60) % 60) + ":" + p2(s % 60) + ":" + p2(f % FPS); };
+const clock = (t) => Math.floor(t / 60) + ":" + p2(Math.floor(t % 60)) + (t % 1 >= 0.05 ? "," + Math.round((t % 1) * 10) : "");
+const MEDIA_DUR = new Map();                           // vidId -> seconds, from the MP4's own metadata
+const vidDur = (vid) => MEDIA_DUR.get(vid.id) || vid.dur || 0;
+const sceneBounds = (vid, k) => { const a = vid.scenes.slice(0, k).reduce((x, s) => x + s.dur, 0); return [a, a + vid.scenes[k].dur]; };
+const sceneStarts = (vid) => { const out = []; vid.scenes.reduce((a, s) => (out.push(a), a + s.dur), 0); return out; };
+const ICON = {
+  play: '<svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>',
+  pause: '<svg viewBox="0 0 16 16"><path d="M4 2.5h3v11H4zM9 2.5h3v11H9z" fill="currentColor"/></svg>',
+  start: '<svg viewBox="0 0 16 16"><path d="M3 2.5h2v11H3zM14 2.5v11L6 8z" fill="currentColor"/></svg>',
+  end: '<svg viewBox="0 0 16 16"><path d="M11 2.5h2v11h-2zM2 2.5v11L10 8z" fill="currentColor"/></svg>',
+  back: '<svg viewBox="0 0 16 16"><path d="M10.5 3.5L5.5 8l5 4.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>',
+  fwd: '<svg viewBox="0 0 16 16"><path d="M5.5 3.5l5 4.5-5 4.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>',
+  select: '<svg viewBox="0 0 16 16"><path d="M4 2l8 6.2-3.6.5 2 4.1-1.6.8-2-4.2L4 12z" fill="currentColor"/></svg>',
+  blade: '<svg viewBox="0 0 16 16"><path d="M9.5 1.5l2 2-7 9-2.5 1 1-2.5z" fill="currentColor"/><path d="M11 9l3 3" stroke="currentColor" stroke-width="1.5"/></svg>',
+  undo: '<svg viewBox="0 0 16 16"><path d="M5 4L2 7l3 3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M2.5 7H10a3.5 3.5 0 010 7H7" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+  redo: '<svg viewBox="0 0 16 16"><path d="M11 4l3 3-3 3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M13.5 7H6a3.5 3.5 0 000 7h3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+  del: '<svg viewBox="0 0 16 16"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.7 9h5.6l.7-9" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>',
+  snap: '<svg viewBox="0 0 16 16"><path d="M3 2.5v6a5 5 0 0010 0v-6h-3v6a2 2 0 01-4 0v-6z" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M3 5h3M10 5h3" stroke="currentColor" stroke-width="1.4"/></svg>',
+  media: '<svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M2 6h12" stroke="currentColor" stroke-width="1.4"/></svg>',
+  edit: '<svg viewBox="0 0 16 16"><path d="M2 4h12M2 8h8M2 12h10" stroke="currentColor" stroke-width="1.6"/></svg>',
+  doc: '<svg viewBox="0 0 16 16"><path d="M4 1.8h5.5L12.5 5v9.2H4z" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M6 8h4.5M6 10.5h4.5" stroke="currentColor" stroke-width="1.4"/></svg>',
+  prompt: '<svg viewBox="0 0 16 16"><path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>',
+  deliver: '<svg viewBox="0 0 16 16"><path d="M8 11V2.5M4.5 6L8 2.5 11.5 6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M2.5 10.5v3h11v-3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+};
+
+// first-frame thumbnails and audio waveforms, both read from the MP4 in the page (same origin, so canvases stay clean)
+const THUMB = new Map(), PEAKS = new Map();
+let thumbChain = Promise.resolve();
+function frameThumb(vidId, t) {
+  const r = vidRef(vidId); if (!r) return Promise.resolve(null);
+  const k = vidId + "@" + t.toFixed(2);
+  if (THUMB.has(k)) return THUMB.get(k);
+  const p = (thumbChain = thumbChain.then(() => new Promise((res) => {
+    const el = document.createElement("video"); el.muted = true; el.preload = "auto"; el.src = r.url;
+    const done = (v) => { el.removeAttribute("src"); el.load(); res(v); };
+    const timer = setTimeout(() => done(null), 8000);
+    el.onloadedmetadata = () => { MEDIA_DUR.set(vidId, el.duration); el.currentTime = Math.min(Math.max(0, t + 0.05), Math.max(0, el.duration - 0.05)); };
+    el.onseeked = () => { try { const c = document.createElement("canvas"); c.width = 160; c.height = 90; c.getContext("2d").drawImage(el, 0, 0, 160, 90);
+      clearTimeout(timer); done(c.toDataURL("image/jpeg", 0.7)); } catch (e) { clearTimeout(timer); done(null); } };
+    el.onerror = () => { clearTimeout(timer); done(null); };
+  })));
+  THUMB.set(k, p);
+  return p;
+}
+function peaksOf(vidId) {
+  const r = vidRef(vidId); if (!r) return Promise.resolve(null);
+  if (PEAKS.has(vidId)) return PEAKS.get(vidId);
+  const p = (async () => {
+    try {
+      const buf = await (await fetch(r.url)).arrayBuffer();
+      const ctx = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, 44100, 44100);
+      const audio = await ctx.decodeAudioData(buf);
+      const ch = audio.getChannelData(0), per = Math.max(1, Math.floor(audio.sampleRate / 50)), out = new Float32Array(Math.ceil(ch.length / per));
+      for (let i = 0; i < out.length; i++) { let m = 0; for (let j = i * per, e = Math.min(ch.length, j + per); j < e; j++) { const v = Math.abs(ch[j]); if (v > m) m = v; } out[i] = m; }
+      let mx = 0.0001; for (const v of out) if (v > mx) mx = v;
+      for (let i = 0; i < out.length; i++) out[i] /= mx;
+      return out;                                       // 50 peaks per second, 0..1
+    } catch (e) { return null; }
+  })();
+  PEAKS.set(vidId, p);
+  return p;
+}
+function montageRequestOf(items) {
+  if (!items.length) return { error: "de tijdlijn is leeg" };
+  const parts = [];
+  for (const it of items) {
+    const f = fragment(it), ref = f && vidRef(f.vid.id);
+    if (!f || !ref || !ref.asset) return { error: "elke video op de tijdlijn heeft een MP4 nodig" };
+    parts.push({ asset: ref.asset, start: f.start, dur: f.dur || 0, name: fullTitle(f.vid) + " – " + f.name });
+  }
+  return requestText("juict-montage", "", { parts });
+}
+
+function juictVideoView(id) {
+  const v = $("#view");
+  document.body.classList.add("nle-on");
+  const E = { src: String(id), mode: "src", sel: -1, tool: "select", pps: 0, fit: true, T: 0, mIn: null, mOut: null,
+    items: montageItems(), hist: [], fut: [], tab: "insp", bin: null, snap: true, drag: null, playing: false, rate: 1 };
+  let chat = null, chatFor = "", raf = 0, keyH = null, uploading = false, saveT = 0, lastSaved = JSON.stringify(E.items);
+  let poolKey = "", inspKey = "", lanesKey = "", skipWarned = false;
+  const srcVid = () => juictVideo(E.src);
+  const tabBtn = (k, label) => `<button data-tab="${k}"${E.tab === k ? ' class="on"' : ""}>${label}</button>`;
+  v.innerHTML = `<div class="nle">
+    <div class="nle-top">
+      <a class="nle-back" href="#/juict" title="Terug naar de video's">‹ Media</a>
+      <div class="nle-tg"><button data-panel="pool" class="on">Media Pool</button><button data-panel="insp" class="on">Inspector</button></div>
+      <div class="nle-title" id="nTitle"></div><span class="spacer"></span>
+      <span class="nle-kb" title="Sneltoetsen">Spatie · J K L · I/O · F9 · B mes · Del · Ctrl+Z</span>
+      <button class="nle-deliver" data-pc id="nDeliver">${ICON.deliver}<span>Naar DaVinci Resolve</span></button>
+    </div>
+    <div class="nle-main" id="nMain">
+      <aside class="nle-pool" id="nPool"><div class="nle-ph">Media Pool</div>
+        <div class="nle-pool-in"><div class="nle-bins" id="nBins"></div><div class="nle-clips" id="nClips"></div></div>
+        <div class="nle-ph">Scènes van de bron</div><div class="nle-scenes" id="nScenes"></div></aside>
+      <section class="nle-viewer">
+        <div class="nle-vh"><div class="nle-modes"><button data-mode="src">Bron</button><button data-mode="tl">Tijdlijn</button></div>
+          <span class="nle-vname" id="nVName"></span><span class="spacer"></span><span class="nle-tc" id="nTC">00:00:00:00</span></div>
+        <div class="nle-screen" id="nScreen"><video id="nVid" playsinline preload="auto"></video><div class="nle-empty" id="nEmpty" hidden></div></div>
+        <div class="nle-scrub" id="nScrub"><div class="nle-range" id="nRange" hidden></div><div class="nle-ticks" id="nTicks"></div><div class="nle-head" id="nHead"></div></div>
+        <div class="nle-transport">
+          <span class="nle-tcs" id="nDurV"></span><span class="spacer"></span>
+          <button data-t="start" title="Naar begin (Home)">${ICON.start}</button><button data-t="back" title="Eén frame terug (←)">${ICON.back}</button>
+          <button data-t="play" class="nle-play" title="Afspelen / pauze (Spatie)">${ICON.play}</button>
+          <button data-t="fwd" title="Eén frame verder (→)">${ICON.fwd}</button><button data-t="end" title="Naar eind (End)">${ICON.end}</button>
+          <span class="spacer"></span>
+          <span class="nle-srcbtns"><button data-t="in" title="Beginpunt in de bron (I)">I</button><button data-t="out" title="Eindpunt in de bron (O)">O</button>
+          <button data-t="insert" class="wide" title="Invoegen op de afspeelkop van de tijdlijn (F9)">Invoegen</button>
+          <button data-t="append" class="wide" title="Achteraan de tijdlijn (Shift+F12)">Achteraan</button></span>
+        </div>
+      </section>
+      <aside class="nle-insp" id="nInsp"><div class="nle-tabs">${tabBtn("insp", "Inspector")}${tabBtn("chat", "Aanpassen")}${tabBtn("docs", "Instructies")}</div>
+        <div class="nle-tab" id="tInsp"></div><div class="nle-tab" id="tChat" hidden></div><div class="nle-tab" id="tDocs" hidden></div></aside>
+    </div>
+    <div class="nle-tlbar">
+      <button data-tool="select" title="Selectie (A)">${ICON.select}</button><button data-tool="blade" title="Mes: klik op een clip om te knippen (B)">${ICON.blade}</button>
+      <span class="nle-sep"></span>
+      <button id="nUndo" title="Ongedaan maken (Ctrl+Z)">${ICON.undo}</button><button id="nRedo" title="Opnieuw (Ctrl+Shift+Z)">${ICON.redo}</button>
+      <button id="nDel" title="Geselecteerde clip verwijderen (Del)">${ICON.del}</button>
+      <button id="nSnap" title="Magneet: trimmen klikt vast op scènewissels (N)">${ICON.snap}</button>
+      <span class="nle-sep"></span><span class="nle-tlname">Montage</span><span class="nle-tcs" id="nDur"></span>
+      <span class="spacer"></span>
+      <button id="nFit" class="txt" title="Hele tijdlijn in beeld (Shift+Z)">Passend</button>
+      <label class="nle-zoom" title="Zoom (Ctrl + scrollen, + en −)"><span>−</span><input type="range" id="nZoom" min="0" max="100" value="0"><span>+</span></label>
+    </div>
+    <div class="nle-tl" id="nTl">
+      <div class="nle-heads"><div class="nle-hh"></div>
+        <div class="nle-trh v"><b>V1</b><small>Video 1</small></div><div class="nle-trh a"><b>A1</b><small>Audio 1</small></div>
+        <div class="nle-trh a"><b>A2</b><small>SFX · in Resolve</small></div><div class="nle-trh a"><b>A3</b><small>Muziek · in Resolve</small></div></div>
+      <div class="nle-scroll" id="nScroll"><div class="nle-lanes" id="nLanes">
+        <div class="nle-ruler" id="nRuler"></div><div class="nle-lane v" id="nV1"></div><div class="nle-lane a" id="nA1"></div>
+        <div class="nle-lane a empty" id="nA2"></div><div class="nle-lane a empty" id="nA3"></div>
+        <div class="nle-ph-line" id="nPH"></div><div class="nle-ins" id="nIns" hidden></div></div></div>
+    </div>
+    <nav class="nle-pages" aria-label="Pagina's"><a href="#/juict">${ICON.media}<span>Media</span></a><a class="on" aria-current="page">${ICON.edit}<span>Edit</span></a>
+      <a href="#/instructies">${ICON.doc}<span>Instructies</span></a><a href="#/prompt">${ICON.prompt}<span>Prompt</span></a>
+      <button id="nDeliver2" data-pc>${ICON.deliver}<span>Deliver</span></button></nav>
+  </div>`;
+  const vid = $("#nVid", v), lanes = $("#nLanes", v), scroll = $("#nScroll", v);
+
+  // ---------- model helpers
+  const layout = () => { let t = 0; const out = E.items.map((it) => { const f = fragment(it); const d = f ? Math.max(0.1, f.dur) : 0; const r = { it, f, start: t, dur: d }; t += d; return r; }); return { clips: out, total: t }; };
+  const clampItem = (it) => {
+    const x = juictVideo(it.v), dur = x ? vidDur(x) : 3600;
+    let a = Number.isFinite(it.a) ? it.a : null, b = Number.isFinite(it.b) ? it.b : null;
+    if (a == null || b == null) { const f = fragment(it); if (f) { a = f.start; b = f.start + f.dur; } }
+    a = Math.max(0, Math.min(a, dur - 0.2)); b = Math.max(a + 0.2, Math.min(b, dur || b));
+    return { v: it.v, s: it.s, a: Math.round(a * 1000) / 1000, b: Math.round(b * 1000) / 1000 };
+  };
+  const commit = (items, msg) => {
+    E.hist.push(JSON.stringify(E.items)); if (E.hist.length > 100) E.hist.shift(); E.fut = [];
+    E.items = items.slice(0, MONT_MAX); scheduleSave(); paintAll();
+    if (msg) toast(msg, "ok");
+  };
+  const scheduleSave = () => { clearTimeout(saveT); saveT = setTimeout(() => { lastSaved = JSON.stringify(E.items); montageSave(E.items); }, 350); };
+  const undo = () => { if (!E.hist.length) return toast("Niets om ongedaan te maken."); E.fut.push(JSON.stringify(E.items)); E.items = JSON.parse(E.hist.pop()); E.sel = Math.min(E.sel, E.items.length - 1); scheduleSave(); paintAll(); };
+  const redo = () => { if (!E.fut.length) return; E.hist.push(JSON.stringify(E.items)); E.items = JSON.parse(E.fut.pop()); scheduleSave(); paintAll(); };
+  const fromSource = () => {                            // what "Invoegen" / "Achteraan" takes from the Bron viewer
+    const x = srcVid(); if (!x) return null;
+    const d = vidDur(x);
+    let a = E.mIn != null ? E.mIn : 0, b = E.mOut != null ? E.mOut : d;
+    if (E.mIn == null && E.mOut == null && x.scenes.length && E.mode === "src" && vid.currentTime > 0.05) {   // no marks: the scene under the playhead
+      const st = sceneStarts(x); let k = 0; st.forEach((s, i) => { if (vid.currentTime >= s) k = i; });
+      [a, b] = sceneBounds(x, k); return clampItem({ v: x.id, s: k, a, b });
+    }
+    if (b <= a) b = Math.min(d, a + 1);
+    return clampItem({ v: x.id, s: -1, a, b });
+  };
+  const insertAt = (index, it) => { if (E.items.length >= MONT_MAX) return toast("Hoogstens " + MONT_MAX + " clips.", "err");
+    const items = E.items.slice(); items.splice(index, 0, it); E.sel = index; commit(items); };
+  const indexAtTime = (T) => { const { clips } = layout(); for (let i = 0; i < clips.length; i++) if (T < clips[i].start + clips[i].dur / 2) return i; return clips.length; };
+  const splitAt = (i, T) => {
+    const { clips } = layout(), c = clips[i]; if (!c || !c.f) return;
+    const off = T - c.start; if (off < 0.15 || c.dur - off < 0.15) return toast("Te dicht bij de rand om te knippen.");
+    const base = clampItem(c.it), cut = base.a + off;
+    const items = E.items.slice(); items.splice(i, 1, { ...base, b: cut }, { ...base, a: cut });
+    E.sel = i + 1; commit(items, "Geknipt op " + tc(T, TL_BASE) + ".");
+  };
+  const removeAt = (i) => { if (i < 0 || i >= E.items.length) return; const items = E.items.slice(); items.splice(i, 1); E.sel = Math.min(i, items.length - 1); commit(items); };
+
+  // ---------- playback: one <video>, Bron = the source file, Tijdlijn = the clips one after another
+  const locate = (T) => { const { clips, total } = layout(); T = Math.max(0, Math.min(T, total));
+    for (let i = 0; i < clips.length; i++) if (T < clips[i].start + clips[i].dur || i === clips.length - 1) return { i, c: clips[i], off: Math.max(0, T - clips[i].start), total }; return null; };
+  let curTl = -1;
+  const loadSrc = () => { const r = vidRef(E.src); if (!r) { vid.removeAttribute("src"); vid.load(); return false; } if (vid.dataset.src !== r.url) { vid.dataset.src = r.url; vid.src = r.url; } return true; };
+  const seekTl = (T, play) => {
+    const L = locate(T); E.T = L ? Math.max(0, Math.min(T, L.total)) : 0;
+    if (!L || !L.c.f) { curTl = -1; vid.pause(); paintClock(); return; }
+    const r = vidRef(L.c.it.v); curTl = L.i;
+    if (!r) { vid.pause(); $("#nEmpty", v).hidden = false; $("#nEmpty", v).textContent = "Geen MP4 voor " + fullTitle(L.c.f.vid); paintClock(); return; }
+    $("#nEmpty", v).hidden = true;
+    const go = () => { vid.currentTime = L.c.f.start + L.off; if (play) vid.play().catch(() => {}); };
+    if (vid.dataset.src !== r.url) { vid.dataset.src = r.url; vid.src = r.url; vid.addEventListener("loadedmetadata", go, { once: true }); } else go();
+    paintClock();
+  };
+  const setMode = (m) => {
+    if (E.mode === m) return; vid.pause(); E.mode = m;
+    if (m === "src") $("#nEmpty", v).hidden = true; else seekTl(E.T, false);
+    paintModes(); paintViewer();
+  };
+  const playing = () => !vid.paused && !vid.ended;
+  const togglePlay = () => {
+    if (playing()) { vid.pause(); return; }
+    vid.playbackRate = E.rate = 1;
+    if (E.mode === "tl") { const L = locate(E.T); if (!L) return toast("De tijdlijn is leeg."); if (E.T >= L.total - 0.02) E.T = 0; seekTl(E.T, true); }
+    else { if (!loadSrc()) return toast("Deze video heeft nog geen MP4.", "err"); vid.play().catch(() => {}); }
+  };
+  const step = (dt) => {
+    vid.pause();
+    if (E.mode === "src") { if (!loadSrc()) return; vid.currentTime = Math.max(0, Math.min((vid.duration || vidDur(srcVid())), vid.currentTime + dt)); }
+    else seekTl(E.T + dt, false);
+    paintClock();
+  };
+  const toStart = () => (E.mode === "src" ? step(-1e6) : seekTl(0, false));
+  const toEnd = () => (E.mode === "src" ? step(1e6) : seekTl(layout().total, false));
+  const editPoint = (dir) => { const { clips, total } = layout(); const pts = [0, ...clips.map((c) => c.start + c.dur)];
+    const t = dir > 0 ? pts.find((p) => p > E.T + 0.01) : [...pts].reverse().find((p) => p < E.T - 0.01); if (t != null) seekTl(Math.min(t, total), false); };
+  const tick = () => {
+    if (E.mode === "tl" && curTl >= 0 && playing()) {
+      const { clips } = layout(), c = clips[curTl], r = c && vidRef(c.it.v);
+      if (c && c.f && r && vid.dataset.src === r.url && !vid.seeking && vid.currentTime >= c.f.start - 0.25) {
+        const end = c.f.start + c.f.dur;
+        if (vid.currentTime >= end - 0.5 / FPS) {
+          let n = curTl + 1; while (n < clips.length && (!clips[n].f || !vidRef(clips[n].it.v))) n++;
+          if (n < clips.length) { if (n > curTl + 1 && !skipWarned) { skipWarned = true; toast("Clips zonder MP4 worden overgeslagen."); } seekTl(clips[n].start, true); }
+          else { vid.pause(); E.T = layout().total; }
+        } else E.T = Math.max(c.start, c.start + (vid.currentTime - c.f.start));
+      }
+    }
+    paintClock();
+    raf = requestAnimationFrame(tick);
+  };
+  vid.addEventListener("loadedmetadata", () => { if (E.mode === "src" && vid.duration) { const known = MEDIA_DUR.get(E.src); MEDIA_DUR.set(E.src, vid.duration); if (!known) { poolKey = ""; paintAll(); } } });
+  ["play", "pause", "ended"].forEach((ev) => vid.addEventListener(ev, () => { $('[data-t="play"]', v).innerHTML = playing() ? ICON.pause : ICON.play; }));
+
+  // ---------- painting
+  function paintModes() {
+    v.querySelectorAll("[data-mode]").forEach((b) => b.classList.toggle("on", b.dataset.mode === E.mode));
+    $(".nle-srcbtns", v).classList.toggle("off", E.mode !== "src");
+    v.querySelectorAll("[data-tool]").forEach((b) => b.classList.toggle("on", b.dataset.tool === E.tool));
+    lanes.classList.toggle("blade", E.tool === "blade");
+    $("#nSnap", v).classList.toggle("on", E.snap);
+  }
+  function paintClock() {
+    const x = srcVid();
+    if (E.mode === "src") {
+      const d = vidDur(x || { dur: 0, id: "" }) || vid.duration || 0, t = vid.currentTime || 0;
+      $("#nTC", v).textContent = tc(t);
+      $("#nHead", v).style.left = (d ? (t / d) * 100 : 0) + "%";
+      $("#nDurV", v).textContent = (E.mIn != null || E.mOut != null) ? "I " + tc(E.mIn || 0) + " · O " + tc(E.mOut != null ? E.mOut : d) : "Duur " + tc(d);
+    } else {
+      const { total } = layout();
+      $("#nTC", v).textContent = tc(E.T, TL_BASE);
+      $("#nHead", v).style.left = (total ? (E.T / total) * 100 : 0) + "%";
+      $("#nDurV", v).textContent = "Tijdlijn " + tc(total);
+    }
+    $("#nPH", v).style.transform = "translateX(" + (E.T * pps()) + "px)";
+  }
+  function paintViewer() {
+    const x = srcVid(), r = x && vidRef(x.id);
+    $("#nTitle", v).innerHTML = x ? `<span class="muted">${esc(serieName(x.serie))} ·</span> ${esc(fullTitle(x))}` : "";
+    $("#nVName", v).textContent = E.mode === "src" ? (x ? fullTitle(x) : "") : "Montage · " + E.items.length + (E.items.length === 1 ? " clip" : " clips");
+    if (E.mode === "src") {
+      const ok = loadSrc();
+      const em = $("#nEmpty", v); em.hidden = ok;
+      if (!ok && x) em.innerHTML = exportBlocked(x.id) ? `Geen MP4: je mag deze film alleen bekijken.<br><span class="muted">Vraag de maker om bewerkrechten.</span>`
+        : `Nog geen MP4.<br><span class="muted">Exporteer de bronfilm als MP4 en zet hem hier via de Inspector.</span>`;
+      const d = x ? vidDur(x) : 0, rg = $("#nRange", v);
+      rg.hidden = !(d && (E.mIn != null || E.mOut != null));
+      if (!rg.hidden) { const a = E.mIn || 0, b = E.mOut != null ? E.mOut : d; rg.style.left = (a / d) * 100 + "%"; rg.style.width = Math.max(0, (b - a) / d) * 100 + "%"; }
+      $("#nTicks", v).innerHTML = x && d ? sceneStarts(x).slice(1).map((s) => `<i style="left:${(s / d) * 100}%"></i>`).join("") : "";
+    } else {
+      const { clips, total } = layout();
+      $("#nRange", v).hidden = true;
+      $("#nTicks", v).innerHTML = total ? clips.slice(1).map((c) => `<i style="left:${(c.start / total) * 100}%"></i>`).join("") : "";
+    }
+    paintClock();
+  }
+  function paintPool() {
+    const all = juictVideos(), series = [...new Set(all.map((x) => x.serie))];
+    if (!E.bin) E.bin = (srcVid() || all[0] || {}).serie;
+    const k = JSON.stringify([E.bin, E.src, all.map((x) => x.id + (vidRef(x.id) ? "1" : "0")), [...MEDIA_DUR.entries()]]);
+    if (k === poolKey) return; poolKey = k;
+    $("#nBins", v).innerHTML = `<div class="nle-bin root">Master</div>` + series.map((s) => `<button class="nle-bin${s === E.bin ? " on" : ""}" data-bin="${esc(s)}">${esc(serieName(s))}</button>`).join("");
+    $("#nClips", v).innerHTML = all.filter((x) => x.serie === E.bin).map((x) => { const r = vidRef(x.id);
+      return `<div class="nle-tile${x.id === E.src ? " on" : ""}${r ? "" : " nomedia"}" draggable="${r ? "true" : "false"}" data-src="${esc(x.id)}" title="${esc(fullTitle(x))}: klik = in de Bron, dubbelklik = achteraan op de tijdlijn">
+        <div class="nle-tthumb">${r ? `<img data-thumb="${esc(x.id)}" alt="">` : `<span>${esc(x.label || "Video")}</span>`}</div>
+        <div class="nle-tname">${esc(x.titel)}</div><div class="nle-tmeta">${tc(vidDur(x))}${r ? "" : " · geen mp4"}</div></div>`; }).join("");
+    $("#nClips", v).querySelectorAll("img[data-thumb]").forEach((img) => frameThumb(img.dataset.thumb, 3).then((u) => { if (u) img.src = u; }));
+    const x = srcVid();
+    $("#nScenes", v).innerHTML = x && x.scenes.length ? x.scenes.map((s, i) => `<div class="nle-scene" draggable="${vidRef(x.id) ? "true" : "false"}" data-scene="${i}" title="Klik = springen, dubbelklik = achteraan op de tijdlijn">
+        <b>${i + 1}</b><span>${esc(s.name)}</span><i>${s.dur} s</i></div>`).join("") : `<div class="nle-note">Geen scènelijst voor deze video. Gebruik I en O in de Bron.</div>`;
+  }
+  const pps = () => { if (E.fit || !E.pps) { const { total } = layout(); const w = Math.max(200, scroll.clientWidth - 40); return total ? Math.max(2, Math.min(400, w / total)) : 20; } return E.pps; };
+  function paintLanes() {
+    const { clips, total } = layout(), px = pps();
+    const k = JSON.stringify([E.items, E.sel, px, [...THUMB.keys()].length, E.tool]);
+    const width = Math.max(scroll.clientWidth, (total + 4) * px + 60);
+    lanes.style.width = width + "px";
+    $("#nDur", v).textContent = tc(total) + " · " + clips.length + (clips.length === 1 ? " clip" : " clips");
+    if (k === lanesKey && !E.drag) { paintClock(); return; } lanesKey = k;
+    // ruler: pick a step that leaves ~80 px between labels
+    const steps = [1 / FPS * 5, 0.5, 1, 2, 5, 10, 15, 30, 60, 120, 300], stepS = steps.find((s) => s * px >= 80) || 600, minor = stepS / 5;
+    let ru = ""; for (let t = 0; t <= total + 4; t += minor) { const major = Math.abs(t / stepS - Math.round(t / stepS)) < 1e-6;
+      ru += `<i class="${major ? "mj" : ""}" style="left:${t * px}px">${major ? `<span>${tc(t, TL_BASE)}</span>` : ""}</i>`; }
+    $("#nRuler", v).innerHTML = ru;
+    $("#nV1", v).innerHTML = clips.length ? clips.map((c, i) => {
+      const f = c.f, w = c.dur * px, has = f && vidRef(c.it.v);
+      const marks = f ? sceneStarts(f.vid).filter((s) => s > f.start + 0.05 && s < f.start + f.dur - 0.05).map((s) => `<u style="left:${(s - f.start) * px}px"></u>`).join("") : "";
+      return `<div class="nle-clip${i === E.sel ? " sel" : ""}${has ? "" : " nomedia"}" data-i="${i}" style="left:${c.start * px}px;width:${w}px">
+        <em class="h l" data-h="l"></em>${has && w > 46 ? `<img data-ct="${i}" alt="">` : ""}<span class="nm">${f ? esc((f.vid.label ? f.vid.label + " · " : "") + f.name) : "onbekende video"}</span>
+        ${w > 70 ? `<span class="du">${tc(c.dur)}</span>` : ""}${marks}<em class="h r" data-h="r"></em></div>`; }).join("")
+      : `<div class="nle-drop-hint">Sleep video's of scènes uit de Media Pool hierheen, of gebruik Invoegen / Achteraan in de Bron.</div>`;
+    $("#nA1", v).innerHTML = clips.map((c, i) => `<div class="nle-aclip${i === E.sel ? " sel" : ""}${c.f && vidRef(c.it.v) ? "" : " nomedia"}" style="left:${c.start * px}px;width:${c.dur * px}px"><canvas data-wf="${i}"></canvas></div>`).join("");
+    $("#nV1", v).querySelectorAll("img[data-ct]").forEach((img) => { const c = clips[+img.dataset.ct]; frameThumb(c.it.v, c.f.start).then((u) => { if (u) img.src = u; }); });
+    $("#nA1", v).querySelectorAll("canvas[data-wf]").forEach((cv) => {
+      const c = clips[+cv.dataset.wf]; if (!c.f) return;
+      const w = Math.max(1, Math.floor(c.dur * px)), h = 34; cv.width = w; cv.height = h;
+      peaksOf(c.it.v).then((pk) => { if (!pk) return; const g = cv.getContext("2d"); g.fillStyle = "rgba(190,255,200,.75)";
+        for (let x = 0; x < w; x++) { const t = c.f.start + (x / w) * c.dur, a = pk[Math.min(pk.length - 1, Math.floor(t * 50))] || 0, bh = Math.max(1, a * (h - 4)); g.fillRect(x, (h - bh) / 2, 1, bh); } });
+    });
+    paintClock();
+  }
+  function paintInsp() {
+    const x = srcVid(), sel = E.sel >= 0 ? layout().clips[E.sel] : null, rs = x && resolveState(x.id), r = x && vidRef(x.id);
+    const k = JSON.stringify([E.tab, E.sel, sel && sel.it, x && x.id, !!r, rs, uploading, online(), docList().length, !!S.assets]);
+    v.querySelectorAll("[data-tab]").forEach((b) => b.classList.toggle("on", b.dataset.tab === E.tab));
+    $("#tInsp", v).hidden = E.tab !== "insp"; $("#tChat", v).hidden = E.tab !== "chat"; $("#tDocs", v).hidden = E.tab !== "docs";
+    if (E.tab === "chat" && x && chatFor !== x.id) {
+      if (chat) chat.destroy(); chatFor = x.id;
+      $("#tChat", v).innerHTML = `<div class="nle-note">Kleine aanpassing aan <b>${esc(fullTitle(x))}</b>: je krijgt een opdracht om te kopiëren.</div><div id="nChat"></div>`;
+      chat = makeChat($("#nChat", v), { key: "juict-video-chat-" + x.id, tier: "quick", rules: videoRules(x), placeholder: "Wat moet er anders?",
+        intro: "Bijvoorbeeld: “de wifi-scène mag 2 seconden langer” of “zet ‘Gelukt!’ op de eindkaart in het geel”. Knippen en volgorde doe je hier op de tijdlijn.",
+        chips: [["Tekst aanpassen", "Ik wil een tekst in beeld aanpassen."], ["Kleur of stijl", "Ik wil een kleur aanpassen."]] });
+    }
+    if (k === inspKey) return; inspKey = k;
+    if (sel && sel.f) {
+      const f = sel.f, it = clampItem(sel.it), d = vidDur(f.vid);
+      $("#tInsp", v).innerHTML = `<div class="nle-sec"><div class="nle-sh">Clip ${E.sel + 1} op de tijdlijn</div>
+        <div class="nle-kv"><span>Bron</span><b>${esc(fullTitle(f.vid))}</b><span>Fragment</span><b>${esc(f.name)}</b>
+          <span>Op tijdlijn</span><b class="mono">${tc(sel.start, TL_BASE)}</b></div></div>
+        <div class="nle-sec"><div class="nle-sh">Knippen</div>
+          <label class="nle-num">Begin in bron (s)<input type="number" id="iA" step="0.1" min="0" max="${d}" value="${it.a}"></label>
+          <label class="nle-num">Eind in bron (s)<input type="number" id="iB" step="0.1" min="0" max="${d}" value="${it.b}"></label>
+          <div class="nle-kv"><span>Duur</span><b class="mono">${tc(it.b - it.a)}</b><span>Bronduur</span><b class="mono">${tc(d)}</b></div>
+          <div class="nle-note">Of sleep de randen van de clip op de tijdlijn. Met de magneet aan klikken ze vast op scènewissels.</div></div>
+        <div class="nle-sec nle-btns"><button id="iSrc">Openen in Bron</button><button id="iDup">Dupliceren</button><button id="iDel" class="danger">Verwijderen</button></div>`;
+      const setAB = () => { const a = parseFloat($("#iA", v).value), b = parseFloat($("#iB", v).value); if (!(b > a)) return toast("Eind moet na begin liggen.", "err");
+        const items = E.items.slice(); items[E.sel] = clampItem({ ...it, a, b }); commit(items); };
+      $("#iA", v).onchange = setAB; $("#iB", v).onchange = setAB;
+      $("#iSrc", v).onclick = () => { setSrc(f.vid.id); E.mIn = it.a; E.mOut = it.b; setMode("src"); paintViewer(); if (loadSrc()) vid.currentTime = it.a; };
+      $("#iDup", v).onclick = () => insertAt(E.sel + 1, { ...it });
+      $("#iDel", v).onclick = () => removeAt(E.sel);
+      return;
+    }
+    if (!x) { $("#tInsp", v).innerHTML = ""; return; }
+    const pick = (label) => S.assets && S.db ? `<label class="nle-up${uploading ? " busy" : ""}">${uploading ? "Uploaden…" : label}<input type="file" accept="video/mp4,video/webm" hidden${uploading ? " disabled" : ""}></label>` : "";
+    $("#tInsp", v).innerHTML = `<div class="nle-sec"><div class="nle-sh">Bron</div>
+        <div class="nle-kv"><span>Titel</span><b>${esc(fullTitle(x))}</b><span>Serie</span><b>${esc(serieName(x.serie))}</b>
+          <span>Duur</span><b class="mono">${tc(vidDur(x))}</b><span>Scènes</span><b>${x.scenes.length || "—"}</b>
+          <span>Bestand</span><b>${r ? esc(r.name || "MP4") : exportBlocked(x.id) ? "geen exportrechten" : "nog geen MP4"}</b></div>
+        <div class="nle-btns">${pick(r ? "Andere MP4…" : "MP4 kiezen")}${x.url ? `<a class="nle-lnk" href="${esc(x.url)}" target="_blank" rel="noopener">Bronfilm ↗</a>` : ""}</div>
+        ${!r ? `<div class="nle-note">${exportBlocked(x.id) ? "Je mag deze film alleen bekijken. Vraag de maker om bewerkrechten, dan kan hij als MP4 worden geëxporteerd." : "Open de bronfilm, klik op Export → MP4 en kies het bestand hier."}</div>` : ""}</div>
+      <div class="nle-sec"><div class="nle-sh">DaVinci Resolve</div>
+        <div class="nle-note">${!r ? "Eerst een MP4." : rs && rs.st === "klaar" ? "Staat in Resolve" + (rs.timeline ? ": “" + esc(rs.timeline) + "”" : "") + "." : rs && rs.st === "fout" ? "Mislukt: " + esc(rs.message || "zie Instellingen") : rs ? "Je PC zet hem in Resolve…" : "Los naar Resolve: eigen tijdlijn met markers per scène en sporen SFX en Muziek."}</div>
+        <div class="nle-btns"><button data-pc id="iResolve"${r && r.asset ? "" : " data-block=\"1\""}>Deze video los naar Resolve</button></div></div>
+      <div class="nle-sec"><div class="nle-note">Tip: klik een clip op de tijdlijn om hem hier te knippen.</div></div>`;
+    const inp = $("#tInsp input[type=file]", v); if (inp) inp.onchange = () => upload(inp.files && inp.files[0]);
+    $("#iResolve", v).onclick = (e) => send(e.currentTarget, "juict-resolve", null, { video: x.id, titel: fullTitle(x), asset: r && r.asset, markers: markers(x) });
+    pcButtons(v);
+    const linked = docList().filter((d) => d.video === x.id);
+    $("#tDocs", v).innerHTML = `<div class="nle-sec"><div class="nle-sh">Hoort bij deze video</div>${linked.length ? linked.map((d) => `<a class="nle-doc" href="#/instructies/${enc(d.id)}">${ICON.doc}<span>${esc(d.titel)}</span></a>`).join("") : `<div class="nle-note">Nog geen werkinstructie gekoppeld. Koppel er een bij Werkinstructies → Hoort bij.</div>`}
+      <div class="nle-btns"><a class="nle-lnk" href="#/instructies">Alle werkinstructies →</a></div></div>`;
+  }
+  function paintDeliver() {
+    const r = montageRequestOf(E.items);
+    ["#nDeliver", "#nDeliver2"].forEach((s) => { const b = $(s, v); b.dataset.block = r.error ? "1" : ""; b.title = r.error ? "Kan niet: " + r.error : online() ? "De tijdlijn als één Resolve-tijdlijn, met markers en sporen SFX en Muziek" : offlineReason(); });
+    $("#nUndo", v).disabled = !E.hist.length; $("#nRedo", v).disabled = !E.fut.length; $("#nDel", v).disabled = E.sel < 0;
+    pcButtons(v);
+  }
+  function paintAll() { paintModes(); paintPool(); paintViewer(); paintLanes(); paintInsp(); paintDeliver(); }
+  function setSrc(id2) { if (!juictVideo(id2)) return; E.src = id2; E.mIn = E.mOut = null; if (E.mode !== "src") setMode("src"); vid.pause(); paintAll();
+    if (location.hash !== "#/juict/" + enc(id2)) { history.replaceState(null, "", "#/juict/" + enc(id2)); if (view) view.key = "juict/" + id2; } }
+
+  async function upload(file) {
+    const x = srcVid(); if (!file || uploading || !x) return;
+    if (!/^video\/(mp4|webm)$/.test(file.type)) return toast("Kies een MP4- of WebM-bestand.", "err");
+    if (file.size > 20 * 1024 * 1024) return toast("Dit bestand is groter dan 20 MB: exporteer kleiner (bijv. 720p).", "err");
+    uploading = true; inspKey = ""; paintInsp();
+    try {
+      const a = await S.assets.upload(file);
+      await S.db.doc("juict_video/" + x.id).set({ ref: a.url, asset: a.id, mime: a.contentType || file.type, name: file.name.slice(0, 120), at: new Date().toISOString() });
+      [...THUMB.keys()].filter((k) => k.startsWith(x.id + "@")).forEach((k) => THUMB.delete(k)); PEAKS.delete(x.id); MEDIA_DUR.delete(x.id);
+      toast("MP4 toegevoegd.", "ok");
+    } catch (e) { toast("Uploaden mislukt" + (e && e.code ? " (" + e.code + ")" : "") + ".", "err"); }
+    finally { uploading = false; inspKey = ""; poolKey = ""; paintAll(); }
+  }
+
+  // ---------- input: buttons
+  v.querySelector(".nle-top").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-panel]"); if (!b) return;
+    b.classList.toggle("on"); $("#nMain", v).classList.toggle("no-" + b.dataset.panel, !b.classList.contains("on")); lanesKey = ""; paintLanes();
+  });
+  v.querySelectorAll("[data-mode]").forEach((b) => (b.onclick = () => setMode(b.dataset.mode)));
+  v.querySelectorAll("[data-tab]").forEach((b) => (b.onclick = () => { E.tab = b.dataset.tab; inspKey = ""; paintInsp(); }));
+  v.querySelectorAll("[data-tool]").forEach((b) => (b.onclick = () => { E.tool = b.dataset.tool; paintModes(); }));
+  $("#nUndo", v).onclick = undo; $("#nRedo", v).onclick = redo; $("#nDel", v).onclick = () => removeAt(E.sel);
+  $("#nSnap", v).onclick = () => { E.snap = !E.snap; paintModes(); };
+  $("#nFit", v).onclick = () => { E.fit = true; $("#nZoom", v).value = 0; lanesKey = ""; paintLanes(); };
+  $("#nZoom", v).oninput = (e) => { const z = +e.target.value; E.fit = z === 0; const base = (() => { const s = E.fit; E.fit = true; const p = pps(); E.fit = s; return p; })();
+    E.pps = base * Math.pow(30, z / 100); lanesKey = ""; paintLanes(); };
+  const deliver = (e) => { const r = montageRequestOf(E.items); if (r.error) return toast(r.error, "err"); sendText(e.currentTarget, "juict-montage", r.text); };
+  $("#nDeliver", v).onclick = deliver; $("#nDeliver2", v).onclick = deliver;
+  v.querySelector(".nle-transport").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-t]"); if (!b) return;
+    const t = b.dataset.t;
+    if (t === "play") togglePlay(); else if (t === "back") step(-1 / FPS); else if (t === "fwd") step(1 / FPS);
+    else if (t === "start") toStart(); else if (t === "end") toEnd();
+    else if (t === "in") markIn(); else if (t === "out") markOut();
+    else if (t === "insert") { const it = fromSource(); if (it) insertAt(indexAtTime(E.T), it); }
+    else if (t === "append") { const it = fromSource(); if (it) insertAt(E.items.length, it); }
+  });
+  const markIn = () => { if (E.mode !== "src") return toast("I en O werken in de Bron."); E.mIn = vid.currentTime || 0; if (E.mOut != null && E.mOut <= E.mIn) E.mOut = null; paintViewer(); };
+  const markOut = () => { if (E.mode !== "src") return toast("I en O werken in de Bron."); E.mOut = vid.currentTime || 0; if (E.mIn != null && E.mIn >= E.mOut) E.mIn = null; paintViewer(); };
+  // scrub bar under the viewer
+  const scrubTo = (ev) => { const r = $("#nScrub", v).getBoundingClientRect(), q = Math.max(0, Math.min(1, (ev.clientX - r.left) / r.width));
+    if (E.mode === "src") { if (!loadSrc()) return; vid.currentTime = q * (vid.duration || vidDur(srcVid())); paintClock(); } else seekTl(q * layout().total, false); };
+  $("#nScrub", v).addEventListener("pointerdown", (ev) => { vid.pause(); scrubTo(ev); const mv = (e2) => scrubTo(e2), up = () => { removeEventListener("pointermove", mv); removeEventListener("pointerup", up); };
+    addEventListener("pointermove", mv); addEventListener("pointerup", up); });
+  // media pool
+  $("#nBins", v).addEventListener("click", (e) => { const b = e.target.closest("[data-bin]"); if (!b) return; E.bin = b.dataset.bin; poolKey = ""; paintPool(); });
+  $("#nClips", v).addEventListener("click", (e) => { const t = e.target.closest("[data-src]"); if (t) setSrc(t.dataset.src); });
+  $("#nClips", v).addEventListener("dblclick", (e) => { const t = e.target.closest("[data-src]"); if (!t) return; const x = juictVideo(t.dataset.src); if (!x || !vidRef(x.id)) return toast("Nog geen MP4.", "err");
+    insertAt(E.items.length, clampItem({ v: x.id, s: -1, a: 0, b: vidDur(x) })); });
+  $("#nScenes", v).addEventListener("click", (e) => { const t = e.target.closest("[data-scene]"); if (!t) return; const x = srcVid(); setMode("src");
+    if (loadSrc()) { vid.currentTime = sceneBounds(x, +t.dataset.scene)[0] + 0.01; paintClock(); } });
+  $("#nScenes", v).addEventListener("dblclick", (e) => { const t = e.target.closest("[data-scene]"); if (!t) return; const x = srcVid(); if (!vidRef(x.id)) return toast("Nog geen MP4.", "err");
+    const [a, b] = sceneBounds(x, +t.dataset.scene); insertAt(E.items.length, clampItem({ v: x.id, s: +t.dataset.scene, a, b })); });
+  v.querySelector(".nle-pool").addEventListener("dragstart", (e) => {
+    const t = e.target.closest("[data-src],[data-scene]"); if (!t) return;
+    const x = t.dataset.src ? juictVideo(t.dataset.src) : srcVid(); if (!x || !vidRef(x.id)) { e.preventDefault(); return; }
+    const k = t.dataset.scene != null ? +t.dataset.scene : -1, [a, b] = k >= 0 ? sceneBounds(x, k) : [0, vidDur(x)];
+    e.dataTransfer.setData("application/x-nle", JSON.stringify({ v: x.id, s: k, a, b })); e.dataTransfer.effectAllowed = "copy";
+  });
+  lanes.addEventListener("dragover", (e) => { if (![...e.dataTransfer.types].includes("application/x-nle")) return; e.preventDefault();
+    const T = timeAt(e.clientX), i = indexAtTime(T), { clips, total } = layout(); showIns(i < clips.length ? clips[i].start : total); });
+  lanes.addEventListener("dragleave", (e) => { if (!lanes.contains(e.relatedTarget)) $("#nIns", v).hidden = true; });
+  lanes.addEventListener("drop", (e) => { $("#nIns", v).hidden = true; let d = null; try { d = JSON.parse(e.dataTransfer.getData("application/x-nle")); } catch (er) { d = null; }
+    if (!d || !juictVideo(d.v)) return; e.preventDefault(); insertAt(indexAtTime(timeAt(e.clientX)), clampItem(d)); });
+  const timeAt = (clientX) => { const r = lanes.getBoundingClientRect(); return Math.max(0, (clientX - r.left) / pps()); };
+  const showIns = (t) => { const m = $("#nIns", v); m.hidden = false; m.style.left = t * pps() + "px"; };
+
+  // timeline pointer: playhead (ruler / empty), select, move, trim, blade
+  lanes.addEventListener("pointerdown", (ev) => {
+    if (ev.button !== 0) return;
+    const clipEl = ev.target.closest(".nle-clip,.nle-aclip"), T = timeAt(ev.clientX);
+    if (!clipEl || ev.target.closest(".nle-ruler")) {                          // move the playhead
+      vid.pause(); setMode("tl"); seekTl(T, false); E.sel = -1; inspKey = ""; paintAll();
+      const mv = (e2) => seekTl(timeAt(e2.clientX), false), up = () => { removeEventListener("pointermove", mv); removeEventListener("pointerup", up); };
+      addEventListener("pointermove", mv); addEventListener("pointerup", up); return;
+    }
+    const i = clipEl.classList.contains("nle-aclip") ? [...$("#nA1", v).children].indexOf(clipEl) : +clipEl.dataset.i;
+    if (E.tool === "blade") { splitAt(i, T); return; }
+    E.sel = i; inspKey = ""; lanesKey = ""; paintLanes(); paintInsp(); paintDeliver();
+    const h = ev.target.closest("[data-h]"), startX = ev.clientX, snap0 = JSON.stringify(E.items), base = clampItem(E.items[i]);
+    const vd = juictVideo(base.v), marks = vd ? [0, ...sceneStarts(vd).slice(1), vidDur(vd)] : [];
+    let moved = false;
+    E.drag = { i };
+    const mv = (e2) => {
+      const dx = e2.clientX - startX; if (!moved && Math.abs(dx) < 4) return; moved = true;
+      if (h) {                                                                  // trim one edge
+        const ds = dx / pps(); let it = { ...base };
+        if (h.dataset.h === "l") it.a = base.a + ds; else it.b = base.b + ds;
+        if (E.snap) { const key2 = h.dataset.h === "l" ? "a" : "b", near = marks.find((m) => Math.abs(m - it[key2]) * pps() < 8); if (near != null) it[key2] = near; }
+        E.items[i] = clampItem(it); lanesKey = ""; paintLanes();
+        const tip = $("#nIns", v); tip.hidden = true;
+      } else {                                                                  // move: show where it lands
+        const T2 = timeAt(e2.clientX), j = indexAtTime(T2), { clips, total } = layout();
+        showIns(j < clips.length ? clips[j].start : total); E.drag.to = j;
+        clipEl.classList.add("moving");
+      }
+    };
+    const up = () => {
+      removeEventListener("pointermove", mv); removeEventListener("pointerup", up);
+      $("#nIns", v).hidden = true; const d = E.drag; E.drag = null;
+      if (!moved) return;
+      if (h) { const now = E.items.slice(); E.items = JSON.parse(snap0); commit(now); return; }
+      if (d.to != null && d.to !== i && d.to !== i + 1) { const items = E.items.slice(); const [m] = items.splice(i, 1); const to = d.to > i ? d.to - 1 : d.to; items.splice(to, 0, m); E.sel = to; commit(items); }
+      else { lanesKey = ""; paintLanes(); }
+    };
+    addEventListener("pointermove", mv); addEventListener("pointerup", up);
+  });
+  scroll.addEventListener("wheel", (e) => {
+    if (!(e.ctrlKey || e.metaKey)) return; e.preventDefault();
+    const p0 = pps(), mouseT = timeAt(e.clientX); E.fit = false; E.pps = Math.max(2, Math.min(600, p0 * (e.deltaY < 0 ? 1.2 : 1 / 1.2)));
+    lanesKey = ""; paintLanes(); scroll.scrollLeft += mouseT * (E.pps - p0);
+  }, { passive: false });
+  const ro = new ResizeObserver(() => { if (E.fit) { lanesKey = ""; paintLanes(); } }); ro.observe(scroll);
+
+  // ---------- keyboard (Resolve's keys where it has them)
+  keyH = (e) => {
+    if (/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) || document.activeElement.isContentEditable) return;
+    const k = e.key, ctrl = e.ctrlKey || e.metaKey;
+    if (ctrl && k.toLowerCase() === "z") { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+    if (ctrl && k.toLowerCase() === "y") { e.preventDefault(); redo(); return; }
+    if (ctrl && (k.toLowerCase() === "b" || k === "\\")) { e.preventDefault(); const L = locate(E.T); if (L) splitAt(L.i, E.T); return; }
+    if (ctrl && k.toLowerCase() === "d" && E.sel >= 0) { e.preventDefault(); insertAt(E.sel + 1, { ...clampItem(E.items[E.sel]) }); return; }
+    if (ctrl || e.altKey) return;
+    if (k === " ") { e.preventDefault(); togglePlay(); }
+    else if (k === "k" || k === "K") vid.pause();
+    else if (k === "l" || k === "L") { if (playing()) { E.rate = Math.min(4, E.rate * 2); vid.playbackRate = E.rate; } else togglePlay(); }
+    else if (k === "j" || k === "J") step(-1);
+    else if (k === "ArrowLeft") { e.preventDefault(); step(e.shiftKey ? -1 : -1 / FPS); }
+    else if (k === "ArrowRight") { e.preventDefault(); step(e.shiftKey ? 1 : 1 / FPS); }
+    else if (k === "ArrowUp") { e.preventDefault(); setMode("tl"); editPoint(-1); }
+    else if (k === "ArrowDown") { e.preventDefault(); setMode("tl"); editPoint(1); }
+    else if (k === "Home") toStart(); else if (k === "End") toEnd();
+    else if (k === "i" || k === "I") markIn(); else if (k === "o" || k === "O") markOut();
+    else if (k === "F9") { e.preventDefault(); const it = fromSource(); if (it) insertAt(indexAtTime(E.T), it); }
+    else if (k === "F12" && e.shiftKey) { e.preventDefault(); const it = fromSource(); if (it) insertAt(E.items.length, it); }
+    else if (k === "a" || k === "A") { E.tool = "select"; paintModes(); }
+    else if (k === "b" || k === "B") { E.tool = "blade"; paintModes(); }
+    else if (k === "n" || k === "N") { E.snap = !E.snap; paintModes(); toast("Magneet " + (E.snap ? "aan" : "uit") + "."); }
+    else if (k === "Delete" || k === "Backspace") { if (E.sel >= 0) { e.preventDefault(); removeAt(E.sel); } }
+    else if (k === "Escape") { E.sel = -1; inspKey = ""; paintAll(); }
+    else if (k === "Z" && e.shiftKey) $("#nFit", v).click();
+    else if (k === "+" || k === "=") { E.fit = false; E.pps = pps() * 1.25; lanesKey = ""; paintLanes(); }
+    else if (k === "-") { E.fit = false; E.pps = Math.max(2, pps() / 1.25); lanesKey = ""; paintLanes(); }
+  };
+  document.addEventListener("keydown", keyH);
+  raf = requestAnimationFrame(tick);
+
+  return {
+    update(id2) {
+      if (id2 && id2 !== E.src && juictVideo(id2)) { E.src = id2; E.mIn = E.mOut = null; }
+      const fresh = montageItems(), fs = JSON.stringify(fresh);
+      if (!E.drag && fs !== JSON.stringify(E.items) && fs !== lastSaved && !saveT) { E.items = fresh; lastSaved = fs; }
+      if (saveT && JSON.stringify(E.items) === lastSaved) saveT = 0;
+      if (!srcVid()) { if (S.projectsReady) $("#nTitle", v).textContent = "Video niet gevonden"; return; }
+      paintAll();
+    },
+    destroy() {
+      cancelAnimationFrame(raf); document.removeEventListener("keydown", keyH); ro.disconnect(); vid.pause();
+      clearTimeout(saveT); if (JSON.stringify(E.items) !== lastSaved) montageSave(E.items);
+      if (chat) chat.destroy(); closeMenu(); document.body.classList.remove("nle-on");
+    },
+  };
+}
+
+// ------------------------------------------------------------------ project
+// ------------------------------------------------------------------ project portal in Resolve's layout: Edit · Color · Deliver
+// One page per project with a page bar like Resolve. Fewer steps (decision 0015): the grade is optional (house look),
+// "Ja, renderen" records the approval of the current plan and renders, in one press (a chain of PC requests).
+// Color page = Resolve's Color page: Gallery (one still per look) · Viewer (with wipe) · Nodes (the engine's real pipeline:
+// exposure → conversion → look → key mix) · clip strip (the 4 example shots) · Primaries (exposure = offset, strength =
+// key output) · Scopes (parade / waveform / vectorscope, read from the viewer's pixels).
+const PAGE_OF = { grade: "color", plan: "edit", goedkeuren: "deliver", renderen: "deliver", resultaat: "deliver", edit: "edit", color: "color", deliver: "deliver" };
+const LOOK_NL = { reference_film: "Film", clean_warm: "Warm helder", moody: "Moody", daylight: "Daglicht", blue_hour: "Blauw uur", vintage: "Vintage" };
+const IMG = new Map();
+const loadImg = (url) => IMG.get(url) || (IMG.set(url, new Promise((res) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = url; })), IMG.get(url));
+// the look previews are 4 shots side by side, separated by thin black bars: shot k of an image
+const shotRect = (im, k) => { const gap = Math.round(im.width * 0.0031), w = (im.width - 3 * gap) / 4; return [k * (w + gap), 0, w, im.height]; };
+const APPROVE_NOTE = "Ja, renderen (knop in de Studio)";
+function nextStep(p) {
+  const a = p.approval, ok = !!(a && a.status === "approved" && a.current && a.grade_current);
+  if (!p.plan) return { act: "plan", label: "Plan maken", page: "edit" };
+  if (!p.render || !ok) return { act: "chain", label: "Ja, renderen", page: "deliver" };
+  return { act: "view", label: "Bekijk de render", page: "deliver", done: true };
+}
+// "Ja, renderen": grade (house look if none) → approval of this plan → render. One step per PC answer.
+function runChain(p, btn) {
+  const c = S.chain; if (!c || c.pid !== p.id || !btn) return;
+  if (S.jobs.some((j) => running(j) && j.project === p.name)) return;                 // wait for the PC
+  if (Date.now() - (c.sentAt || 0) < 4000) return;
+  const g = p.grade || {}, a = p.approval;
+  const graded = gradeChosen(p) && /^[0-9a-f]{12}$/.test(String(g.key || ""));
+  const approved = !!(a && a.status === "approved" && a.current && a.grade_current);
+  let step = null, extra = null;
+  if (!graded) { step = "grade"; extra = { look: g.look || "reference_film", strength: Number.isFinite(+g.strength) ? +g.strength : 1, exposure: Number.isFinite(+g.exposure) ? +g.exposure : -1.75 }; }
+  else if (!approved) { step = "goedkeuren"; extra = { plan: p.plan && p.plan.edl_sha1, grade: g.key, note: APPROVE_NOTE }; }
+  else if (!c.rendered) { step = "render"; }
+  else { S.chain = null; toast("Render gestart: je ziet hem bij Deliver als hij klaar is.", "ok"); return; }
+  if (c.last === step && c.tries >= 2) { S.chain = null; toast("Ja, renderen gestopt: " + (ACT_NL[step] || step) + " lukte niet. Zie Instellingen → Activiteit.", "err"); return; }
+  c.tries = c.last === step ? (c.tries || 0) + 1 : 1; c.last = step; c.sentAt = Date.now();
+  if (step === "render") c.rendered = true;
+  send(btn, step, p, extra).then((sent) => { if (!sent) S.chain = null; });
+}
+
+function projectView(id, tab) {
+  const page = PAGE_OF[tab] || "color";
+  const v = $("#view");
+  document.body.classList.add("nle-on");
+  const G = { look: null, strength: 1, exposure: -1.75, shot: 0, cmp: false, wipe: 0.5, scope: "parade", hover: null };
+  let key = null, built = false, P = null;
+  v.innerHTML = `<div class="nle portal">
+    <div class="nle-top"><a class="nle-back" href="#/">‹ Projecten</a><div class="nle-title" id="pTitle"></div><span class="spacer"></span>
+      <span class="nle-tcs" id="pState"></span><button class="nle-deliver" data-pc id="pNext"></button></div>
+    <div class="portal-body" id="pBody"></div>
+    <nav class="nle-pages" aria-label="Pagina's"><a href="#/">${ICON.media}<span>Media</span></a>
+      <a href="#/p/${enc(id)}/edit" class="${page === "edit" ? "on" : ""}">${ICON.edit}<span>Edit</span></a>
+      <a href="#/p/${enc(id)}/color" class="${page === "color" ? "on" : ""}"><svg viewBox="0 0 16 16"><circle cx="6" cy="6.5" r="3.6" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="10" cy="6.5" r="3.6" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="10" r="3.6" fill="none" stroke="currentColor" stroke-width="1.4"/></svg><span>Color</span></a>
+      <a href="#/p/${enc(id)}/deliver" class="${page === "deliver" ? "on" : ""}">${ICON.deliver}<span>Deliver</span></a></nav></div>`;
+  const body = $("#pBody", v), nextBtn = $("#pNext", v);
+  nextBtn.onclick = (e) => {
+    const p = project(id); if (!p) return; const n = nextStep(p);
+    if (n.act === "plan") return send(e.currentTarget, "plan", p);
+    if (n.act === "view") { location.hash = "#/p/" + enc(id) + "/deliver"; return; }
+    if (!online()) return toast(offlineReason(), "err");
+    S.chain = { pid: p.id, sentAt: 0 }; toast("Ja, renderen: je PC keurt dit plan goed en rendert daarna.", "ok"); runChain(p, nextBtn);
+  };
+
+  // ---------- Color
+  function buildColor(p) {
+    const g = p.grade || {};
+    G.look = StudioMath.LOOKS.includes(g.look) ? g.look : "reference_film";
+    G.strength = Number.isFinite(+g.strength) && g.strength !== null ? +g.strength : 1;
+    G.exposure = Number.isFinite(+g.exposure) && g.exposure !== null ? +g.exposure : -1.75;
+    body.innerHTML = `<div class="col-grid">
+      <aside class="nle-pool col-gal"><div class="nle-ph">Gallery · looks</div><div class="gal" id="cGal"></div></aside>
+      <section class="nle-viewer"><div class="nle-vh"><span class="nle-vname" id="cVName"></span><span class="spacer"></span>
+          <button id="cCmp" title="Gesplitst scherm: toegepaste look links, gekozen look rechts">Vergelijk</button><span class="nle-tc" id="cShotTc"></span></div>
+        <div class="nle-screen col-screen" id="cScreen"><canvas id="cCanvas"></canvas><div class="col-wipe" id="cWipe" hidden></div><div class="nle-empty" id="cEmpty" hidden></div></div></section>
+      <aside class="nle-insp col-nodes"><div class="nle-ph">Nodes</div><div id="cNodes"></div></aside>
+      <div class="col-clips" id="cClips"></div>
+      <section class="col-prim"><div class="nle-ph">Primaries</div><div class="prim" id="cPrim"></div></section>
+      <section class="col-scope"><div class="nle-ph"><span>Scopes</span><span class="spacer"></span>
+        <span class="nle-modes"><button data-scope="parade">Parade</button><button data-scope="wave">Waveform</button><button data-scope="vector">Vector</button></span></div>
+        <canvas id="cScope"></canvas></section></div>`;
+    $("#cCmp", v).onclick = () => { G.cmp = !G.cmp; paintColor(); };
+    v.querySelectorAll("[data-scope]").forEach((b) => (b.onclick = () => { G.scope = b.dataset.scope; paintColor(); }));
+    const wipeAt = (ev) => { const r = $("#cScreen", v).getBoundingClientRect(); G.wipe = Math.max(0.02, Math.min(0.98, (ev.clientX - r.left) / r.width)); drawViewer(); };
+    $("#cScreen", v).addEventListener("pointerdown", (ev) => { if (!G.cmp) return; wipeAt(ev); const mv = (e2) => wipeAt(e2), up = () => { removeEventListener("pointermove", mv); removeEventListener("pointerup", up); };
+      addEventListener("pointermove", mv); addEventListener("pointerup", up); });
+    new ResizeObserver(() => drawViewer()).observe($("#cScreen", v));
+  }
+  async function drawViewer() {
+    const p = P; if (!p || page !== "color") return;
+    const cv = $("#cCanvas", v), box = $("#cScreen", v); if (!cv || !box) return;
+    const url = p.previews[G.look], applied = gradeChosen(p) ? p.grade.look : null, aUrl = applied && p.previews[applied];
+    $("#cEmpty", v).hidden = !!url;
+    if (!url) { $("#cEmpty", v).innerHTML = "Nog geen voorbeelden.<br><span class='muted'>Klik op Voorbeelden maken: je PC laat vier shots in elke look zien.</span>"; return; }
+    const [im, ia] = await Promise.all([loadImg(url), G.cmp && aUrl ? loadImg(aUrl) : null]);
+    if (!im) return;
+    const [sx, sy, sw, sh] = shotRect(im, G.shot), W = box.clientWidth, H = box.clientHeight, sc = Math.min(W / sw, H / sh);
+    cv.width = Math.max(1, Math.round(sw * sc * (devicePixelRatio || 1))); cv.height = Math.max(1, Math.round(sh * sc * (devicePixelRatio || 1)));
+    cv.style.width = sw * sc + "px"; cv.style.height = sh * sc + "px";
+    const c = cv.getContext("2d");
+    c.drawImage(im, sx, sy, sw, sh, 0, 0, cv.width, cv.height);
+    const wl = $("#cWipe", v); wl.hidden = !(G.cmp && ia);
+    if (G.cmp && ia) { const [ax, ay, aw, ah] = shotRect(ia, G.shot), cut = cv.width * G.wipe;
+      c.drawImage(ia, ax, ay, aw * G.wipe, ah, 0, 0, cut, cv.height);
+      const off = (W - sw * sc) / 2; wl.style.left = off + sw * sc * G.wipe + "px"; }
+    drawScope(cv);
+  }
+  function drawScope(src) {
+    const sc = $("#cScope", v); if (!sc || !src.width) return;
+    const W = sc.clientWidth || 300, H = sc.clientHeight || 160; sc.width = W; sc.height = H;
+    const g = sc.getContext("2d"); g.fillStyle = "#0b0b0d"; g.fillRect(0, 0, W, H);
+    const tw = 240, th = Math.max(1, Math.round(tw * src.height / src.width)), t = document.createElement("canvas"); t.width = tw; t.height = th;
+    t.getContext("2d").drawImage(src, 0, 0, tw, th);
+    let d; try { d = t.getContext("2d").getImageData(0, 0, tw, th).data; } catch (e) { return; }
+    g.strokeStyle = "rgba(255,255,255,.08)"; for (let i = 1; i < 10; i++) { const y = Math.round(H * i / 10) + 0.5; g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
+    g.globalCompositeOperation = "lighter";
+    if (G.scope === "vector") {
+      const R = Math.min(W, H) / 2 - 8, cx = W / 2, cy = H / 2;
+      g.globalCompositeOperation = "source-over"; g.strokeStyle = "rgba(255,255,255,.15)"; g.beginPath(); g.arc(cx, cy, R, 0, 7); g.stroke();
+      g.globalCompositeOperation = "lighter"; g.fillStyle = "rgba(160,255,170,.08)";
+      for (let i = 0; i < d.length; i += 8) { const r = d[i], gg = d[i + 1], b = d[i + 2];
+        const cb = -0.1146 * r - 0.3854 * gg + 0.5 * b, cr = 0.5 * r - 0.4542 * gg - 0.0458 * b;
+        g.fillRect(cx + (cb / 128) * R, cy - (cr / 128) * R, 1.4, 1.4); }
+    } else {
+      const parts = G.scope === "parade" ? [[0, "rgba(255,70,70,.10)"], [1, "rgba(70,255,90,.10)"], [2, "rgba(80,140,255,.12)"]] : [[-1, "rgba(200,255,200,.09)"]];
+      const pw = W / parts.length;
+      parts.forEach(([ch, col], n) => { g.fillStyle = col;
+        for (let y = 0; y < th; y += 1) for (let x = 0; x < tw; x += 1) { const i = (y * tw + x) * 4;
+          const val = ch < 0 ? 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2] : d[i + ch];
+          g.fillRect(n * pw + (x / tw) * pw, H - 4 - (val / 255) * (H - 8), 1.3, 1.3); } });
+    }
+    g.globalCompositeOperation = "source-over";
+  }
+  function paintColor() {
+    const p = P, g = p.grade || {}, applied = gradeChosen(p) ? g.look : null;
+    const k = JSON.stringify([p.previews, applied, g.strength, g.exposure, G.look, G.shot, G.cmp, G.scope, G.strength, G.exposure, online()]);
+    if (k === key) return; key = k;
+    const looks = StudioMath.LOOKS;
+    $("#cGal", v).innerHTML = looks.map((l) => `<button class="still${l === G.look ? " on" : ""}${l === applied ? " applied" : ""}" data-look="${l}" title="${esc(l)}: ${esc(LOOK_HINT[l])}">
+      <span class="sthumb">${p.previews[l] ? `<canvas data-st="${l}"></canvas>` : ""}</span><span class="sname">${esc(LOOK_NL[l] || l)}</span><span class="slut">${esc(l)}.cube${l === applied ? " · toegepast" : ""}</span></button>`).join("");
+    $("#cGal", v).querySelectorAll("canvas[data-st]").forEach(async (cv) => { const im = await loadImg(p.previews[cv.dataset.st]); if (!im) return;
+      const [sx, sy, sw, sh] = shotRect(im, G.shot); cv.width = 192; cv.height = 108; cv.getContext("2d").drawImage(im, sx, sy, sw, sh, 0, 0, 192, 108); });
+    $("#cGal", v).querySelectorAll("[data-look]").forEach((b) => (b.onclick = () => { G.look = b.dataset.look; paintColor(); }));
+    $("#cVName", v).textContent = (LOOK_NL[G.look] || G.look) + (G.look === applied ? " · toegepast" : applied ? " · nog niet toegepast (nu: " + (LOOK_NL[applied] || applied) + ")" : "");
+    $("#cShotTc", v).textContent = "Shot " + p2(G.shot + 1);
+    $("#cCmp", v).classList.toggle("on", G.cmp);
+    v.querySelectorAll("[data-scope]").forEach((b) => b.classList.toggle("on", b.dataset.scope === G.scope));
+    const anyUrl = p.previews[G.look] || Object.values(p.previews)[0];
+    $("#cClips", v).innerHTML = [0, 1, 2, 3].map((n) => `<button class="cclip${n === G.shot ? " on" : ""}" data-shot="${n}"><span>${p2(n + 1)}</span>${anyUrl ? `<canvas data-cs="${n}"></canvas>` : ""}<i>V1</i></button>`).join("") +
+      `<span class="spacer"></span><button class="txt" data-pc id="cStills" title="Je PC maakt de voorbeelden opnieuw, met de toegepaste sterkte en belichting">${Object.keys(p.previews).length ? "Voorbeelden verversen" : "Voorbeelden maken"}</button>`;
+    $("#cClips", v).querySelectorAll("canvas[data-cs]").forEach(async (cv) => { const im = await loadImg(p.previews[G.look] || anyUrl); if (!im) return;
+      const [sx, sy, sw, sh] = shotRect(im, +cv.dataset.cs); cv.width = 128; cv.height = 72; cv.getContext("2d").drawImage(im, sx, sy, sw, sh, 0, 0, 128, 72); });
+    $("#cClips", v).querySelectorAll("[data-shot]").forEach((b) => (b.onclick = () => { G.shot = +b.dataset.shot; paintColor(); }));
+    $("#cStills", v).onclick = (e) => send(e.currentTarget, "stills", p);
+    // nodes: the real pipeline of autoedit/grade.py
+    const lutOn = !!(p.luts && p.luts.conv) || true;
+    $("#cNodes", v).innerHTML = `<svg class="nodes" viewBox="0 0 280 300" aria-label="Node-structuur van de grade">
+      <defs><marker id="arr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L8 4L0 8z" fill="#9aa"/></marker></defs>
+      <circle cx="18" cy="30" r="7" fill="#3fbf6a"/><text x="30" y="34" class="nt">Bron (S-Log3)</text>
+      ${[["01", "Belichting", stops(G.exposure)], ["02", "Conversie", "S-Log3 → Rec.709"], ["03", "Look", (LOOK_NL[G.look] || G.look) + " LUT"]].map(([n, t, s], i) => {
+        const y = 62 + i * 70; return `<path d="M18 ${y - 25}V${y}" stroke="#9aa" stroke-width="1.5" marker-end="url(#arr)" fill="none"/>
+        <rect x="8" y="${y + 4}" width="200" height="46" rx="6" class="node${i === 2 ? " sel" : ""}"/><text x="18" y="${y + 22}" class="nn">${n}</text>
+        <text x="44" y="${y + 22}" class="nt">${esc(t)}</text><text x="44" y="${y + 39}" class="ns">${esc(s)}</text>`; }).join("")}
+      <path d="M18 268V280" stroke="#9aa" stroke-width="1.5" fill="none"/><text x="214" y="241" class="ns">key ${Math.round(G.strength * 100)}%</text>
+      <circle cx="18" cy="288" r="7" fill="#d7c13a"/><text x="30" y="292" class="nt">Uitvoer</text></svg>
+      <div class="nle-note">Zo rekent je PC de grade, voor elk shot: belichting, dan de conversie, dan de look, gemengd met de sterkte (key).</div>`;
+    // primaries: exposure = offset master, strength = key output gain
+    const dirty = gradeChosen(p) ? (G.look !== g.look || Math.abs(G.strength - g.strength) > 0.004 || Math.abs(G.exposure - g.exposure) > 0.004) : true;
+    $("#cPrim", v).innerHTML = `<div class="wheel-box"><div class="wheel"><div class="wheel-dot"></div></div><span class="wl">Offset</span>
+        <label class="ring">Belichting <b>${stops(G.exposure)}</b><input type="range" id="cExp" min="-3" max="0.5" step="0.05" value="${G.exposure}"></label></div>
+      <div class="prim-r"><label class="ring">Key Output Gain (sterkte) <b>${Math.round(G.strength * 100)}%</b><input type="range" id="cStr" min="0" max="1" step="0.01" value="${G.strength}"></label>
+        <div class="nle-note">De voorbeelden links zijn gemaakt met de toegepaste sterkte en belichting. Na <b>Toepassen</b> en <b>Voorbeelden verversen</b> zie je de nieuwe waarden.</div>
+        <div class="nle-btns"><button id="cReset"${dirty && gradeChosen(p) ? "" : " disabled"}>Terug naar toegepast</button>
+          <button class="nle-deliver" data-pc id="cApply"${dirty ? "" : ' data-block="1"'}>Toepassen</button></div></div>`;
+    $("#cExp", v).oninput = (e) => { G.exposure = +e.target.value; e.target.previousElementSibling.textContent = stops(G.exposure); };
+    $("#cExp", v).onchange = () => paintColor();
+    $("#cStr", v).oninput = (e) => { G.strength = +e.target.value; e.target.previousElementSibling.textContent = Math.round(G.strength * 100) + "%"; };
+    $("#cStr", v).onchange = () => paintColor();
+    $("#cReset", v).onclick = () => { G.look = g.look; G.strength = +g.strength; G.exposure = +g.exposure; paintColor(); };
+    $("#cApply", v).onclick = (e) => send(e.currentTarget, "grade", p, { look: G.look, strength: G.strength, exposure: G.exposure });
+    pcButtons(v); drawViewer();
+  }
+
+  // ---------- Edit (the plan) and Deliver (render)
+  function paintEdit() {
+    const p = P, pl = p.plan, pv = pl && safeUrl(pl.preview_url), sheet = pl && safeUrl(pl.sheet_url), m = madeWith(p, "preview");
+    const cuts = pl && Array.isArray(pl.cuts) ? pl.cuts.map(obj).filter((c) => c && Number.isFinite(+c.start) && +c.end > +c.start) : [];
+    const k = JSON.stringify([pl, online(), m]); if (k === key) return; key = k;
+    body.innerHTML = `<div class="ed-grid"><section class="nle-viewer"><div class="nle-vh"><span class="nle-vname">${pv ? "Voorbeeld van het plan" : sheet ? "Storyboard" : "Nog geen plan"}</span>
+        <span class="spacer"></span><span class="nle-tcs">${m ? esc(m.text) : ""}</span></div>
+        <div class="nle-screen">${pv ? `<video controls playsinline preload="metadata" src="${esc(pv)}"></video>` : sheet ? `<img class="ed-sheet" src="${esc(sheet)}" alt="Storyboard">` : `<div class="nle-empty">Maak een plan: je PC kiest de shots en maakt een storyboard.</div>`}</div></section>
+      <aside class="nle-insp"><div class="nle-ph">Inspector</div><div class="nle-sec"><div class="nle-kv">
+          <span>Shots</span><b>${pl ? +pl.shots || 0 : "—"}</b><span>Duur</span><b class="mono">${pl ? tc(+pl.duration || 0) : "—"}</b>
+          <span>Titel</span><b>${esc(pl && pl.title || "—")}</b><span>Plan-code</span><b class="mono">${esc(pl && pl.edl_sha1 || "—")}</b></div></div>
+        <div class="nle-sec nle-btns"><button data-pc id="eplan">${pl ? "Nieuw plan" : "Plan maken"}</button><button data-pc id="eprev"${pl ? "" : ' data-block="1"'}>Voorbeeld maken</button></div>
+        <div class="nle-sec"><div class="nle-note">Knippen per shot (zoals bij JUICT) kan zodra je PC de shotlijst naar de Studio stuurt.</div></div></aside>
+      <div class="ed-tl"><div class="nle-trh v"><b>V1</b><small>${cuts.length ? "Plan · " + cuts.length + " shots" : "Plan"}</small></div>
+        <div class="ed-strip" id="eStrip">${sheet ? "" : `<span class="nle-note">Nog geen storyboard.</span>`}</div></div></div>`;
+    if (sheet && pl) drawCuts(pl, sheet, cuts);
+    $("#eplan", v).onclick = (e) => { if (p.approval && p.approval.status === "approved" && !confirm0(e.currentTarget)) return; send(e.currentTarget, "plan", p); };
+    $("#eprev", v).onclick = (e) => send(e.currentTarget, "preview", p);
+    pcButtons(v);
+  }
+  // the plan as a timeline: one clip per shot, its picture cut out of the storyboard sheet (5 tiles per row, in plan
+  // order, an 18 px caption bar on top of each 320 px tile: VIDEO_EDITING_SYSTEM/engine/storyboard.py)
+  async function drawCuts(pl, sheetUrl, cuts) {
+    const strip = $("#eStrip", v); if (!strip) return;
+    const im = await loadImg(sheetUrl); if (!im || !strip.isConnected) return;
+    const n = cuts.length || +pl.shots || 0; if (!n) return;
+    const rows = Math.ceil(n / 5), tw = im.width / 5, th = im.height / rows, cap = 18 * (im.width / 1600);
+    const total = cuts.length ? Math.max(...cuts.map((c) => +c.end)) : n;
+    const W = Math.max(strip.clientWidth - 16, n * 40), pxs = W / total;
+    strip.innerHTML = `<div class="ed-lane" style="width:${W}px">${Array.from({ length: n }, (_, i) => { const c = cuts[i];
+      const x = c ? +c.start * pxs : i * pxs, w = c ? (+c.end - +c.start) * pxs : pxs;
+      return `<div class="ed-cut" data-cut="${i}" style="left:${x}px;width:${Math.max(2, w - 1)}px" title="${c ? esc(String(c.id || "")) + " · " + tc(+c.start) + "–" + tc(+c.end) + " · " + esc(String(c.clip || "")) + " @ " + (+c.src_in).toFixed(2) + " s" : "shot " + (i + 1)}">
+        <canvas></canvas><span>${i + 1}</span></div>`; }).join("")}<i class="ed-ph" id="ePh"></i></div>
+      ${cuts.length ? "" : `<div class="nle-note">Volgorde van het plan. De lengtes per shot komen zodra je PC de knippunten meestuurt (na de volgende start van de Studio-sessie).</div>`}`;
+    strip.querySelectorAll(".ed-cut").forEach((el) => { const i = +el.dataset.cut, cv = el.querySelector("canvas");
+      const h = 46, sx = (i % 5) * tw, sy = Math.floor(i / 5) * th + cap, sw = tw, sh = th - cap;
+      cv.height = h; cv.width = Math.round(h * sw / sh); cv.getContext("2d").drawImage(im, sx, sy, sw, sh, 0, 0, cv.width, h); });
+    const video = v.querySelector(".ed-grid video");
+    if (video && cuts.length) {
+      strip.querySelectorAll(".ed-cut").forEach((el) => (el.onclick = () => { video.currentTime = +cuts[+el.dataset.cut].start + 0.02; video.play().catch(() => {}); }));
+      const ph = $("#ePh", v); const upd = () => { ph.style.left = video.currentTime * pxs + "px";
+        strip.querySelectorAll(".ed-cut").forEach((el) => { const c = cuts[+el.dataset.cut]; el.classList.toggle("now", video.currentTime >= +c.start && video.currentTime < +c.end); }); };
+      video.addEventListener("timeupdate", upd); upd();
+    }
+  }
+  const confirm0 = (btn) => { if (btn.dataset.sure) return true; btn.dataset.sure = "1"; btn.textContent = "Zeker? Goedkeuring vervalt"; setTimeout(() => { delete btn.dataset.sure; btn.textContent = "Nieuw plan"; }, 4000); return false; };
+  function paintDeliver() {
+    const p = P, r = p.render, rv = r && safeUrl(r.preview_url), rev = r && safeUrl(r.review_url), st = approvalState(p);
+    const rendering = S.jobs.some((j) => j.project === p.name && j.action === "render" && running(j));
+    const k = JSON.stringify([r, st, rendering, online(), !!S.chain]); if (k === key) return; key = k;
+    body.innerHTML = `<div class="ed-grid"><section class="nle-viewer"><div class="nle-vh"><span class="nle-vname">${r ? "Render · " + esc(when(r.at)) : "Nog niet gerenderd"}</span></div>
+        <div class="nle-screen">${rv ? `<video controls playsinline preload="metadata" src="${esc(rv)}"></video>` : rev ? `<img class="ed-sheet" src="${esc(rev)}" alt="Review">`
+          : `<div class="nle-empty">${rendering ? "Je PC rendert…" : S.chain ? "Bezig: goedkeuren en renderen…" : "Druk op <b>Ja, renderen</b> rechtsboven: je PC keurt dit plan goed en rendert."}</div>`}</div></section>
+      <aside class="nle-insp"><div class="nle-ph">Deliver</div><div class="nle-sec"><div class="nle-kv">
+          <span>Plan</span><b>${p.plan ? (+p.plan.shots || 0) + " shots · " + tc(+p.plan.duration || 0) : "nog geen"}</b>
+          <span>Grade</span><b>${gradeChosen(p) ? esc(LOOK_NL[p.grade.look] || p.grade.look) + " · " + pct(p.grade.strength) : "huislook (Film)"}</b>
+          <span>Goedkeuring</span><b>${esc(st.text)}</b></div></div>
+        <div class="nle-sec nle-btns"><button data-pc id="dqa"${r ? "" : ' data-block="1"'}>QA</button></div>
+        ${rev && rv ? `<div class="nle-sec"><div class="nle-sh">Review</div><img class="ed-sheet" src="${esc(rev)}" alt="Review"></div>` : ""}</aside></div>`;
+    $("#dqa", v).onclick = (e) => send(e.currentTarget, "qa", p);
+    pcButtons(v);
+  }
   return {
     update() {
       const p = project(id);
-      if (!p) {
-        if (missing === S.projectsReady) return;
-        missing = S.projectsReady;
-        if (inner && inner.destroy) inner.destroy();
-        inner = null;
-        $("#pcrumb").textContent = ""; $("#ptitle").textContent = S.projectsReady ? "Project niet gevonden" : "Laden…"; $("#ptags").innerHTML = "";
-        $("#tab").innerHTML = S.projectsReady ? '<div class="empty">Dit project staat niet (meer) in de Studio. <a href="#/" style="color:var(--blue)">Terug naar projecten</a></div>' : "";
-        $("#next").className = ""; $("#next").innerHTML = "";
-        jobsStrip($("#jobs"), "\u0000");
-        return;
-      }
-      missing = null;
-      $("#pcrumb").textContent = p.name;
-      $("#ptitle").textContent = p.name;
-      const st = approvalState(p);
-      $("#ptags").innerHTML = (p.plan ? `<span class="tag">${+p.plan.shots || 0} shots</span><span class="tag">${(+p.plan.duration || 0).toFixed(1).replace(".", ",")} s</span>` : "") +
-        (p.plan ? `<span class="tag ${st.ok ? "ok" : "warn"}">${st.ok ? "goedgekeurd" : "niet goedgekeurd"}</span>` : "");
-      jobsStrip($("#jobs"), p.name);
-      const f = flow(p);
-      el_steps(f);
-      const nx = $("#next");
-      nx.className = "nextstep" + (f.next.ok ? " ok" : "");
-      nx.innerHTML = `<span class="k">${f.next.ok ? "Klaar" : "Volgende stap"}</span><span class="t">${esc(f.next.text)}</span>` +
-        (f.next.tab !== tab ? `<a class="btn" href="#/p/${enc(id)}/${f.next.tab}">Naar ${esc(TABS.find(([k]) => k === f.next.tab)[1])} →</a>` : "");
-      if (!inner) inner = ({ grade: gradeTab, plan: planTab, goedkeuren: approveTab, renderen: renderTab, resultaat: resultTab }[tab])($("#tab"), id);
-      inner.update(p);
+      if (!p) { $("#pTitle", v).textContent = S.projectsReady ? "Project niet gevonden" : "Laden…"; body.innerHTML = ""; return; }
+      P = p;
+      if (!built) { built = true; if (page === "color") buildColor(p); }
+      $("#pTitle", v).innerHTML = `${esc(p.name)} <span class="muted">· ${page === "color" ? "Color" : page === "edit" ? "Edit" : "Deliver"}</span>`;
+      const n = nextStep(p), busy = S.jobs.some((j) => running(j) && j.project === p.name);
+      nextBtn.innerHTML = (n.done ? "" : ICON.deliver) + "<span>" + (S.chain && S.chain.pid === p.id ? "Bezig…" : n.label) + "</span>";
+      nextBtn.dataset.block = (S.chain && S.chain.pid === p.id) || busy ? "1" : "";
+      $("#pState", v).textContent = busy ? "PC is bezig…" : approvalState(p).text;
+      if (page === "color") paintColor(); else if (page === "edit") paintEdit(); else paintDeliver();
+      pcButtons(v);
+      if (n.done && nextBtn.disabled) nextBtn.disabled = false;
+      runChain(p, nextBtn);
     },
-    destroy() { if (inner && inner.destroy) inner.destroy(); },
+    destroy() { document.body.classList.remove("nle-on"); },
   };
 }
+
 function el_steps(f) {
   document.querySelectorAll("#steps [data-step]").forEach((a) => {
     const k = a.dataset.step, i = TABS.findIndex(([t]) => t === k) + 1;
@@ -1265,7 +3172,7 @@ function renderTab(el, id) {
       $("#renderBtn", el).dataset.block = ready && !rendering ? "" : "1";
       $("#qaBtn", el).dataset.block = p.render ? "" : "1";
       $("#rwhy", el).textContent = !online() ? offlineReason()
-        : rendering ? "Er draait al een render voor dit project op je PC. Wacht tot hij klaar is (zie Taken)."
+        : rendering ? "Er draait al een render voor dit project op je PC. Wacht tot hij klaar is (zie Instellingen)."
         : !ready ? (a && a.current && !a.grade_current ? "grade gewijzigd: opnieuw goedkeuren" : "Renderen kan pas na je goedkeuring van dit plan en deze grade.")
         : "Rendert de volledige montage met de goedgekeurde grade. QA controleert daarna geluid en beeld.";
       $("#rwhy", el).className = "why" + (!online() || !ready || rendering ? " warn" : "");
@@ -1297,6 +3204,16 @@ function resultTab(el) {
   };
 }
 
+// JUICT submenu in the sidebar: fold open/closed, remembered in this browser; opens itself when you are in it
+(function () {
+  const btn = $("#juictFold"), sub = $("#juictSub");
+  const set = (open) => { btn.setAttribute("aria-expanded", open); sub.hidden = !open; };
+  set(store.get("juict-nav-open") !== false);
+  btn.onclick = () => { const open = sub.hidden; set(open); store.set("juict-nav-open", open); };
+  window.addEventListener("hashchange", () => { if (/^#\/(juict|prompt|instructies)/.test(location.hash) && sub.hidden) set(true); });
+})();
 render();
 start();
 </script>
+
+</body></html>

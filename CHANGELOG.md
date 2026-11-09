@@ -3,6 +3,12 @@
 What changed, in words you would notice in an edit or on the PC. Newest first. Small fixes are folded into the day's
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
+## 2026-11-09 — Make a JUICT video right in the Studio
+- Under every prompt in the Promptgenerator there is now **Maak deze video**: give it a title (filled in from the
+  prompt) and a series, and your PC makes the Motion film itself. It shows up under JUICT → Video's; no more copying
+  the prompt into a separate Claude chat. *Kopiëren* still works. Needs the Studio session on the PC.
+- The Studio menu has *Foto's* and *PC op afstand* again (they were missing from the published page).
+
 ## 2026-11-04 — LightCraft from any device
 - LightCraft runs on your PC (your photos are on its SSD); on any other device you see and use it through **Chrome
   Remote Desktop** in the browser. *Openen in LightCraft* from your laptop or phone opens LightCraft on the PC and the

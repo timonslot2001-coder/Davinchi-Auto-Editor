@@ -561,6 +561,10 @@ code.ic { font: 12px var(--mono); background: rgb(0 0 0 / .3); border-radius: 4p
 .pbox { margin: 6px 0; border: 1px solid rgb(255 56 98 / .4); border-radius: 10px; overflow: hidden; background: rgb(0 0 0 / .35); }
 .pbox-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 8px 6px 12px; border-bottom: 1px solid var(--line);
   font: 600 10.5px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: #ff3862; }
+.pbox-h .spacer { flex: 1; }
+.pmake { border-top: 1px solid var(--line); padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; background: rgb(255 56 98 / .05); }
+.pmake-row { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 10px; }
+@media (max-width: 600px) { .pmake-row { grid-template-columns: minmax(0, 1fr); } }
 .pbox pre { margin: 0; padding: 10px 12px; font: 12.5px/1.55 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; max-height: 360px; overflow: auto; }
 .chat-chips { display: flex; flex-wrap: wrap; gap: 6px; } .chat-chips:empty { display: none; }
 .chip-s { background: var(--panel2); color: var(--text); border: 1px solid var(--line2); font: 500 12.5px var(--font); padding: 6px 11px; border-radius: 999px; box-shadow: none; }
@@ -798,6 +802,8 @@ body.nle-on #offline, body.nle-on #conn { margin: 0; border-radius: 0; }
     <nav>
       <a href="#/" data-nav="home"><i><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2" width="5" height="5" rx="1.2"/><rect x="9" y="2" width="5" height="5" rx="1.2"/><rect x="2" y="9" width="5" height="5" rx="1.2"/><rect x="9" y="9" width="5" height="5" rx="1.2"/></svg></i><span>Projecten</span></a>
       <a href="#/ssd" data-nav="ssd"><i><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="10" rx="1.6"/><path d="M5 10h6M5 7h3"/></svg></i><span>SSD</span></a>
+      <a id="navFotos" href="http://127.0.0.1:5080/#/fotos" target="_blank" rel="noopener" title="Foto's bewerken met LightCraft: opent de website op je PC (autoedit.bat moet draaien)"><i><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5"/><path d="M8 2.5v11" /><path d="M8 2.5a5.5 5.5 0 0 1 0 11z" fill="currentColor"/></svg></i><span>Foto's ↗</span></a>
+      <a href="https://remotedesktop.google.com/access" target="_blank" rel="noopener" title="LightCraft en je PC op afstand: Chrome Extern bureaublad (op elk apparaat)"><i><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="8.5" rx="1.4"/><path d="M5.5 13.5h5M8 11v2.5"/></svg></i><span>PC op afstand ↗</span></a>
       <a href="#/instellingen" data-nav="instellingen"><i><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.8v2M8 12.2v2M1.8 8h2M12.2 8h2M3.6 3.6l1.4 1.4M11 11l1.4 1.4M3.6 12.4 5 11M11 5l1.4-1.4"/></svg></i><span>Instellingen</span><em id="jobBadge" hidden></em></a>
     </nav>
     <nav class="nav-juict" aria-label="JUICT">
@@ -878,7 +884,7 @@ body.nle-on #offline, body.nle-on #conn { margin: 0; border-radius: 0; }
 
   // Request text for the Studio session, exactly webapp/studio.py's format. Returns {text} or {error}.
   const SSD = ["ssd-ververs", "ssd-bekijk", "ssd-clip", "ssd-verplaats", "ssd-edit"];
-  const ACTIONS = ["plan", "grade", "goedkeuren", "preview", "render", "qa", "stills", "uitleg", "juict-resolve", "juict-montage"].concat(SSD);
+  const ACTIONS = ["plan", "grade", "goedkeuren", "preview", "render", "qa", "stills", "uitleg", "juict-resolve", "juict-montage", "juict-film"].concat(SSD);
   // JUICT explainer film (webapp/studio.py _parse_uitleg): no project; the PC session makes a Motion film in the JUICT look.
   const UITLEG_LEN = [15, 20, 30, 45, 60];
   const UITLEG_FMT = ["16:9", "9:16", "1:1"];
@@ -945,6 +951,17 @@ body.nle-on #offline, body.nle-on #conn { margin: 0; border-radius: 0; }
     if (!ACTIONS.includes(action)) return { error: "onbekende actie" };
     if (SSD.includes(action)) return ssdText(action, extra);
     if (action === "uitleg") return uitlegText(extra);
+    if (action === "juict-film") {                     // webapp/studio.py _parse_film: the PC session makes the Motion film
+      const titel = String(extra.titel == null ? "" : extra.titel).trim(), serie = String(extra.serie == null ? "" : extra.serie).trim();
+      const prompt = String(extra.prompt == null ? "" : extra.prompt).replace(/\r\n?/g, "\n").trim();
+      if (!titel) return { error: "geef de video een titel" };
+      if (titel.length > 80 || CTRL_RE.test(titel)) return { error: "de titel is te lang (max 80 tekens, één regel)" };
+      if (serie.length > 60 || CTRL_RE.test(serie)) return { error: "de serie is te lang (max 60 tekens, één regel)" };
+      if (!prompt) return { error: "er is nog geen prompt" };
+      if (prompt.length > 6000) return { error: "de prompt is te lang (max 6000 tekens): maak hem korter" };
+      if (/[\u0000-\u0008\u000b-\u001f\u007f]/.test(prompt)) return { error: "de prompt bevat vreemde tekens" };
+      return { text: "[studio] actie=juict-film titel=" + quote(titel) + " serie=" + quote(serie) + " prompt=" + quote(prompt) };
+    }
     if (action === "juict-montage") {
       // webapp/studio.py _parse_juict_montage: one Resolve timeline from fragments asset@start+dur, in order
       const parts = Array.isArray(extra.parts) ? extra.parts : [];
@@ -1007,7 +1024,7 @@ const LOOK_HINT = {
   daylight: "fris, natuurlijk", blue_hour: "koel, avond", vintage: "vaal, warm",
 };
 const ACT_NL = { plan: "Plan maken", grade: "Grade kiezen", goedkeuren: "Goedkeuren", preview: "Voorbeeld", render: "Renderen", qa: "QA", stills: "Stills verversen",
-  "ssd-ververs": "SSD verversen", "ssd-bekijk": "Beelden laden", "ssd-clip": "Clip-preview", "ssd-verplaats": "Verplaatsen", "ssd-edit": "Edit starten", uitleg: "Uitleg video", "juict-resolve": "Naar Resolve", "juict-montage": "Montage naar Resolve" };
+  "ssd-ververs": "SSD verversen", "ssd-bekijk": "Beelden laden", "ssd-clip": "Clip-preview", "ssd-verplaats": "Verplaatsen", "ssd-edit": "Edit starten", uitleg: "Uitleg video", "juict-resolve": "Naar Resolve", "juict-montage": "Montage naar Resolve", "juict-film": "Video maken" };
 const JOB_NL = { bezig: "bezig", klaar: "klaar", fout: "fout", vast: "vastgelopen? start opnieuw" };
 const STALE_MS = 3 * 3600 * 1000;       // a job still "bezig" after 3 h has most likely died on the PC
 // "bezig" | "klaar" | "fout" | "vast" (bezig for more than 3 h); the CSS class for "vast" is the one for "fout"
@@ -1262,6 +1279,11 @@ function renderShell() {
   }
   // Photos live only in the website (decision 0014): link to it. The Tailscale address works on the PC, the laptop and
   // the phone alike, so it goes first; 127.0.0.1 only reaches the website on the PC itself.
+  // Photos live only in the website (decision 0014): link to it. The Tailscale address works on the PC, the laptop and
+  // the phone alike, so it goes first; 127.0.0.1 only reaches the website on the PC itself.
+  const site = (u) => (typeof u === "string" && /^https?:\/\/[\w.\-]+(:\d{1,5})?\/?$/.test(u) ? u.replace(/\/$/, "") : "");
+  const web = (S.pc && (site(S.pc.phone) || site(S.pc.website))) || "http://127.0.0.1:5080";
+  $("#navFotos").href = web + "/#/fotos";
   const busy = S.jobs.filter(running).length;
   const badge = $("#jobBadge"); badge.hidden = !busy; badge.textContent = busy;
   const pcOn = online();
@@ -1649,12 +1671,14 @@ const store = {
 function inlineMd(s) {
   return esc(s).replace(/\*\*([^*\n]+)\*\*/g, "<b>$1</b>").replace(/`([^`\n]+)`/g, '<code class="ic">$1</code>');
 }
-function renderAnswer(text) {
+function renderAnswer(text, make) {
   const parts = String(text).split(/```(?:prompt|text|markdown|md)?[ \t]*\n?/);
   return parts.map((p, i) => {
     if (i % 2 === 1) {
       const body = p.replace(/\n$/, "");
-      return `<div class="pbox"><div class="pbox-h"><span>Prompt</span><button class="sm" data-copy>Kopiëren</button></div><pre>${esc(body)}</pre></div>`;
+      return `<div class="pbox"><div class="pbox-h"><span>Prompt</span><span class="spacer"></span>` +
+        (make ? `<button class="sm" data-make>Maak deze video</button><button class="ghost sm" data-copy>Kopiëren</button>` : `<button class="sm" data-copy>Kopiëren</button>`) +
+        `</div><pre>${esc(body)}</pre>${make ? '<div class="pmake" hidden></div>' : ""}</div>`;
     }
     const t = p.trim();
     return t ? `<div class="ptext">${t.split(/\n{2,}/).map((para) => "<p>" + inlineMd(para).replace(/\n/g, "<br>") + "</p>").join("")}</div>` : "";
@@ -1685,10 +1709,11 @@ function makeChat(el, opts) {
   const save = () => store.set(opts.key, turns.slice(-20));
   function paint() {
     const msgs = turns.map((t) => t.role === "user" ? `<div class="msg me">${inlineMd(t.content).replace(/\n/g, "<br>")}</div>`
-      : `<div class="msg ai">${renderAnswer(t.content)}</div>`);
+      : `<div class="msg ai">${renderAnswer(t.content, !!opts.make)}</div>`);
     if (busy) msgs.push(`<div class="msg ai">${live ? renderAnswer(live) : '<span class="thinking">Denkt na…</span>'}</div>`);
     log.innerHTML = msgs.length ? msgs.join("") : `<div class="chat-intro">${opts.intro}</div>`;
     log.querySelectorAll("[data-copy]").forEach((b) => (b.onclick = () => copyText(b.closest(".pbox").querySelector("pre").textContent, b)));
+    log.querySelectorAll("[data-make]").forEach((b) => (b.onclick = () => makeForm(b.closest(".pbox"))));
     $(".chat-chips", el).innerHTML = !turns.length && !busy ? opts.chips.map(([l], i) => `<button type="button" class="chip-s" data-chip="${i}">${esc(l)}</button>`).join("") : "";
     el.querySelectorAll("[data-chip]").forEach((b) => (b.onclick = () => ask(opts.chips[+b.dataset.chip][1])));
     log.scrollTop = log.scrollHeight;
@@ -1727,10 +1752,44 @@ function makeChat(el, opts) {
   paint();
   return { destroy() { if (ctl) ctl.abort(); } };
 }
+// "Maak deze video" under a prompt: titel + serie, then one juict-film request; the PC session makes the Motion film
+// from the prompt and adds it to Video's (skill studio-session, "JUICT film").
+function makeForm(box) {
+  const f = $(".pmake", box), prompt = $("pre", box).textContent;
+  if (!f.hidden) { f.hidden = true; return; }
+  const guess = (prompt.match(/titel[^"“\n]*["“]([^"”\n]{1,80})["”]/i) || [])[1] || "";
+  const series = [...new Set(juictVideos().map((v) => serieName(v.serie)).filter(Boolean))];
+  const dl = "series-" + Math.random().toString(36).slice(2, 8);
+  f.innerHTML = `<div class="pmake-row"><label>Titel<input type="text" class="mk-t" maxlength="80" autocomplete="off" placeholder="bijv. Printix: aanmelden"></label>
+      <label>Serie<input type="text" class="mk-s" maxlength="60" autocomplete="off" list="${dl}" placeholder="Losse video's"><datalist id="${dl}">${series.map((x) => `<option value="${esc(x)}">`).join("")}</datalist></label></div>
+    <div class="row"><button class="sm mk-go">Maak video</button><button class="ghost sm mk-no">Annuleren</button></div>
+    <div class="why mk-why"></div>`;
+  f.hidden = false;
+  const t = $(".mk-t", f), sr = $(".mk-s", f), why = $(".mk-why", f), go = $(".mk-go", f);
+  t.value = guess;
+  const check = () => {
+    const r = requestText("juict-film", "", { titel: t.value, serie: sr.value, prompt });
+    why.textContent = !online() ? offlineReason() : r.error || "Je PC maakt de film van deze prompt (dat duurt een paar minuten). Hij komt bij Video's te staan.";
+    why.className = "why mk-why" + (!online() || r.error ? " warn" : "");
+    go.disabled = !online() || !!r.error;
+    return r;
+  };
+  t.oninput = check; sr.oninput = check;
+  $(".mk-no", f).onclick = () => { f.hidden = true; };
+  go.onclick = async () => {
+    const r = check();
+    if (r.error) return toast(r.error, "err");
+    if (await sendText(go, "juict-film", r.text)) {
+      f.innerHTML = '<div class="why">Verstuurd. Je PC maakt de film; volg het onder Instellingen → Activiteit. Klaar? Dan staat hij bij <a href="#/juict">Video\'s</a>.</div>';
+    }
+  };
+  check();
+  t.focus();
+}
 const claude_use = (name) => (window.claude && typeof window.claude.use === "function"
   ? Promise.resolve(window.claude.use(name)).catch(() => null) : Promise.resolve(null));
 
-const PROMPT_RULES = () => `Je bent de promptcoach op het JUICT-dashboard van Timon (JUICT, een IT-dienstverlener). Je helpt hem een goede prompt te schrijven die hij daarna in een nieuwe Claude-chat (Claude Cowork) plakt. Meestal gaat het om korte uitlegvideo's (Motion-animaties, later als MP4 afgewerkt in DaVinci Resolve met geluidseffecten), maar het mag over alles gaan.
+const PROMPT_RULES = () => `Je bent de promptcoach op het JUICT-dashboard van Timon (JUICT, een IT-dienstverlener). Je helpt hem een goede prompt te schrijven. Onder je prompt staat de knop "Maak deze video": daarmee maakt zijn PC er meteen de Motion-film van, hier in het portaal (hij hoeft niets te plakken). Kopiëren kan ook. Meestal gaat het om korte uitlegvideo's (Motion-animaties, later als MP4 afgewerkt in DaVinci Resolve met geluidseffecten), maar het mag over alles gaan.
 
 Werkwijze:
 - Spreek Nederlands, kort en vriendelijk. Stel één vraag per keer, en hoogstens drie vragen in totaal; vraag alleen wat je echt nodig hebt (doel, publiek, inhoud/stappen, lengte, formaat).
@@ -1755,7 +1814,7 @@ Werkwijze:
 
 const PROMPT_CHAT = () => ({
   key: "juict-prompt-chat", tier: "default", rules: PROMPT_RULES, placeholder: "Wat wil je laten maken?",
-  intro: "Vertel wat je wilt maken. Ik stel een paar korte vragen en geef je daarna een prompt om te kopiëren en in een nieuwe Claude-chat te plakken.",
+  intro: "Vertel wat je wilt maken. Ik stel een paar korte vragen en geef je daarna een prompt. Met <b>Maak deze video</b> maakt je PC er meteen de film van; hij komt bij Video's te staan.", make: true,
   chips: [["Nieuwe uitlegvideo", "Ik wil een nieuwe uitlegvideo in JUICT-stijl maken."],
     ["Nieuwe serie", "Ik wil een nieuwe serie korte uitlegvideo's maken."], ["Iets anders", "Ik wil een prompt voor iets anders dan een video."]],
 });

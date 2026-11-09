@@ -1279,8 +1279,6 @@ function renderShell() {
   }
   // Photos live only in the website (decision 0014): link to it. The Tailscale address works on the PC, the laptop and
   // the phone alike, so it goes first; 127.0.0.1 only reaches the website on the PC itself.
-  // Photos live only in the website (decision 0014): link to it. The Tailscale address works on the PC, the laptop and
-  // the phone alike, so it goes first; 127.0.0.1 only reaches the website on the PC itself.
   const site = (u) => (typeof u === "string" && /^https?:\/\/[\w.\-]+(:\d{1,5})?\/?$/.test(u) ? u.replace(/\/$/, "") : "");
   const web = (S.pc && (site(S.pc.phone) || site(S.pc.website))) || "http://127.0.0.1:5080";
   $("#navFotos").href = web + "/#/fotos";

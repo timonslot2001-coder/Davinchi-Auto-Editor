@@ -962,10 +962,12 @@ body.nle-on #offline, body.nle-on #conn { margin: 0; border-radius: 0; }
       if (pdf && !/^[0-9a-f]{8,64}$/.test(pdf)) return { error: "deze werkinstructie is niet goed geüpload: upload hem opnieuw" };
       if (doc && !/^[a-z0-9-]{1,40}$/.test(doc)) return { error: "onbekende werkinstructie" };
       if (!prompt && !pdf) return { error: "er is nog geen prompt" };
-      if (prompt.length > 6000) return { error: "de prompt is te lang (max 6000 tekens): maak hem korter" };
       if (/[\u0000-\u0008\u000b-\u001f\u007f]/.test(prompt)) return { error: "de prompt bevat vreemde tekens" };
-      return { text: "[studio] actie=juict-film titel=" + quote(titel) + " serie=" + quote(serie) +
-        (pdf ? " pdf=" + pdf : "") + (doc ? " doc=" + doc : "") + (prompt ? " prompt=" + quote(prompt) : "") };
+      const text = "[studio] actie=juict-film titel=" + quote(titel) + " serie=" + quote(serie) +
+        (pdf ? " pdf=" + pdf : "") + (doc ? " doc=" + doc : "") + (prompt ? " prompt=" + quote(prompt) : "");
+      // one request is one comment, and a comment holds at most 4 KiB (UTF-8)
+      if (new TextEncoder().encode(text).length > 4000) return { error: "de prompt is te lang om te versturen: vraag de promptgenerator om hem korter te maken" };
+      return { text };
     }
     if (action === "juict-montage") {
       // webapp/studio.py _parse_juict_montage: one Resolve timeline from fragments asset@start+dur, in order
@@ -1801,6 +1803,7 @@ Werkwijze:
 - Bij een uitlegvideo: neem de huisstijl op tenzij Timon iets anders wil (${JUICT_LOOK}), vraag om duidelijke scènewissels (daar komen in Resolve de geluidseffecten), en zet erin dat de film daarna via Export als MP4 wordt opgeslagen.
 - Bestaande video's (ter info): ${juictVideos().map((v) => fullTitle(v) + " [" + serieName(v.serie) + "]" + (v.url ? " " + v.url : "")).join("; ")}.
 - Werkinstructies die Timon heeft geüpload (PDF, titels): ${docList().map((d) => d.titel).join("; ") || "nog geen"}. Jij kunt de PDF's niet lezen: vraag om de stappen als je ze nodig hebt, en zet in de prompt dat Timon de PDF bij de nieuwe chat voegt.
+- Houd de prompt onder 3000 tekens: langer kan niet naar de PC worden gestuurd.
 - Wil Timon de prompt anders, pas hem aan en geef hem opnieuw helemaal in een codeblok.`;
 function videoRules(v) {
   return () => `Je helpt Timon (JUICT) met een KLEINE aanpassing aan één bestaande uitlegvideo (een Motion-animatie die als MP4 in DaVinci Resolve wordt afgewerkt). Jij kunt de video niet zelf aanpassen: jij schrijft een korte, precieze opdracht die hij in een Claude-chat plakt.
@@ -2232,7 +2235,7 @@ function docsView(openId) {
         <div class="why mk-why"></div>`;
       f.hidden = false;
       const t = $(".mk-t", f), sr = $(".mk-s", f), why = $(".mk-why", f), go = $(".mk-go", f);
-      t.value = (d.titel.split(/\s*[-–]\s*/)[0] || d.titel).slice(0, 80); sr.value = d.serie || "";
+      t.value = (d.titel.split(/\s+[-–]\s+/)[0] || d.titel).slice(0, 80);       // "Wi-Fi instellen" stays whole sr.value = d.serie || "";
       const req = () => requestText("juict-film", "", { titel: t.value, serie: sr.value, pdf: d.asset, doc: d.id });
       const check = () => {
         const r = req();

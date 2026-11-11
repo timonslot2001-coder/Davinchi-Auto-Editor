@@ -47,7 +47,7 @@ SSD_ACTIONS = ("ssd-ververs", "ssd-bekijk", "ssd-clip", "ssd-verplaats", "ssd-ed
 FILM_ACTIONS = ("juict-film",)                                   # JUICT explainer: the session makes a Motion film
 NO_PROJECT = SSD_ACTIONS + FILM_ACTIONS
 ACTIONS = ("plan", "grade", "goedkeuren", "preview", "render", "qa", "stills") + NO_PROJECT
-FILM_MAX = {"titel": 80, "serie": 60, "prompt": 6000}
+FILM_MAX = {"titel": 80, "serie": 60, "prompt": 4000}            # a request is one comment: at most 4 KiB
 # keys allowed per action, besides actie and project (project required, except for the SSD actions)
 KEYS = {"grade": {"look", "strength", "exposure"}, "goedkeuren": {"plan", "grade", "notitie"},
         "juict-film": {"titel", "serie", "prompt", "pdf", "doc"},

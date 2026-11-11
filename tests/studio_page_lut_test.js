@@ -11,7 +11,7 @@ const REPO = path.resolve(__dirname, "..");
 const html = fs.readFileSync(path.join(REPO, "webapp/artifact/studio.html"), "utf8");
 const m = html.match(/<script id="grade-math">([\s\S]*?)<\/script>/);
 if (!m) throw new Error("no <script id=\"grade-math\"> in studio.html");
-const ctx = { globalThis: null };
+const ctx = { globalThis: null, TextEncoder };
 ctx.globalThis = ctx;
 vm.createContext(ctx);
 vm.runInContext(m[1], ctx);
@@ -95,7 +95,8 @@ const bad = [
   T("juict-film", "", { titel: "", prompt: "x" }),
   T("juict-film", "", { titel: "a\nb", prompt: "x" }),
   T("juict-film", "", { titel: "a", prompt: "   " }),
-  T("juict-film", "", { titel: "a", prompt: "x".repeat(6001) }),
+  T("juict-film", "", { titel: "a", prompt: "x".repeat(4001) }),
+  T("juict-film", "", { titel: "a", prompt: "é".repeat(2100) }),
   T("juict-film", "", { titel: "a", prompt: "x\u0007" }),
   T("juict-film", "", { titel: "a", pdf: "../x" }),
   T("juict-film", "", { titel: "a", pdf: "0123abcd", doc: "D/1" }),

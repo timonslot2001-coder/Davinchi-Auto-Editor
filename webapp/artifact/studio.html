@@ -2236,7 +2236,8 @@ function docsView(openId) {
         <div class="why mk-why"></div>`;
       f.hidden = false;
       const t = $(".mk-t", f), sr = $(".mk-s", f), why = $(".mk-why", f), go = $(".mk-go", f);
-      t.value = (d.titel.split(/\s+[-–]\s+/)[0] || d.titel).slice(0, 80);       // "Wi-Fi instellen" stays whole sr.value = d.serie || "";
+      t.value = (d.titel.split(/\s+[-–]\s+/)[0] || d.titel).slice(0, 80);       // "Wi-Fi instellen" stays whole
+      sr.value = d.serie || "";
       const req = () => requestText("juict-film", "", { titel: t.value, serie: sr.value, pdf: d.asset, doc: d.id });
       const check = () => {
         const r = req();

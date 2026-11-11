@@ -597,7 +597,7 @@ assert code == 1 and out["message"] == "al afgehandeld", out
 for bad in ('[studio] actie=juict-film titel="" prompt="x"', '[studio] actie=juict-film titel="a" prompt=""',
             '[studio] actie=juict-film titel="a\nb" prompt="x"', '[studio] actie=juict-film titel="a" serie="b\nc" prompt="x"',
             '[studio] actie=juict-film titel="a" prompt="x" project="Zomer Shoot"',
-            f'[studio] actie=juict-film titel="a" prompt="{"x" * 6001}"', '[studio] actie=juict-film titel="a" prompt="x\x07"',
+            f'[studio] actie=juict-film titel="a" prompt="{"x" * 4001}"', '[studio] actie=juict-film titel="a" prompt="x\x07"',
             '[studio] actie=juict-film titel="a" pdf=../x', '[studio] actie=juict-film titel="a" pdf=0123abcd doc=../x',
             '[studio] actie=juict-film titel="a" doc=d-1'):
     raises(studio.parse, bad)

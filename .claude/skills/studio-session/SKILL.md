@@ -26,8 +26,8 @@ Both shells work, because no command below carries free text from a comment: the
    - `PY -m webapp studio-projects` → `[{name, slug, state}]`: every project's `projects/<slug>` document (folder
      names the validator refuses are left out). Merge each `state` as in *Writing a project* below (keeps uploaded
      URLs). Never put a project name on a command line.
-   - `studio/pc` = the output of `PY -m webapp studio-pc` (`{host, website, phone}`: the website's addresses for the
-     *Foto's* link) plus `seen_at: <now, ISO UTC>`.
+   - `studio/pc` = the output of `PY -m webapp studio-pc` (`{host, website, phone}`: the website's addresses; the Studio
+     shows the host under the PC status) plus `seen_at: <now, ISO UTC>`.
    - The SSD folders: see *SSD page* below.
 4. Tell Timon in one line: "Studio-sessie luistert (N projecten)." Then wait for comments.
 
@@ -136,9 +136,13 @@ here, in one go, not in a separate chat.
      `type_url`, `title` = `film.titel` and no files (`auto_open: "after_first_write"`), then follow the instructions
      that call returns. Where the type lets you add images, use the PDF's screenshots (cropped to the part that
      matters, with the click highlighted) instead of drawing the UI from memory. JUICT look unless the source says
-     otherwise: drawn, flat and clean, soft glow, calm motion, big readable text; dark blue `#002345` ground, pink
-     `#FF3862`, white, yellow `#FBAF1F`; Libre Franklin; Dutch; a clear cut between scenes (the sound effects go there
-     in Resolve); no voice-over.
+     otherwise (moving type, no drawings; the same words as `JUICT_LOOK` in `webapp/artifact/studio.html`): calm dark
+     blue `#002345` ground with a soft glow; per scene one big bold keyword in CAPITALS in pink `#FF3862` with a small
+     white line above it; steps numbered (#1, #2 …) with a short label; the explanation types itself out in a white card
+     with a label chip above it; under it a short conclusion in bold white capitals; yellow `#FBAF1F` only as a small
+     accent (arrow, line, marker); tight, quick moves; `juict.nl` small at the bottom as a watermark; end card with the
+     JUICT logo; Libre Franklin (extra bold for keywords); 16:9 (9:16 for a reel); Dutch; a clear cut between scenes
+     (the sound effects go there in Resolve); no voice-over.
   4. **Check before you hand it over** (CLAUDE.md: always rewatch): read the film back and check every scene against
      the source: right order, no step missing or invented, text fits and is spelled right, nothing hidden behind other
      elements. Fix it first.

@@ -12,5 +12,6 @@ assert d["website"] == "http://127.0.0.1:5080" and d["phone"] is None and d["hos
 phone.tailscale_ip = lambda: "100.101.102.103"
 assert studio.pc_doc()["phone"] == "http://100.101.102.103:5080"
 html = (Path(__file__).resolve().parents[1] / "webapp" / "artifact" / "studio.html").read_text(encoding="utf-8")
-assert 'id="navFotos"' in html and 'target="_blank" rel="noopener"' in html, "the Studio links to the website's photos"
+assert "navFotos" not in html and "remotedesktop.google.com" not in html, "Foto's and PC op afstand left the Studio menu (2026-11-11)"
+assert 'class="side-gear" href="#/instellingen"' in html, "Instellingen is the small gear under the PC status"
 print("studio pc test ok")

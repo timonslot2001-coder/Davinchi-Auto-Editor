@@ -3,6 +3,12 @@
 What changed, in words you would notice in an edit or on the PC. Newest first. Small fixes are folded into the day's
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
+## 2026-11-11 — JUICT videos in the reel style, a calmer Studio menu
+- Every JUICT video the Studio makes now follows the build of the reel you liked, in JUICT colours: one big pink keyword
+  per scene on dark blue, numbered steps, the explanation typing itself out in a card, a short conclusion in capitals,
+  `juict.nl` as a watermark and the logo on the end card.
+- The Studio menu lost *Foto's* and *PC op afstand*; *Instellingen* is a small gear under the PC status.
+
 ## 2026-11-09 — The Studio session runs by itself
 - No more starting `start-studio-sessie.bat` by hand: run `powershell -ExecutionPolicy Bypass -File setup\autostart-studio.ps1`
   once and it starts when you log in to Windows (minimised). When the session stops it comes back by itself after 15 s;

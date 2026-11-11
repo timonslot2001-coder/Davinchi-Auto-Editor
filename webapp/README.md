@@ -112,7 +112,7 @@ the website recognises it: `edit_v*.py` in the folder or clips under *Klanten* o
   `lightcraft-cli.exe` (default: the portable copy in `~/.autoedit/lightcraft`). **Openen in LightCraft** (`POST /api/photos/open`,
   local mode only) starts `lightcraft.exe` on the shoot's photo folders: culling, comparing, deleting and own LUTs are
   done in LightCraft's own window. From another device the button also opens Chrome Remote Desktop
-  (remotedesktop.google.com/access), where the PC with LightCraft is used; the Studio links there too (*PC op afstand ↗*).
+  (remotedesktop.google.com/access), where the PC with LightCraft is used.
 - **Typ wat je wilt:** the box under the feedback buttons sends the sentence to `POST /api/projects/<name>/ask`.
   `assistant.py` asks a local model in LM Studio on this PC (free, no tokens; default `openai/gpt-oss-20b`, loaded on
   the first question and unloaded after 10 min idle) to pick one of the same buttons: new plan (song, title, length),

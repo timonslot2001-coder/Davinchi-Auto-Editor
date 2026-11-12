@@ -4,6 +4,7 @@ from __future__ import annotations
 import copy
 import json
 import random
+import zlib
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -45,11 +46,13 @@ def analyse_folder(folder: Path, log=con.print) -> list[analyze.ClipAnalysis]:
     for i, v in enumerate(videos, 1):
         log(f"  analysing {i}/{len(videos)}  {v.name}")
         clips.append(analyze.analyze_clip(v))
-    clips = analyze.dedupe(clips)
+    kept = analyze.dedupe(clips)
     for c in clips:
-        if c.rejected_reason:
+        if not any(k is c for k in kept):                # dedupe drops these; say so instead of dropping silently
+            log(f"  [yellow]skipping {c.name}: dubbele opname[/]")
+        elif c.rejected_reason:
             log(f"  [yellow]skipping {c.name}: {c.rejected_reason}[/]")
-    return clips
+    return kept
 
 
 def run(cfg, folder: str | Path, style_name: str | None = None, variants: str = "A", music: str | None = None,
@@ -77,15 +80,15 @@ def run(cfg, folder: str | Path, style_name: str | None = None, variants: str = 
     out_root = Path(out_dir) if out_dir else Path(cfg.get("paths.output_folder")) / f"{datetime.now():%Y-%m-%d}_{folder.name}"
     out_root.mkdir(parents=True, exist_ok=True)
     results = []
+    run_seed = seed if seed is not None else random.randrange(1 << 16)   # every run its own choices
     for v in variants:
         if style.get("mode") == "cinematic":
-            plan = planner.make_cinematic_plan(clips, style, cfg, mus, variant=v, stab_mode=stab_mode,
+            plan = planner.make_cinematic_plan(clips, style, cfg, mus, variant=v, seed=run_seed, stab_mode=stab_mode,
                                                title=title or style.get("title"))
         else:
             plan = planner.make_plan(clips, style, cfg, mus, variant=v, stab_mode=stab_mode)
         base = f"{category or 'edit'}_{v}"
         overrides: dict = {}
-        run_seed = seed if seed is not None else random.randrange(1 << 16)   # every run its own choices
         log(f"  seed {run_seed} (pass --seed {run_seed} to get exactly this edit again)")
         use_director = style.get("mode") == "cinematic" and style.get("director", True)
         for attempt in range(2):                         # build → render → self-review → (fix once)
@@ -95,7 +98,7 @@ def run(cfg, folder: str | Path, style_name: str | None = None, variants: str = 
                 direct(plan, clips, mus, seed=run_seed, log=log, overrides=overrides, cfg=cfg)
             (out_root / f"{base}_plan.json").write_text(plan.to_json())
             log(f"[bold]Variant {v}[/]: {len(plan.shots)} shots, {plan.length:.1f}s, hook “{plan.texts[0]['text'] if plan.texts else '-'}”")
-            built = Builder(cfg, plan, style, log=log).build()
+            built = Builder(cfg, plan, style, log=log, seed=run_seed).build()
             res = {"variant": v, "timeline": built["timeline"], "plan": str(out_root / f"{base}_plan.json")}
             if not render:
                 break
@@ -122,7 +125,7 @@ def run(cfg, folder: str | Path, style_name: str | None = None, variants: str = 
                 log(f"[yellow]QC: {', '.join(fin['qc']['problems'])}[/]")
             if queue:
                 hook = plan.texts[0]["text"] if plan.texts else style["label"]
-                caps = {p: social.suggest(category or "lifestyle", hook, p, location, seed=hash(v))
+                caps = {p: social.suggest(category or "lifestyle", hook, p, location, seed=zlib.crc32(v.encode()))
                         for p in cfg.get("posting.platforms", ["instagram", "tiktok"])}
                 when = {p: publish.next_slot(cfg, p) for p in caps}
                 effects = {}

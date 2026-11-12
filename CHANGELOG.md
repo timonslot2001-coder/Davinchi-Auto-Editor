@@ -3,6 +3,11 @@
 What changed, in words you would notice in an edit or on the PC. Newest first. Small fixes are folded into the day's
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
+## 2026-11-12 — A firm base for the one-editor plan
+- `--seed` now gives exactly the same edit again, sounds included (it used to reach only the effects).
+- A clip that is left out as a double take is named in the log instead of disappearing silently.
+- All tests run with one command: `python tools/run_tests.py` (`--quick` skips the 5-minute one).
+
 ## 2026-11-11 — JUICT videos in the reel style, a calmer Studio menu
 - Every JUICT video the Studio makes now follows the build of the reel you liked, in JUICT colours: one big pink keyword
   per scene on dark blue, numbered steps, the explanation typing itself out in a card, a short conclusion in capitals,

@@ -6,6 +6,7 @@ each build gets its own timeline (= a version you can always go back to).
 from __future__ import annotations
 
 import time
+import zlib
 from datetime import datetime
 from pathlib import Path
 
@@ -30,12 +31,12 @@ A_CLIP, A_SFX, A_SFX2, A_MUSIC = 1, 2, 3, 4
 
 
 class Builder:
-    def __init__(self, cfg, plan: Plan, style: dict, log=con.print):
+    def __init__(self, cfg, plan: Plan, style: dict, log=con.print, seed: int | None = None):
         self.cfg, self.plan, self.style, self.log = cfg, plan, style, log
         self.fps = plan.fps
         self.resolve = connect()
         self.pm = self.resolve.GetProjectManager()
-        self.lib = Library(cfg.get("paths.sfx_folders", []))
+        self.lib = Library(cfg.get("paths.sfx_folders", []), seed=seed)   # same seed, same sounds
 
     # ---------------------------------------------------------------- helpers
     def f(self, seconds: float) -> int:
@@ -302,7 +303,7 @@ class Builder:
         if ov:
             files = [p for d in cfg.get("paths.overlay_folders", []) for p in Path(d).glob("*.mov")]
             if files:
-                pick = files[hash(plan.variant) % len(files)]
+                pick = files[zlib.crc32(plan.variant.encode()) % len(files)]
                 o = self._import([pick], b_gfx)[str(pick)]
                 item = self._append(o, 0, self.f(plan.length), V_OVERLAY, start, 1)
                 if item:
@@ -419,8 +420,10 @@ def render(timeline_name: str, out_dir: Path, name: str, log=con.print) -> Path:
     """Render the timeline to a high-quality 1080×1920 MP4 (post-processing happens in export.py)."""
     resolve = connect()
     p = resolve.GetProjectManager().LoadProject(PROJECT) or resolve.GetProjectManager().GetCurrentProject()
-    tl = next(p.GetTimelineByIndex(i) for i in range(1, p.GetTimelineCount() + 1)
-              if p.GetTimelineByIndex(i).GetName() == timeline_name)
+    tl = next((p.GetTimelineByIndex(i) for i in range(1, p.GetTimelineCount() + 1)
+               if p.GetTimelineByIndex(i).GetName() == timeline_name), None)
+    if tl is None:
+        raise RuntimeError(f"De tijdlijn '{timeline_name}' staat niet (meer) in het Resolve-project {PROJECT}.")
     p.SetCurrentTimeline(tl)
     resolve.OpenPage("deliver")
     codecs = p.GetRenderCodecs("mp4") or {}

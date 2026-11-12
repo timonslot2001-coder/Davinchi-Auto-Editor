@@ -31,6 +31,11 @@ def _momentary(path: Path) -> tuple[np.ndarray, np.ndarray]:
     return t, m
 
 
+def _aspect_of(base: str) -> str | None:
+    """'9:16' or '16:9' from an export name like edit_A_9x16; None when the name says neither."""
+    return "9:16" if "9x16" in base else "16:9" if "16x9" in base else None
+
+
 def review(video: Path, plan: Plan, out_dir: Path, base: str) -> dict:
     inv, taste = load_inventory(), load_taste()
     budget = inv["budget"]
@@ -123,7 +128,7 @@ def review(video: Path, plan: Plan, out_dir: Path, base: str) -> dict:
     cap.release()
 
     # ---- picture problems
-    expect = (1920, 1080) if plan.shots and plan.length and "16" in base else None
+    expect = (1920, 1080) if plan.shots and plan.length and _aspect_of(base) == "16:9" else None
     q = qc(video, expect or (1080, 1920))
     issues += [p for p in q.problems if not p.startswith("resolution")]
     if q.black_segments and q.black_segments[0][0] < 0.05:

@@ -49,6 +49,9 @@ Timon's own channels come first; client work runs on a separate track so it neve
 | How AutoEdit gets simpler: baseline, phases, what is measured | [simpler-plan.md](simpler-plan.md) |
 | Design of the Studio as a working Artifact (draft) | [superpowers/specs/2026-11-01-studio-artifact-design.md](superpowers/specs/2026-11-01-studio-artifact-design.md) |
 | Build plan for the Studio Artifact | [superpowers/plans/2026-11-01-studio-artifact.md](superpowers/plans/2026-11-01-studio-artifact.md) |
+| Notes on the whole program (read-through of 2026-11-12) | [superpowers/specs/2026-11-12-one-editor-notes.md](superpowers/specs/2026-11-12-one-editor-notes.md) |
+| Design: one editor, one flow (proposal) | [superpowers/specs/2026-11-12-one-editor-design.md](superpowers/specs/2026-11-12-one-editor-design.md) |
+| Build plan for the one-editor redesign | [superpowers/plans/2026-11-12-one-editor.md](superpowers/plans/2026-11-12-one-editor.md) |
 | What changed and when | [CHANGELOG.md](../CHANGELOG.md) |
 
 ## Start pages and records

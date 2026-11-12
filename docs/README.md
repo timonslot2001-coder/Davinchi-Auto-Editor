@@ -29,6 +29,7 @@ Timon's own channels come first; client work runs on a separate track so it neve
 ## I want to look something up (reference)
 | question | open |
 |---|---|
+| Run all tests (`python tools/run_tests.py`, `--quick` skips the 5-minute one) | [tools/run_tests.py](../tools/run_tests.py) |
 | Every command and option | [README.md](../README.md) → *Command reference* |
 | The cine montage rules and numbers | [EDITING_DNA_PACKAGE/STYLE_DNA.md](../EDITING_DNA_PACKAGE/STYLE_DNA.md) (source: `style_dna.json`) |
 | Which fonts/components exist, and their rights | [EDITING_DNA_PACKAGE/ASSET_LIBRARY.md](../EDITING_DNA_PACKAGE/ASSET_LIBRARY.md) |

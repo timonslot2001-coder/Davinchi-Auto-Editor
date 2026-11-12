@@ -14,7 +14,9 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 DNA = REPO / "EDITING_DNA_PACKAGE"
 SKIP = ("/.claude/skills/popular-web-designs/", "/.venv/", "/data/", "/reference_frames/", "/annotated_comparisons/",
-        "/docs/superpowers/plans/")  # build plans name files that do not exist yet
+        "/docs/superpowers/plans/",  # build plans name files that do not exist yet
+        # a proposal that names what its plan will build; remove this line when the plan's phase 5 has landed
+        "/docs/superpowers/specs/2026-11-12-one-editor-design.md")
 # local-only material (gitignored or created per project) that docs may name without it being in the repo
 LOCAL_OK = ("reference_frames", "annotated_comparisons", "data/", ".env", "exports/", "cine_montage/", "clips/", "music/",
             "project.yaml", "_review.", "ai_spend.json", "qa.json", "APPROVAL.json", "edl.json", "storyboard",

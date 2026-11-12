@@ -384,6 +384,8 @@ lifestyle, fashion), `config.yaml` and `inventory.yaml` (the dead knobs listed i
 
 ### Task 7.2: Docs that are no longer true
 **Files:** `CLAUDE.md`, `README.md`, `setup/README.md`, `config.yaml:115`, `docs/decisions/0008-python-env-outside-documents.md`.
+- [ ] Remove the exemption for the design document from `SKIP` in `tools/doc_check.py` (every file and command it
+  names exists by now) and change the design's status line to "built".
 - [ ] Remove "faster-whisper is blocked". Mark local Wan as "needs a ComfyUI you start yourself" (Comfy Desktop is
   uninstalled); keep the Muapi money rule word for word. Replace "commit everything to `main`" with the branch + PR
   rule. Remove the old dashboard. `doc_check`. Commit. PR.

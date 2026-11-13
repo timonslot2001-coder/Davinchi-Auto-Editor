@@ -29,7 +29,70 @@ def pick_music(cfg, music: str | None) -> Path | None:
         if not hits:
             raise SystemExit(f"No song matching '{music}' in {folder}. Songs there: {[t.name for t in tracks] or 'none'}")
         return hits[0]
-    return random.choice(tracks) if tracks else None
+    return None                                   # no song chosen = no song (the editor never picks one at random)
+
+
+POWERGRADES = DATA / "powergrades"       # his PowerGrades, exported from the Resolve gallery as .drx
+
+
+class NotReady(SystemExit):
+    """A choice is missing or wrong; the message says which, in plain Dutch."""
+
+
+def grade_names() -> list[str]:
+    """"basis" (neutral S-Log3 → Rec.709) and the names of his exported PowerGrades."""
+    return ["basis"] + (sorted(p.stem for p in POWERGRADES.glob("*.drx")) if POWERGRADES.exists() else [])
+
+
+def _save_brief(project: Path, b) -> None:
+    """Write the brief under `edit:` in project.yaml; every other line (also his comments) stays as it is."""
+    import yaml
+    from .brief import to_project
+    y = project / "project.yaml"
+    lines = y.read_text(encoding="utf-8").splitlines() if y.exists() else []
+    out, skip = [], False
+    for line in lines:
+        if line.startswith("edit:"):
+            skip = True
+            continue
+        if skip and (line.startswith((" ", "\t")) or not line.strip()):
+            continue
+        skip = False
+        out.append(line)
+    block = yaml.safe_dump({"edit": to_project(b)}, sort_keys=False, allow_unicode=True).rstrip("\n")
+    y.write_text("\n".join(out + [block]) + "\n", encoding="utf-8")
+
+
+def edit(cfg, target: str | Path, choices: dict, seed: int | None = None, render: bool = True,
+         log=con.print) -> list[dict]:
+    """Make an edit from a project (name, partial is fine) or a folder of clips with Timon's choices.
+    choices: song, song_start, rhythm, length, grade, kind, aspect (None = keep what the project has)."""
+    from . import brief as brief_mod, projects
+    folder, project, settings = Path(target), None, {}
+    if not folder.is_dir():
+        project = projects.find(cfg, str(target))
+        folder, settings = project / "clips", projects.settings(project)
+    b = brief_mod.merge(brief_mod.from_project(settings), **choices)
+    own = sorted(f for f in (project / "music").glob("*") if f.suffix.lower() in analyze.AUDIO_EXT) \
+        if project and (project / "music").exists() else []
+    songs = [f.name for f in own] + list_music(cfg)
+    problems = brief_mod.problems(b, songs, grade_names())
+    if problems:
+        raise NotReady("\n".join(problems))
+    music = b.song
+    if b.song != brief_mod.NO_MUSIC:
+        hit = next((f for f in own if b.song.lower() in f.name.lower()), None)
+        music = str(hit) if hit else str(pick_music(cfg, b.song))
+    if project:
+        _save_brief(project, b)
+        from . import planner
+        planner.EXTRA_TAGS = project / "tags.json"
+    log(f"[bold]Edit[/] {project.name if project else folder.name} · liedje {Path(music).name if music else '-'} · "
+        f"ritme {b.rhythm} · lengte {b.length} ({b.seconds:.0f} s) · kleur {b.grade}")
+    return run(cfg, folder, None, settings.get("variants") or "A", music, render=render,
+               title=settings.get("title") or None, label=settings.get("label") or None,
+               category=settings.get("category"), aspect=b.aspect, location=settings.get("location"),
+               out_dir=(project / "exports") if project else None, seed=seed, log=log, brief=b)
 
 
 def list_music(cfg) -> list[str]:
@@ -59,7 +122,7 @@ def run(cfg, folder: str | Path, style_name: str | None = None, variants: str = 
         stab_mode: str | None = None, render: bool = True, queue: bool = True, location: str | None = None,
         clips: list | None = None, title: str | None = None, category: str | None = None,
         aspect: str | None = None, label: str | None = None, out_dir: Path | None = None,
-        seed: int | None = None, log=con.print) -> list[dict]:
+        seed: int | None = None, log=con.print, brief=None) -> list[dict]:
     from .builder import Builder, render as do_render
 
     folder = Path(folder)
@@ -84,7 +147,7 @@ def run(cfg, folder: str | Path, style_name: str | None = None, variants: str = 
     for v in variants:
         if style.get("mode") == "cinematic":
             plan = planner.make_cinematic_plan(clips, style, cfg, mus, variant=v, seed=run_seed, stab_mode=stab_mode,
-                                               title=title or style.get("title"))
+                                               title=title or style.get("title"), brief=brief)
         else:
             plan = planner.make_plan(clips, style, cfg, mus, variant=v, stab_mode=stab_mode)
         base = f"{category or 'edit'}_{v}"

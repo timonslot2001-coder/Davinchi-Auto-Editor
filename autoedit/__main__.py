@@ -72,6 +72,17 @@ def main(argv=None):
     a = sub.add_parser("photos", help="develop chosen photos of a shoot in one LightCraft look into '2 Bewerkt/Foto'")
     a.add_argument("look", help="auto / cinematic / warm_film / crisp / moody / bw")
     a.add_argument("photos", nargs="+", help="photos as '<Soort>/<datum naam>/<photo>'")
+    a = sub.add_parser("edit", help="maak een edit met jouw keuzes: liedje, ritme, lengte, kleur")
+    a.add_argument("target", help="projectnaam (een deel is genoeg) of een map met clips")
+    a.add_argument("--song", help="liedje (een deel van de naam), of 'none' voor geen muziek")
+    a.add_argument("--song-start", type=float, help="seconden in het liedje waar de edit begint (standaard: rond de drop)")
+    a.add_argument("--ritme", choices=["beat", "rustig"], help="op de beat, of rustig (ongeveer een maat per shot)")
+    a.add_argument("--lengte", choices=["kort", "normaal", "lang"], help="kort 10 s, normaal 20 s, lang 30 s")
+    a.add_argument("--grade", help="naam van je PowerGrade, of 'basis'")
+    a.add_argument("--soort", choices=["auto", "montage", "praat"], help="montage of praatvideo (standaard: auto)")
+    a.add_argument("--aspect", choices=["9:16", "16:9"])
+    a.add_argument("--seed", type=int, help="precies dezelfde edit nog een keer")
+    a.add_argument("--no-render", action="store_true", help="alleen de tijdlijn in Resolve bouwen")
     a = sub.add_parser("project", help="edit a project by name (partial name is fine)")
     a.add_argument("name")
     a.add_argument("--song", help="override the project's song")
@@ -123,6 +134,17 @@ def main(argv=None):
     args = ap.parse_args(argv)
     cfg = load()
 
+    if args.cmd == "edit":
+        from . import pipeline
+        choices = {"song": args.song, "song_start": args.song_start, "rhythm": args.ritme, "length": args.lengte,
+                   "grade": args.grade, "kind": args.soort, "aspect": args.aspect}
+        try:
+            res = pipeline.edit(cfg, args.target, choices, seed=args.seed, render=not args.no_render)
+        except pipeline.NotReady as e:
+            print(str(e))
+            sys.exit(2)
+        print(json.dumps(res, indent=2, ensure_ascii=False, default=str))
+        return
     if args.cmd == "run":
         from . import pipeline
         if args.bass is not None:

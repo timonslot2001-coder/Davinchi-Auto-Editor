@@ -341,7 +341,7 @@ def load_tags() -> dict:
 
 def make_cinematic_plan(clips: list[ClipAnalysis], style: dict, cfg, music: MusicAnalysis | None = None,
                         variant: str = "A", seed: int = 7, stab_mode: str | None = None,
-                        title: str | None = None) -> Plan:
+                        title: str | None = None, brief=None) -> Plan:
     rng = random.Random(f"{seed}{variant}")
     fps = float(cfg.get("camera.fps", 25))
     usable = [c for c in clips if not c.rejected_reason and c.segments]
@@ -370,6 +370,16 @@ def make_cinematic_plan(clips: list[ClipAnalysis], style: dict, cfg, music: Musi
     quick = style.get("intro_cuts", [0.27, 0.25])
     hold = style.get("final_hold", 1.7)
     length = style.get("length_s", 13.0)
+    fast = style.get("energy_speedup", True)              # off: loud parts don't cut faster than the step
+    tail = 3.0                                            # seconds the song may run past `length` to end on a hit
+    if brief is not None:
+        # Timon's choices win over the style (autoedit/brief.py): rustig = a bar per shot, never under 2 beats or
+        # 0.8 s, loud parts don't speed up; beat = 2 beats per shot, 1 beat on a loud part, never under 0.6 s
+        calm = brief.rhythm != "beat"
+        beat = 60 / music.tempo if music and music.tempo else 0.6
+        step = beat * (4 if calm else 2)
+        floor = max(beat * (2 if calm else 1), 0.8 if calm else 0.6)
+        fast, length, tail = not calm, brief.seconds, 0.0
 
     # not every video gets the same structure (taste: no 1:1 copies) → dip to black is a coin flip
     dip_at = 2 if style.get("dip_to_black", True) and rng.random() < style.get("dip_chance", 1.0) else None
@@ -378,7 +388,10 @@ def make_cinematic_plan(clips: list[ClipAnalysis], style: dict, cfg, music: Musi
         # music's energy (quiet → hold, loud → cut faster), always on a beat; final shot starts on the last hit
         beats = music.beats
         snap = lambda x: min(beats, key=lambda b: abs(b - x))
-        end = min(music.duration, length + 3.0)
+        end = min(music.duration, length + tail)
+        if brief is not None:                             # end on a bar, as close to the chosen length as the song allows
+            bars = [b for b in beats[::4] if b <= music.duration] or beats
+            end = min(bars, key=lambda b: abs(b - min(length, music.duration)))
         # the final hold may start on a late hit, but never runs longer than final_hold_max (a 7 s ending drags)
         max_hold = style.get("final_hold_max", 3.5)
         late_hits = [h for h in (music.hits or []) if max(end * 0.6, end - max_hold) <= h <= end - 1.0]
@@ -394,7 +407,6 @@ def make_cinematic_plan(clips: list[ClipAnalysis], style: dict, cfg, music: Musi
         while t < final_start - 0.3:
             e = music.energy_at(t)
             # quiet → hold, loud → cut faster, very loud → quick bursts (ref A: ~0.27 s per shot)
-            fast = style.get("energy_speedup", True)          # off: loud parts don't cut faster than shot_s
             want = step * (3.0 if e < 0.12 else 2.0 if e < 0.3 else 1.0 if e < 0.7 or not fast
                            else 0.6 if e < 0.9 else 0.5)
             want = max(want, floor)

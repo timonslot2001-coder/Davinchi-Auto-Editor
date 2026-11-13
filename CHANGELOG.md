@@ -3,6 +3,13 @@
 What changed, in words you would notice in an edit or on the PC. Newest first. Small fixes are folded into the day's
 entry; the full list is in `git log`. Hard-to-reverse choices also get a record in [docs/decisions/](docs/decisions/README.md).
 
+## 2026-11-13 — Your choices first: `autoedit edit`
+- One command for your own edits: `autoedit edit "Beef Tartaar" --song escape --grade basis`. Rhythm (*beat* or
+  *rustig*) and length (*kort* 10 s, *normaal* 20 s, *lang* 30 s) are your choice; the project remembers them.
+- No song or no colour chosen? It stops and lists what you have. It never picks a random song any more.
+- Your own PowerGrades are listed from `data/powergrades/` (applying them comes in the next step; until then the
+  colour is the measured basis grade).
+
 ## 2026-11-12 — A firm base for the one-editor plan
 - `--seed` now gives exactly the same edit again, sounds included (it used to reach only the effects).
 - A clip that is left out as a double take is named in the log instead of disappearing silently.

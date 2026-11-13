@@ -175,6 +175,7 @@ Videos land in your TikTok inbox; paste the caption (it's in the dashboard) and 
 ## Command reference
 | command | what it does |
 |---|---|
+| `autoedit edit <project\|folder>` | the main command: your choices first (`--song`, `--grade`, `--ritme beat\|rustig`, `--lengte kort\|normaal\|lang`), remembered per project; stops with the list when one is missing |
 | `autoedit run <folder>` | analyse → edit in Resolve → render → queue. Options: `--category`, `--aspect 9:16\|16:9`, `--music <file\|name\|none>`, `--bass <dB>`, `--title`, `--label`, `--location`, `--variants AB`, `--stabilize auto\|all\|none`, `--seed`, `--style`, `--no-render` |
 | `autoedit new <name>` | create a project folder with clips/, music/, exports/ and project.yaml |
 | `autoedit offload <name>` | camera card(s) → `<library>\<Soort>\<date> <name>\1 Ruw\` on the SSD, checked; links the project. `--soort koken\|kleding\|smoken\|reizen\|klanten\|inbox`, `--since YYYY-MM-DD`, `--no-project` |

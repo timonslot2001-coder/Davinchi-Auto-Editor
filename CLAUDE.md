@@ -16,7 +16,9 @@ The editor must get better every time, without copying references 1:1.
    Music from a reference: extract only clean music (no speech, no end-card sound) into the music folder.
 2. **Timon gives feedback** ("too much", "bigger title", "that pop looks weird"…) → add a rule to
    `taste.yaml` (quote what he said + the rule) and adjust the knobs/settings so it sticks.
-3. **Timon sends clips (+ a song)** → `autoedit run <folder> --music <name> [--title ...] [--label ...]`.
+3. **Timon sends clips (+ a song)** → `autoedit edit <project|folder> --song <name> --grade <PowerGrade|basis>
+   [--ritme beat|rustig] [--lengte kort|normaal|lang]`. Without a song or grade it stops and lists the choices;
+   the choices are remembered in the project's `project.yaml` (`edit:`).
    The director picks techniques only where motivated (music hit, motion, scene change, quiet part),
    within budget; every VFX gets its SFX.
 4. **Always rewatch before showing it**: the pipeline writes `<base>_review.json` and
